@@ -70,4 +70,19 @@ final class AppStateTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "selectedPersonality")
         UserDefaults.standard.removeObject(forKey: "workHistory")
     }
+
+    func testDailyLogsTracking() {
+        let appState = AppState()
+        XCTAssertEqual(appState.dailyLogs.count, 1, "dailyLogs should have an initial log")
+        XCTAssertEqual(appState.dailyLogs.first?.phase, .working)
+        
+        // Changing state should start a new log
+        appState.currentState = .resting
+        XCTAssertEqual(appState.dailyLogs.count, 2)
+        XCTAssertNotNil(appState.dailyLogs.first?.endTime)
+        XCTAssertEqual(appState.dailyLogs.first?.phase, .working)
+        
+        XCTAssertEqual(appState.dailyLogs.last?.phase, .resting)
+        XCTAssertNil(appState.dailyLogs.last?.endTime)
+    }
 }

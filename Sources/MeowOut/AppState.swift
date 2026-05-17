@@ -16,6 +16,19 @@ public enum PetPersonality: String, CaseIterable, Identifiable {
     public var id: String { rawValue }
 }
 
+public struct SessionLog: Identifiable, Equatable {
+    public let id = UUID()
+    public let startTime: Date
+    public var endTime: Date?
+    public let phase: AppPhase
+    
+    public init(startTime: Date = Date(), endTime: Date? = nil, phase: AppPhase) {
+        self.startTime = startTime
+        self.endTime = endTime
+        self.phase = phase
+    }
+}
+
 @Observable
 public final class AppState {
     private enum Keys: String {
@@ -127,7 +140,24 @@ public final class AppState {
     }
 
     // Transient State
-    public var currentState: AppPhase = .working
+    public var dailyLogs: [SessionLog] = []
+
+    public var currentState: AppPhase = .working {
+        didSet {
+            if oldValue != currentState {
+                recordPhaseTransition(from: oldValue, to: currentState)
+            }
+        }
+    }
+
+    private func recordPhaseTransition(from oldPhase: AppPhase, to newPhase: AppPhase) {
+        let now = Date()
+        if !dailyLogs.isEmpty {
+            dailyLogs[dailyLogs.count - 1].endTime = now
+        }
+        dailyLogs.append(SessionLog(startTime: now, phase: newPhase))
+    }
+
     public var workElapsed: TimeInterval = 0
     public var isPaused: Bool = false
     public var restRemaining: TimeInterval = 0
@@ -189,8 +219,9 @@ public final class AppState {
         return formatter.string(from: date)
     }
 
-
-    public init() {}
+    public init() {
+        dailyLogs.append(SessionLog(phase: currentState))
+    }
 
     public func resetToDefaults() {
         withMutation(keyPath: \.workDurationMinutes) {

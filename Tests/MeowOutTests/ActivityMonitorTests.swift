@@ -71,4 +71,21 @@ final class ActivityMonitorTests: XCTestCase {
         // Cleanup
         UserDefaults.standard.removeObject(forKey: "workHistory")
     }
+    
+    func testMidnightResetClearsDailyLogs() {
+        let appState = AppState()
+        appState.dailyLogs = [SessionLog(phase: .working), SessionLog(phase: .resting)]
+        
+        let monitor = ActivityMonitor(appState: appState)
+        
+        // Simulate a date change by setting lastStatResetDate to yesterday
+        let calendar = Calendar.current
+        appState.lastStatResetDate = calendar.date(byAdding: .day, value: -1, to: Date())
+        
+        monitor.tick(simulatedIdleTime: 0)
+        
+        // Logs should be cleared, but one new log for the current state should be added
+        XCTAssertEqual(appState.dailyLogs.count, 1)
+        XCTAssertEqual(appState.dailyLogs.first?.phase, appState.currentState)
+    }
 }

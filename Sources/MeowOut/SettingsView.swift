@@ -32,6 +32,7 @@ struct SettingsView: View {
             Picker("", selection: $selectedTab) {
                 Text(I18n.localized("settings_tab_settings", language: state.language)).tag(0)
                 Text(I18n.localized("settings_tab_statistics", language: state.language)).tag(1)
+                Text(I18n.localized("settings_tab_today_review", language: state.language)).tag(2)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 24)
@@ -43,11 +44,13 @@ struct SettingsView: View {
             ZStack {
                 if selectedTab == 0 {
                     settingsContent
-                } else {
+                } else if selectedTab == 1 {
                     statsContent
                         .onAppear {
                             refreshChartSnapshot()
                         }
+                } else if selectedTab == 2 {
+                    TodayReviewView(logs: state.dailyLogs)
                 }
             }
             .onChange(of: selectedTab) { _, newValue in

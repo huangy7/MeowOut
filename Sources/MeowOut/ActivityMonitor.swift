@@ -31,6 +31,8 @@ final class ActivityMonitor {
         if let lastReset = appState.lastStatResetDate {
             if !calendar.isDate(now, inSameDayAs: lastReset) {
                 appState.lastStatResetDate = now
+                appState.dailyLogs.removeAll()
+                appState.dailyLogs.append(SessionLog(startTime: now, phase: appState.currentState))
             }
         } else {
             appState.lastStatResetDate = now
