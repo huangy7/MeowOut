@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isStarted = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // 对于托盘应用，确保激活策略正确
         NSApp.setActivationPolicy(.accessory)
     }
 
@@ -29,6 +30,10 @@ struct WindowOpener: View {
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenSettingsWindow"))) { _ in
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "settings")
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenStatisticsWindow"))) { _ in
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: "statistics")
             }
     }
 }
@@ -137,7 +142,6 @@ struct TrayIconView: View {
 struct MeowOutApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var appState = AppState()
-    @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
         MenuBarExtra {
@@ -167,6 +171,7 @@ struct MeowOutApp: App {
     @ViewBuilder
     private var menuContent: some View {
         Text(I18n.localizedFormat("menu_today_label", language: appState.language, String(format: "%.1f", appState.totalWorkToday / 3600), Int64(appState.dailyWorkGoal)))
+        
         Divider()
         if appState.currentState == .paused {
             Text(I18n.localizedFormat("menu_paused_label", language: appState.language, Int64(appState.pauseRemaining / 60)))
@@ -192,7 +197,8 @@ struct MeowOutApp: App {
         Divider()
         Button(I18n.localized("settings_tab_statistics", language: appState.language)) { 
             NSApp.activate(ignoringOtherApps: true)
-            openWindow(id: "statistics") 
+            appDelegate.tryStartEngine() // Ensure engine is started
+            NotificationCenter.default.post(name: NSNotification.Name("OpenStatisticsWindow"), object: nil)
         }
         Button(I18n.localized("menu_settings", language: appState.language)) { NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil) }
         .keyboardShortcut(",", modifiers: .command)

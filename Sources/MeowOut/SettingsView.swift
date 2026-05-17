@@ -24,10 +24,26 @@ struct SettingsView: View {
     private var intervalsTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                HStack {
+                    Text(I18n.localized("settings_section_intervals", language: state.language))
+                        .font(.headline)
+                    Spacer()
+                    Button(action: {
+                        state.resetIntervalsToDefaults()
+                    }) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help(I18n.localized("settings_restore_defaults", language: state.language))
+                }
+                .padding(.bottom, 4)
+
                 // New Location for Daily Goal Slider
                 settingRow(
                     title: I18n.localized("stats_todays_goal", language: state.language),
-                    description: I18n.localized("stats_setting_goal", language: state.language),
+                    description: I18n.localizedFormat("stats_setting_goal", language: state.language, Int64(state.dailyWorkGoal)),
                     value: "\(state.dailyWorkGoal)h"
                 ) {
                     Slider(value: Binding(get: { Double(state.dailyWorkGoal) }, set: { state.dailyWorkGoal = Int($0) }), in: 4...12, step: 1)
@@ -76,6 +92,7 @@ struct SettingsView: View {
                 }
             }
         }
+        .scrollIndicators(.hidden)
     }
     
     private var behaviorTab: some View {
@@ -107,6 +124,7 @@ struct SettingsView: View {
                 }
             }
         }
+        .scrollIndicators(.hidden)
     }
     
     private var systemTab: some View {
@@ -136,36 +154,9 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                
-                Divider()
-                
-                Button(action: {
-                    openWindow(id: "statistics")
-                }) {
-                    Label {
-                        Text(I18n.localized("settings_tab_statistics", language: state.language))
-                    } icon: {
-                        Image(systemName: "chart.bar.xaxis")
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                
-                Divider()
-                
-                Button(action: {
-                    state.resetToDefaults()
-                }) {
-                    Label {
-                        Text(I18n.localized("settings_restore_defaults", language: state.language))
-                    } icon: {
-                        Image(systemName: "arrow.counterclockwise")
-                    }
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
             }
         }
+        .scrollIndicators(.hidden)
     }
 
     @ViewBuilder

@@ -35,11 +35,7 @@ struct TodayReviewView: View {
             ScrollView { // Use ScrollView to handle expanded content
                 VStack(spacing: 30) {
                     // 1. Timeline Bar
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("今日时间轴")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
+                    VStack(alignment: .leading, spacing: 12) {
                         GeometryReader { geometry in
                             HStack(spacing: 0) {
                                 ForEach(logs) { log in
@@ -60,7 +56,6 @@ struct TodayReviewView: View {
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        .padding(.top, 4)
                     }
                     
                     // 2. Summary Statistics
@@ -110,6 +105,7 @@ struct TodayReviewView: View {
                 }
                 .padding(24)
             }
+            .scrollIndicators(.hidden)
         }
     }
     

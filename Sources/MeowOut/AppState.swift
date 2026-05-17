@@ -145,17 +145,18 @@ public final class AppState {
     public var currentState: AppPhase = .working {
         didSet {
             if oldValue != currentState {
-                recordPhaseTransition(from: oldValue, to: currentState)
+                if dailyLogs.last?.phase != currentState {
+                    recordPhaseTransition(from: oldValue, to: currentState)
+                }
             }
         }
     }
 
-    private func recordPhaseTransition(from oldPhase: AppPhase, to newPhase: AppPhase) {
-        let now = Date()
+    public func recordPhaseTransition(from oldPhase: AppPhase, to newPhase: AppPhase, at date: Date = Date()) {
         if !dailyLogs.isEmpty {
-            dailyLogs[dailyLogs.count - 1].endTime = now
+            dailyLogs[dailyLogs.count - 1].endTime = date
         }
-        dailyLogs.append(SessionLog(startTime: now, phase: newPhase))
+        dailyLogs.append(SessionLog(startTime: date, phase: newPhase))
     }
 
     public var workElapsed: TimeInterval = 0
@@ -248,5 +249,23 @@ public final class AppState {
 
         // SMAppService (Launch at Login) is separate and should be toggled manually by user,
         // but we could unregister here if desired. Let's keep it for safety.
+    }
+
+    public func resetIntervalsToDefaults() {
+        withMutation(keyPath: \.workDurationMinutes) {
+            UserDefaults.standard.removeObject(forKey: Keys.workDurationMinutes.rawValue)
+        }
+        withMutation(keyPath: \.alertBeforeRestMinutes) {
+            UserDefaults.standard.removeObject(forKey: Keys.alertBeforeRestMinutes.rawValue)
+        }
+        withMutation(keyPath: \.restDurationMinutes) {
+            UserDefaults.standard.removeObject(forKey: Keys.restDurationMinutes.rawValue)
+        }
+        withMutation(keyPath: \.restToResetMinutes) {
+            UserDefaults.standard.removeObject(forKey: Keys.restToResetMinutes.rawValue)
+        }
+        withMutation(keyPath: \.dailyWorkGoal) {
+            UserDefaults.standard.removeObject(forKey: "dailyWorkGoal")
+        }
     }
 }

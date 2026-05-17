@@ -9,9 +9,37 @@ struct DailyWork: Identifiable {
 
 struct StatsView: View {
     @Bindable var state: AppState
+    @State private var selectedTab: Int = 0
     @State private var chartDataSnapshot: [DailyWork] = []
 
     var body: some View {
+        VStack(spacing: 0) {
+            // Tab Picker
+            Picker("", selection: $selectedTab) {
+                Text(I18n.localized("settings_tab_statistics", language: state.language)).tag(0)
+                Text(I18n.localized("settings_tab_today_review", language: state.language)).tag(1)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, 16)
+
+            Divider()
+
+            Group {
+                if selectedTab == 0 {
+                    statsContent
+                } else {
+                    TodayReviewView(logs: state.dailyLogs)
+                }
+            }
+        }
+        .frame(width: 420, height: 480)
+        .background(VisualEffectView().ignoresSafeArea())
+        .onAppear { refreshChartSnapshot() }
+    }
+
+    private var statsContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 // Goal Progress
@@ -61,15 +89,10 @@ struct StatsView: View {
                 .padding()
                 .background(Color.primary.opacity(0.03))
                 .cornerRadius(12)
-
-                // Today Review (Timeline)
-                TodayReviewView(logs: state.dailyLogs)
             }
             .padding(24)
         }
-        .onAppear { refreshChartSnapshot() }
-        .frame(minWidth: 500, minHeight: 600)
-        .background(VisualEffectView().ignoresSafeArea())
+        .scrollIndicators(.hidden)
     }
 
     private func refreshChartSnapshot() {
