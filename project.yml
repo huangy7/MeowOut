@@ -1,0 +1,14 @@
+# project.yml
+name: MeowOut
+options:
+  bundleIdPrefix: com.huangy
+targets:
+  MeowOut:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources: [Sources/MeowOut]
+    settings:
+      LSUIElement: true
+      GENERATE_INFOPLIST_FILE: NO
+      INFOPLIST_FILE: Sources/MeowOut/Info.plist

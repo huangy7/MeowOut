@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcodeproj
+*.xcworkspace
+!project.yml
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# MeowOut Artifacts
+MeowOut.dmg
+build_log.txt
+.superpowers/
