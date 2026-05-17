@@ -137,6 +137,7 @@ struct TrayIconView: View {
 struct MeowOutApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var appState = AppState()
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
         MenuBarExtra {
@@ -154,6 +155,11 @@ struct MeowOutApp: App {
 
         Window(I18n.localized("settings_window_title", language: appState.language), id: "settings") {
             SettingsView(state: appState)
+        }
+        .windowResizability(.contentSize)
+
+        Window(I18n.localized("settings_tab_statistics", language: appState.language), id: "statistics") {
+            StatsView(state: appState)
         }
         .windowResizability(.contentSize)
     }
@@ -184,6 +190,10 @@ struct MeowOutApp: App {
             Button(I18n.localized("menu_reset_timers", language: appState.language)) { appState.workElapsed = 0; appState.currentState = .working }
         }
         Divider()
+        Button(I18n.localized("settings_tab_statistics", language: appState.language)) { 
+            NSApp.activate(ignoringOtherApps: true)
+            openWindow(id: "statistics") 
+        }
         Button(I18n.localized("menu_settings", language: appState.language)) { NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil) }
         .keyboardShortcut(",", modifiers: .command)
         Button(I18n.localized("menu_quit", language: appState.language)) { NSApplication.shared.terminate(nil) }
