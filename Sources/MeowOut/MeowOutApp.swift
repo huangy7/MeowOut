@@ -163,8 +163,12 @@ struct MeowOutApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            WindowOpener()
-            menuContent
+            VStack(spacing: 0) {
+                WindowOpener()
+                menuContent
+            }
+            .frame(width: 280)
+            .background(VisualEffectView().ignoresSafeArea())
         } label: {
             TrayIconView(appState: appState)
                 .onAppear {
@@ -177,6 +181,7 @@ struct MeowOutApp: App {
                 }
         }
         .environment(appState)
+        .menuBarExtraStyle(.window)
 
         Window(I18n.localized("settings_window_title", language: appState.language), id: "settings") {
             SettingsView(state: appState)
@@ -198,42 +203,223 @@ struct MeowOutApp: App {
 
     @ViewBuilder
     private var menuContent: some View {
-        Text(I18n.localizedFormat("menu_today_label", language: appState.language, String(format: "%.1f", appState.totalWorkToday / 3600), Int64(appState.dailyWorkGoal)))
-        
-        Divider()
-        if appState.currentState == .paused {
-            Text(I18n.localizedFormat("menu_paused_label", language: appState.language, Int64(appState.pauseRemaining / 60)))
-            Button(I18n.localized("menu_resume", language: appState.language)) {
-                appState.currentState = .working
-                appState.pauseRemaining = 0
+        VStack(spacing: 0) {
+            // Section 1: Status
+            MenuDashboardCard(appState: appState)
+
+            Divider()
+
+            VStack(spacing: 4) {
+                // Section 2: Actions
+                if appState.currentState == .paused {
+                    HStack {
+                        Text(I18n.localizedFormat("menu_paused_label", language: appState.language, Int64(appState.pauseRemaining / 60)))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button {
+                            appState.currentState = .working
+                            appState.pauseRemaining = 0
+                        } label: {
+                            Image(systemName: "play.fill")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                } else {
+                    HStack {
+                        Label(I18n.localized("menu_pause", language: appState.language), systemImage: "pause.fill")
+                        Spacer()
+                        HStack(spacing: 6) {
+                            QuickPauseButton(title: "15m") { pause(minutes: 15) }
+                            QuickPauseButton(title: "30m") { pause(minutes: 30) }
+                            QuickPauseButton(title: "1h") { pause(minutes: 60) }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                }
+
+                Divider()
+
+                // Section 3: Features
+                VStack(spacing: 0) {
+                    menuButton(title: I18n.localized("menu_breathing", language: appState.language), icon: "wind") {
+                        NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil)
+                    }
+                    
+                    menuButton(title: I18n.localized("settings_tab_statistics", language: appState.language), icon: "chart.bar.xaxis") {
+                        NSApp.activate(ignoringOtherApps: true)
+                        appDelegate.tryStartEngine()
+                        NotificationCenter.default.post(name: NSNotification.Name("OpenStatisticsWindow"), object: nil)
+                    }
+                }
+
+                Divider()
+
+                // Section 4: System
+                VStack(spacing: 0) {
+                    menuButton(title: I18n.localized("menu_settings", language: appState.language), icon: "gearshape") {
+                        NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil)
+                    }
+                    
+                    menuButton(title: I18n.localized("menu_quit", language: appState.language), icon: "power") {
+                        NSApplication.shared.terminate(nil)
+                    }
+                }
             }
-        } else {
-            Text(I18n.localizedFormat("menu_work_label", language: appState.language, Int64(appState.workElapsed / 60)))
-            Menu(I18n.localized("menu_pause", language: appState.language)) {
-                Button(I18n.localized("menu_pause_15m", language: appState.language)) { pause(minutes: 15) }
-                Button(I18n.localized("menu_pause_30m", language: appState.language)) { pause(minutes: 30) }
-                Button(I18n.localized("menu_pause_1h", language: appState.language)) { pause(minutes: 60) }
-            }
+            .padding(.vertical, 4)
         }
-        Divider()
-        Button("🧘 深呼吸") {
-            NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil)
-        }
-        Divider()
-        Button(I18n.localized("settings_tab_statistics", language: appState.language)) { 
-            NSApp.activate(ignoringOtherApps: true)
-            appDelegate.tryStartEngine() // Ensure engine is started
-            NotificationCenter.default.post(name: NSNotification.Name("OpenStatisticsWindow"), object: nil)
-        }
-        Button(I18n.localized("menu_settings", language: appState.language)) { NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil) }
-        .keyboardShortcut(",", modifiers: .command)
-        Button(I18n.localized("menu_quit", language: appState.language)) { NSApplication.shared.terminate(nil) }
     }
 
-
+    private func menuButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        ButtonView(title: title, icon: icon, action: action)
+    }
 
     private func pause(minutes: Int) {
         appState.pauseRemaining = TimeInterval(minutes * 60)
         appState.currentState = .paused
+    }
+}
+
+struct ButtonView: View {
+    let title: String
+    let icon: String
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                    .frame(width: 20)
+                Text(title)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(isHovered ? Color.accentColor.opacity(0.1) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+}
+
+struct QuickPauseButton: View {
+    let title: String
+    let action: () -> Void
+    @State private var isHovered = false
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(isHovered ? Color.orange.opacity(0.15) : Color.secondary.opacity(0.1))
+                .foregroundColor(isHovered ? .orange : .primary)
+                .cornerRadius(6)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+}
+
+struct MenuDashboardCard: View {
+    @Bindable var appState: AppState
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            // Left Column: Goal
+            VStack(alignment: .leading, spacing: 8) {
+                Label {
+                    Text(I18n.localized("stats_todays_goal", language: appState.language))
+                        .font(.system(size: 13, weight: .medium))
+                } icon: {
+                    Image(systemName: "target")
+                        .font(.system(size: 14, weight: .ultraLight))
+                        .foregroundStyle(.orange)
+                }
+                
+                let goalProgress = min(1.0, appState.totalWorkToday / (Double(appState.dailyWorkGoal) * 3600))
+                CapsuleProgressView(value: goalProgress)
+                
+                let unitSuffix = I18n.localized("unit_hours_short", language: appState.language).components(separatedBy: " ").last ?? ""
+                Text("\(String(format: "%.1f", appState.totalWorkToday / 3600)) / \(appState.dailyWorkGoal).0 \(unitSuffix)")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.trailing, 12)
+            
+            Divider()
+                .frame(height: 60)
+                .padding(.horizontal, 4)
+            
+            // Right Column: Session
+            VStack(alignment: .center, spacing: 6) {
+                let sessionProgress = min(1.0, appState.workElapsed / appState.maxWorkTime)
+                CircularProgressView(
+                    value: sessionProgress,
+                    text: "\(Int(appState.workElapsed / 60))m"
+                )
+                
+                Text(I18n.localizedFormat("menu_work_label", language: appState.language, Int64(appState.workElapsed / 60)))
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(width: 80)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(width: 280, alignment: .leading)
+    }
+}
+
+// MARK: - Internal Progress Components
+
+struct CapsuleProgressView: View {
+    var value: Double // 0.0 to 1.0
+    
+    var body: some View {
+        ZStack(alignment: .leading) {
+            Capsule()
+                .fill(Color.secondary.opacity(0.15))
+                .frame(height: 12)
+            
+            Capsule()
+                .fill(Color.orange)
+                .frame(width: max(12, 120 * value), height: 12)
+                .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 0)
+        }
+        .frame(width: 120)
+    }
+}
+
+struct CircularProgressView: View {
+    var value: Double // 0.0 to 1.0
+    var text: String
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.secondary.opacity(0.15), lineWidth: 3.5)
+            
+            Circle()
+                .trim(from: 0, to: value)
+                .stroke(Color.orange, style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            
+            Text(text)
+                .font(.system(size: 10, weight: .bold))
+        }
+        .frame(width: 44, height: 44)
     }
 }

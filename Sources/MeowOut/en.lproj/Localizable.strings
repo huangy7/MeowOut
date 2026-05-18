@@ -13,6 +13,7 @@
 "menu_reset_timers" = "Reset Timers";
 "menu_settings" = "Settings...";
 "menu_quit" = "Quit";
+"menu_breathing" = "Deep Breathing";
 "settings_tab_settings" = "Settings";
 "settings_tab_statistics" = "Statistics";
 "settings_restore_defaults" = "Restore Defaults";

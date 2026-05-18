@@ -13,6 +13,7 @@
 "menu_reset_timers" = "重置计时器";
 "menu_settings" = "设置...";
 "menu_quit" = "退出";
+"menu_breathing" = "深呼吸";
 "settings_tab_settings" = "设置";
 "settings_tab_statistics" = "统计";
 "settings_restore_defaults" = "恢复默认设置";

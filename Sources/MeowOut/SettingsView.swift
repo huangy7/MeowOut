@@ -19,7 +19,7 @@ struct SettingsView: View {
                 .tabItem { Label(I18n.localized("settings_section_system", language: state.language), systemImage: "gearshape") }
         }
         .padding(20)
-        .frame(width: 450, height: 480)
+        .frame(width: 450, height: 550)
         .background(VisualEffectView().ignoresSafeArea())
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willBecomeActiveNotification)) { _ in
             let trusted = AXIsProcessTrusted()
@@ -71,6 +71,8 @@ struct SettingsView: View {
                            in: 15...120, step: 5)
                 }
 
+                Divider()
+
                 settingRow(
                     title: I18n.localized("settings_alert_notice", language: state.language),
                     description: I18n.localized("settings_alert_notice_desc", language: state.language),
@@ -81,6 +83,8 @@ struct SettingsView: View {
                            in: 1...15, step: 1)
                 }
 
+                Divider()
+
                 settingRow(
                     title: I18n.localized("settings_rest_duration", language: state.language),
                     description: I18n.localized("settings_rest_duration_desc", language: state.language),
@@ -90,6 +94,8 @@ struct SettingsView: View {
                                          set: { state.restDurationMinutes = Int($0) }),
                            in: 1...30, step: 1)
                 }
+
+                Divider()
 
                 settingRow(
                     title: I18n.localized("settings_rest_to_reset", language: state.language),
