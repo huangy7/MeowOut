@@ -45,23 +45,54 @@ MeowOut 采用一套精密的活跃度判定逻辑，确保对你工作状态的
   - **时光回滚 (Rollback)**：如果挂机超过 2 分钟 but 未达重置标准，系统会从累计时长中扣除这段挂机时间，防止因接电话或短暂交谈导致的计时虚高。
 
 
-## 🚀 快速开始
+## 🚀 安装指南 (Installation)
 
-### 系统要求
+### 下载安装包 (推荐) ⭐️
+
+1. **[下载最新的 MeowOut.dmg](https://github.com/huangy7/MeowOut/releases/latest)**
+2. **移除隔离属性** (未签名的应用需要执行此操作):
+   ```bash
+   cd ~/Downloads
+   xattr -cr MeowOut*.dmg
+   ```
+3. **打开** 下载好的 DMG 文件
+4. **拖拽** `MeowOut.app` 到你的 `应用程序 (Applications)` 文件夹
+5. **启动**: 
+   ```bash
+   open /Applications/MeowOut.app
+   ```
+6. 在你的状态栏寻找那只**奔跑的小猫 🐱**！
+
+> **⚠️ 为什么需要终端命令？** 本应用目前没有使用 Apple 开发者证书（每年 $99）进行签名。  
+> macOS 默认会拦截未签名的下载文件，所以你需要先手动移除文件的隔离标签才能正常运行。
+
+### 极速一键安装 (Quick One-Line Install)
+
+打开终端 (Terminal)，直接粘贴并运行以下一键脚本。它会自动下载最新版本、解除系统拦截并打开安装窗口：
+
+```bash
+curl -L https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg -o ~/Downloads/MeowOut.dmg && xattr -cr ~/Downloads/MeowOut.dmg && open ~/Downloads/MeowOut.dmg
+```
+
+随后只需将应用拖入 `Applications` 文件夹即可！
+
+### 开发者：从源码编译
+
+#### 系统要求
 - macOS 14.0 或更高版本
-- 已安装 Xcode
+- 已安装 Xcode 或 Command Line Tools
 
-### 获取与运行
+#### 编译与运行
 ```bash
 # 克隆项目
 git clone https://github.com/huangy7/MeowOut.git
 cd MeowOut
 
-# 编译并运行
+# 编译并直接运行
 swift run
 ```
 
-### 专业打包 (生成 DMG)
+#### 专业打包 (生成 DMG)
 ```bash
 ./scripts/build-dmg.sh
 ```

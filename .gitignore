@@ -19,3 +19,6 @@ build_log.txt
 
 # Documentation
 docs/
+
+# Local TODO lists
+TODO.md

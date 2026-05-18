@@ -89,6 +89,8 @@ final class ActivityMonitor {
     func tick(simulatedIdleTime: TimeInterval? = nil, dt: TimeInterval = 5.0) {
         checkDailyReset()
         
+        guard !appState.isPreviewing else { return }
+        
         if appState.currentState == .paused {
             appState.pauseRemaining -= dt
             if appState.pauseRemaining <= 0 {

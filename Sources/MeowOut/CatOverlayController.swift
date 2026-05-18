@@ -22,7 +22,10 @@ public final class CatOverlayController {
     private var currentDialogueIndex: Int = 0
 
     private var localMonitor: Any?
+    private var globalMonitor: Any?
     private var mouseOffsetInWindow: CGSize = .zero
+    
+    private var originalStateForPreview: AppPhase? = nil
 
     private init() {}
 
@@ -44,6 +47,55 @@ public final class CatOverlayController {
         evaluateState()
     }
 
+    public func triggerTrayScold() {
+        guard let state = appState else { return }
+        if state.currentState == .resting || state.currentState == .alerting {
+            let pack = DialogueManager.pack(for: state.selectedPersonality, language: state.language)
+            self.petState.showLockedBubble(pack.trayScold, duration: 2.0)
+        }
+    }
+
+    public func previewAlerting() {
+        guard let state = appState else { return }
+        if state.isPreviewing {
+            stopPreview()
+            return
+        }
+        
+        let originalState = state.currentState
+        guard originalState != .alerting && originalState != .resting else { return }
+        
+        originalStateForPreview = originalState
+        state.isPreviewing = true
+        state.currentState = .alerting
+    }
+
+    public func previewResting() {
+        guard let state = appState else { return }
+        if state.isPreviewing {
+            stopPreview()
+            return
+        }
+        
+        let originalState = state.currentState
+        guard originalState != .alerting && originalState != .resting else { return }
+        
+        originalStateForPreview = originalState
+        state.isPreviewing = true
+        state.currentState = .resting
+    }
+    
+    public func stopPreview() {
+        guard let state = appState else { return }
+        guard state.isPreviewing else { return }
+        
+        state.isPreviewing = false
+        if let orig = originalStateForPreview {
+            state.currentState = orig
+            originalStateForPreview = nil
+        }
+    }
+
     private func evaluateState() {
         guard let state = appState else { return }
 
@@ -63,29 +115,67 @@ public final class CatOverlayController {
 
         withObservationTracking {
             _ = self.appState?.currentState
+            _ = self.appState?.enableGlobalKeyboardScold
+            _ = self.appState?.isBreathingActive
         } onChange: {
-            Task { @MainActor [weak self] in self?.evaluateState() }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                // When breathing becomes active, clear the bubble exactly once
+                if self.appState?.isBreathingActive == true {
+                    self.petState.bubbleVisible = false
+                    self.petState.showBreathingButton = false
+                }
+                self.evaluateState()
+            }
+        }
+        
+        updateInputMonitors()
+    }
+
+    private func updateInputMonitors() {
+        guard let state = appState else { return }
+
+        // Local monitor (always on during alerting/resting)
+        if state.currentState == .alerting || state.currentState == .resting {
+            if localMonitor == nil {
+                localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+                    self?.handleKeyDown()
+                    return event
+                }
+            }
+        } else {
+            if let lm = localMonitor {
+                NSEvent.removeMonitor(lm)
+                localMonitor = nil
+            }
+        }
+
+        // Global monitor
+        if state.enableGlobalKeyboardScold && (state.currentState == .alerting || state.currentState == .resting) && AXIsProcessTrusted() {
+            if globalMonitor == nil {
+                globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] _ in
+                    self?.handleKeyDown()
+                }
+            }
+        } else {
+            if let gm = globalMonitor {
+                NSEvent.removeMonitor(gm)
+                globalMonitor = nil
+            }
         }
     }
 
+    private func handleKeyDown() {
+        guard let state = appState, (state.currentState == .resting || state.currentState == .alerting) else { return }
+        let pack = DialogueManager.pack(for: state.selectedPersonality, language: state.language)
+        self.petState.showLockedBubble(pack.keyboardScold, duration: 2.0)
+    }
+
     private func setupInputMonitoring() {
-        if localMonitor != nil { return }
-
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown]) { [weak self] event in
-            guard let self = self, let state = self.appState,
-                  (state.currentState == .resting || state.currentState == .alerting) else { return event }
-
-            let pack = DialogueManager.pack(for: state.selectedPersonality, language: state.language)
-
-            if event.type == .keyDown {
-                self.petState.showLockedBubble(pack.keyboardScold, duration: 2.0)
-            } else if event.type == .leftMouseDown {
-                // Precision Tray/Local check: If not on the pet window, it must be the tray
-                if self.petWindow?.frame.contains(NSEvent.mouseLocation) == false {
-                    self.petState.showLockedBubble(pack.trayScold, duration: 2.0)
-                }
+        NotificationCenter.default.addObserver(forName: NSMenu.didBeginTrackingNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.triggerTrayScold()
             }
-            return event
         }
     }
 
@@ -104,7 +194,7 @@ public final class CatOverlayController {
             self.petWindow = panel
         }
         if bubbleWindow == nil {
-            let panel = createPanel(size: bubbleWindowSize, ignoresMouse: true)
+            let panel = createPanel(size: bubbleWindowSize, ignoresMouse: false)
             let view = MeowBubbleView(petState: petState)
             panel.contentView = NSHostingView(rootView: view)
             self.bubbleWindow = panel
@@ -154,6 +244,31 @@ public final class CatOverlayController {
         if petState.isBeingDragged { return }
         guard let state = appState else { return }
         let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+
+        // --- Breathing Anchor: keep cat at bottom-center of breathing window ---
+        if state.isBreathingActive {
+            if let breathingWindow = NSApp.windows.first(where: { $0.title == "深呼吸" && $0.isVisible }) {
+                let wf = breathingWindow.frame
+                let targetX = wf.midX
+                let targetY = wf.minY - petWindowSize.height / 2 - 4
+                // Smoothly glide toward target
+                let dx = targetX - petState.position.x
+                let dy = targetY - petState.position.y
+                let dist = sqrt(dx * dx + dy * dy)
+                if dist > 2 {
+                    let speed: CGFloat = min(dist, 6.0)
+                    petState.position.x += (dx / dist) * speed
+                    petState.position.y += (dy / dist) * speed
+                    petState.isWalking = true
+                    petState.facingRight = dx > 0
+                } else {
+                    petState.position = CGPoint(x: targetX, y: targetY)
+                    petState.isWalking = false
+                }
+                updateWindowPositions()
+                return
+            }
+        }
 
         // --- 1. Movement Logic ---
         if state.currentState == .resting {
@@ -230,6 +345,8 @@ public final class CatOverlayController {
     }
 
     private func updateDialogue(state: AppState) {
+        // Don't update dialogue at all during breathing — bubble is cleared reactively
+        guard !state.isBreathingActive else { return }
         if petState.isBubbleLocked { return }
         let now = Date()
         guard now.timeIntervalSince(lastDialogueUpdate) > 4.0 else { return }
@@ -238,8 +355,10 @@ public final class CatOverlayController {
         let dialogues: [String]
         if state.currentState == .alerting {
             dialogues = pack.alerting
+            petState.showBreathingButton = false
         } else if state.currentState == .resting {
             dialogues = pack.resting
+            petState.showBreathingButton = true
         } else {
             petState.bubbleVisible = false
             return

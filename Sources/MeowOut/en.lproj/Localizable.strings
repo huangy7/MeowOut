@@ -34,6 +34,13 @@
 "settings_personality_desc" = "Changes how the pet interacts and talks to you.";
 "settings_cursor_chasing" = "Enable Cursor Chasing";
 "settings_cursor_chasing_desc" = "The pet will follow your mouse during rest.";
+"settings_global_scold" = "Global Keyboard Scold";
+"settings_global_scold_desc" = "Pet will scold you if you type in any app during break. Requires Accessibility permission.";
+"settings_preview_title" = "Behavior Preview";
+"settings_preview_desc" = "Quickly preview the animations and dialogue of the current personality during alerting and resting phases.";
+"settings_preview_alerting" = "Preview Alerting Cat";
+"settings_preview_resting" = "Preview Resting Cat";
+"settings_preview_stop" = "Stop Preview";
 "settings_section_system" = "System";
 "settings_language" = "Language";
 "settings_language_system" = "System Default";
@@ -60,7 +67,7 @@
 "personality_gentle_tap_1" = "Keep going, I'm here with you!";
 "personality_gentle_tap_2" = "I feel so good when I'm resting~";
 "personality_gentle_keyboardScold" = "Dear, please listen, stop typing for now.";
-"personality_gentle_trayScold" = "Just wanted to check if you're okay!";
+"personality_gentle_trayScold" = "Be good, it's rest time, please don't click there.";
 
 "personality_strict_alerting_0" = "Focus!";
 "personality_strict_alerting_1" = "Force rest is coming, improve your efficiency.";
@@ -72,7 +79,7 @@
 "personality_strict_tap_1" = "Rest order is in progress, do not be distracted.";
 "personality_strict_tap_2" = "Disciplined people never work overtime illegally.";
 "personality_strict_keyboardScold" = "Stop your fingers immediately!";
-"personality_strict_trayScold" = "What are you looking at? Rest now!";
+"personality_strict_trayScold" = "Do not click there! Take your hands off the mouse immediately!";
 
 "personality_tsundere_alerting_0" = "Hmph, it's not like I'm worried about you, just go rest.";
 "personality_tsundere_alerting_1" = "How much longer are you going to write? Idiot!";
@@ -84,6 +91,6 @@
 "personality_tsundere_tap_1" = "Go away!";
 "personality_tsundere_tap_2" = "I'm very busy!";
 "personality_tsundere_keyboardScold" = "Don't touch me! Go rest!";
-"personality_tsundere_trayScold" = "Where are you looking? Pervert!";
+"personality_tsundere_trayScold" = "Idiot, don't click there! Didn't I tell you to rest?";
 "settings_tab_today_review" = "Today's Review";
 

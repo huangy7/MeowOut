@@ -34,6 +34,14 @@
 "settings_personality_desc" = "改变宠物与你互动和交谈的方式。";
 "settings_cursor_chasing" = "启用光标追逐";
 "settings_cursor_chasing_desc" = "休息期间宠物会跟随你的鼠标。";
+"settings_global_scold" = "全局敲击警告";
+"settings_global_scold_desc" = "无论在任何应用中，只要敲击键盘，都会遭到小猫的责骂。需要辅助功能权限。";
+
+"settings_preview_title" = "行为预览";
+"settings_preview_desc" = "快速预览当前性格的小猫在预警和休息时的动画与台词表现。";
+"settings_preview_alerting" = "预览预警小猫";
+"settings_preview_resting" = "预览强制休息小猫";
+"settings_preview_stop" = "停止预览";
 "settings_section_system" = "系统";
 "settings_language" = "语言";
 "settings_language_system" = "跟随系统";
@@ -60,7 +68,7 @@
 "personality_gentle_tap_1" = "加油，我在陪着你！";
 "personality_gentle_tap_2" = "休息的时候心情真好~";
 "personality_gentle_keyboardScold" = "亲爱的，听话，先别打字啦。";
-"personality_gentle_trayScold" = "只是想确认你还好吗！";
+"personality_gentle_trayScold" = "乖，现在是休息时间，别点那里哦。";
 
 "personality_strict_alerting_0" = "注意集中！";
 "personality_strict_alerting_1" = "离强制休息不远了，效率提高点。";
@@ -72,7 +80,7 @@
 "personality_strict_tap_1" = "休息命令正在执行，不准分心。";
 "personality_strict_tap_2" = "自律的人从不违规加班。";
 "personality_strict_keyboardScold" = "立刻停下你的手指！";
-"personality_strict_trayScold" = "看我干嘛？赶紧休息！";
+"personality_strict_trayScold" = "不准点那里！立刻把手从鼠标上拿开！";
 
 "personality_tsundere_alerting_0" = "哼，又不是在担心你，快去休息啦";
 "personality_tsundere_alerting_1" = "你还打算写到什么时候？笨蛋！";
@@ -84,6 +92,6 @@
 "personality_tsundere_tap_1" = "走开！";
 "personality_tsundere_tap_2" = "我可是很忙的！";
 "personality_tsundere_keyboardScold" = "别碰我！快去休息！";
-"personality_tsundere_trayScold" = "你在看哪里？变态！";
+"personality_tsundere_trayScold" = "笨蛋，不准点那里！好好休息听不懂吗？";
 "settings_tab_today_review" = "今日回顾";
 

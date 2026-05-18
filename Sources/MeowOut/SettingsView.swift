@@ -4,6 +4,8 @@ struct SettingsView: View {
     @Bindable var state: AppState
     @Bindable var launchManager = LaunchManager.shared
     @Environment(\.openWindow) private var openWindow
+    @State private var isAwaitingAccessibility = false
+    @State private var accessibilityStatus = AXIsProcessTrusted()
 
     var body: some View {
         TabView {
@@ -17,12 +19,20 @@ struct SettingsView: View {
                 .tabItem { Label(I18n.localized("settings_section_system", language: state.language), systemImage: "gearshape") }
         }
         .padding(20)
-        .frame(width: 450, height: 400)
+        .frame(width: 450, height: 480)
         .background(VisualEffectView().ignoresSafeArea())
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willBecomeActiveNotification)) { _ in
+            let trusted = AXIsProcessTrusted()
+            accessibilityStatus = trusted
+            if isAwaitingAccessibility && trusted {
+                state.enableGlobalKeyboardScold = true
+                isAwaitingAccessibility = false
+            }
+        }
     }
 
     private var intervalsTab: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 20) {
                 HStack {
                     Text(I18n.localized("settings_section_intervals", language: state.language))
@@ -92,11 +102,10 @@ struct SettingsView: View {
                 }
             }
         }
-        .scrollIndicators(.hidden)
     }
     
     private var behaviorTab: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(I18n.localized("settings_personality", language: state.language))
@@ -122,13 +131,76 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                
+                Toggle(isOn: Binding(
+                    get: { state.enableGlobalKeyboardScold && accessibilityStatus },
+                    set: { newValue in
+                        if newValue {
+                            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+                            let trusted = AXIsProcessTrustedWithOptions(options)
+                            accessibilityStatus = trusted
+                            if trusted {
+                                state.enableGlobalKeyboardScold = true
+                                isAwaitingAccessibility = false
+                            } else {
+                                state.enableGlobalKeyboardScold = false
+                                isAwaitingAccessibility = true
+                            }
+                        } else {
+                            state.enableGlobalKeyboardScold = false
+                            isAwaitingAccessibility = false
+                        }
+                    }
+                )) {
+                    VStack(alignment: .leading) {
+                        Text(I18n.localized("settings_global_scold", language: state.language))
+                        Text(I18n.localized("settings_global_scold_desc", language: state.language))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                
+                Divider()
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(I18n.localized("settings_preview_title", language: state.language))
+                        .font(.subheadline)
+                    Text(I18n.localized("settings_preview_desc", language: state.language))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    HStack(spacing: 16) {
+                        if state.isPreviewing {
+                            Button(action: {
+                                CatOverlayController.shared.stopPreview()
+                            }) {
+                                Text(I18n.localized("settings_preview_stop", language: state.language))
+                                    .frame(maxWidth: .infinity)
+                                    .foregroundStyle(.red)
+                            }
+                        } else {
+                            Button(action: {
+                                CatOverlayController.shared.previewAlerting()
+                            }) {
+                                Text(I18n.localized("settings_preview_alerting", language: state.language))
+                                    .frame(maxWidth: .infinity)
+                            }
+                            
+                            Button(action: {
+                                CatOverlayController.shared.previewResting()
+                            }) {
+                                Text(I18n.localized("settings_preview_resting", language: state.language))
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                    }
+                }
             }
         }
-        .scrollIndicators(.hidden)
     }
     
     private var systemTab: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(I18n.localized("settings_language", language: state.language))
@@ -156,7 +228,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .scrollIndicators(.hidden)
     }
 
     @ViewBuilder

@@ -32,7 +32,7 @@ struct TodayReviewView: View {
         if logs.isEmpty {
             Text("暂无记录").foregroundColor(.secondary).padding()
         } else {
-            ScrollView { // Use ScrollView to handle expanded content
+            ScrollView(showsIndicators: false) { // Use ScrollView to handle expanded content
                 VStack(spacing: 30) {
                     // 1. Timeline Bar
                     VStack(alignment: .leading, spacing: 12) {
@@ -105,7 +105,6 @@ struct TodayReviewView: View {
                 }
                 .padding(24)
             }
-            .scrollIndicators(.hidden)
         }
     }
     

@@ -11,6 +11,7 @@ public final class PetState {
     public var isWalking: Bool = false
     public var bubbleText: String = ""
     public var bubbleVisible: Bool = false
+    public var showBreathingButton: Bool = false
     public var isBeingDragged: Bool = false
 
     /// 标记气泡是否被锁定（用于显示高优先级交互对话，防止被自动倒计时覆盖）

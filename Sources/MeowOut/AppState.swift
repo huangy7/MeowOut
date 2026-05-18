@@ -38,6 +38,7 @@ public final class AppState {
         case enableCursorChasing
         case restToResetMinutes
         case language
+        case enableGlobalKeyboardScold
     }
 
     public enum AppLanguage: String, CaseIterable, Identifiable {
@@ -116,6 +117,18 @@ public final class AppState {
         }
     }
 
+    public var enableGlobalKeyboardScold: Bool {
+        get {
+            access(keyPath: \.enableGlobalKeyboardScold)
+            return UserDefaults.standard.object(forKey: Keys.enableGlobalKeyboardScold.rawValue) as? Bool ?? false
+        }
+        set {
+            withMutation(keyPath: \.enableGlobalKeyboardScold) {
+                UserDefaults.standard.set(newValue, forKey: Keys.enableGlobalKeyboardScold.rawValue)
+            }
+        }
+    }
+
     public var restToResetMinutes: Int {
         get {
             access(keyPath: \.restToResetMinutes)
@@ -165,6 +178,8 @@ public final class AppState {
     public var pauseRemaining: TimeInterval = 0
     public var isWalking: Bool = true
     public var currentFrameIndex: Int = 0
+    public var isPreviewing: Bool = false
+    public var isBreathingActive: Bool = false
 
     // Statistics
     private var _workHistoryCache: [String: TimeInterval]?
@@ -239,6 +254,9 @@ public final class AppState {
         }
         withMutation(keyPath: \.restToResetMinutes) {
             UserDefaults.standard.removeObject(forKey: Keys.restToResetMinutes.rawValue)
+        }
+        withMutation(keyPath: \.enableGlobalKeyboardScold) {
+            UserDefaults.standard.removeObject(forKey: Keys.enableGlobalKeyboardScold.rawValue)
         }
 
         // Reset statistics too

@@ -35,20 +35,33 @@ struct WindowOpener: View {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "statistics")
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenBreathingWindow"))) { _ in
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: "breathing")
+            }
     }
 }
 
 /// 独立的图标视图，最小化重绘范围
 struct TrayIconView: View {
     @Bindable var appState: AppState
-    let trayIconConfig: (String, Color)
     let animationTimer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
+    
+    private var trayIconConfig: (String, NSColor) {
+        switch appState.currentState {
+        case .working: return ("cat.fill", .black) // Not used for tinting when isTemplate=true
+        case .alerting: return ("cat.fill", NSColor.orange)
+        case .resting: return ("cat.fill", NSColor.red)
+        case .paused: return ("pause.circle", NSColor.lightGray)
+        case .idle: return ("cat.fill", NSColor.lightGray)
+        }
+    }
     
     // 🖼️ 核心优化：图像缓存
     @State private var frameCache: [Int: NSImage] = [:]
     @State private var staticCache: NSImage?
     @State private var lastCachedState: AppPhase?
-    @State private var lastCachedColor: Color?
+    @State private var lastCachedColor: NSColor?
 
     var body: some View {
         Group {
@@ -99,7 +112,7 @@ struct TrayIconView: View {
         print("💾 Tray icon cache refreshed for state: \(state)")
     }
 
-    private func loadAndPrepareImage(name: String, color: Color, isTemplate: Bool) -> NSImage? {
+    private func loadAndPrepareImage(name: String, color: NSColor, isTemplate: Bool) -> NSImage? {
         // In Xcode targets, images in xcassets are available via NSImage(named:)
         guard let image = NSImage(named: "RunningCat\(name)") else { return nil }
         
@@ -125,15 +138,20 @@ struct TrayIconView: View {
         return newImage
     }
 
-    private func tintNSImage(_ image: NSImage, with color: Color) -> NSImage {
-        guard let tintedImage = image.copy() as? NSImage else { return image }
-        tintedImage.isTemplate = false
+    private func tintNSImage(_ image: NSImage, with color: NSColor) -> NSImage {
+        let tintedImage = NSImage(size: image.size)
         tintedImage.lockFocus()
-        let nsColor: NSColor = (color == .orange) ? .orange : (color == .red ? .red : .labelColor)
-        nsColor.set()
-        let imageRect = NSRect(origin: .zero, size: tintedImage.size)
-        imageRect.fill(using: .sourceIn)
+        // Use a non-dynamic color space resolution just in case
+        if let resolvedColor = color.usingColorSpace(.sRGB) {
+            resolvedColor.set()
+        } else {
+            color.set()
+        }
+        let imageRect = NSRect(origin: .zero, size: image.size)
+        imageRect.fill()
+        image.draw(in: imageRect, from: NSRect(origin: .zero, size: image.size), operation: .destinationIn, fraction: 1.0)
         tintedImage.unlockFocus()
+        tintedImage.isTemplate = false
         return tintedImage
     }
 }
@@ -145,15 +163,18 @@ struct MeowOutApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            let _ = { 
-                appDelegate.appState = appState
-                appDelegate.tryStartEngine()
-            }()
-            
             WindowOpener()
             menuContent
         } label: {
-            TrayIconView(appState: appState, trayIconConfig: trayIconConfig)
+            TrayIconView(appState: appState)
+                .onAppear {
+                    appDelegate.appState = appState
+                    appDelegate.tryStartEngine()
+                }
+                .onChange(of: appState.language) { _, _ in
+                    // Force engine restart if language changes to pick up new strings
+                    appDelegate.tryStartEngine()
+                }
         }
         .environment(appState)
 
@@ -166,6 +187,13 @@ struct MeowOutApp: App {
             StatsView(state: appState)
         }
         .windowResizability(.contentSize)
+
+        Window("深呼吸", id: "breathing") {
+            BreathingView()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .environment(appState)
     }
 
     @ViewBuilder
@@ -188,11 +216,8 @@ struct MeowOutApp: App {
             }
         }
         Divider()
-        Menu(I18n.localized("menu_advanced", language: appState.language)) {
-            Button(I18n.localized("menu_trigger_warning", language: appState.language)) { appState.workElapsed = appState.alertThreshold; appState.currentState = .alerting }
-            Button(I18n.localized("menu_force_rest", language: appState.language)) { appState.workElapsed = appState.maxWorkTime; appState.restRemaining = appState.defaultRestTime; appState.currentState = .resting }
-            Divider()
-            Button(I18n.localized("menu_reset_timers", language: appState.language)) { appState.workElapsed = 0; appState.currentState = .working }
+        Button("🧘 深呼吸") {
+            NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil)
         }
         Divider()
         Button(I18n.localized("settings_tab_statistics", language: appState.language)) { 
@@ -205,15 +230,7 @@ struct MeowOutApp: App {
         Button(I18n.localized("menu_quit", language: appState.language)) { NSApplication.shared.terminate(nil) }
     }
 
-    private var trayIconConfig: (String, Color) {
-        switch appState.currentState {
-        case .working: return ("cat.fill", .primary)
-        case .alerting: return ("cat.fill", .orange)
-        case .resting: return ("cat.fill", .red)
-        case .paused: return ("pause.circle", .secondary)
-        case .idle: return ("cat.fill", .secondary)
-        }
-    }
+
 
     private func pause(minutes: Int) {
         appState.pauseRemaining = TimeInterval(minutes * 60)

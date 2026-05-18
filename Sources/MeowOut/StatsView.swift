@@ -40,7 +40,7 @@ struct StatsView: View {
     }
 
     private var statsContent: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 24) {
                 // Goal Progress
                 VStack(alignment: .leading, spacing: 12) {
@@ -92,7 +92,6 @@ struct StatsView: View {
             }
             .padding(24)
         }
-        .scrollIndicators(.hidden)
     }
 
     private func refreshChartSnapshot() {

@@ -12,7 +12,10 @@ ARCH=${1:-"universal"}
 
 echo "🚀 Starting build process for ${APP_NAME} (${ARCH})..."
 
-# 1. Clean and Build
+# 1. Generate Xcode project and Build
+echo "📦 Generating Xcode project with XcodeGen..."
+xcodegen generate
+
 echo "📦 Compiling in release mode with xcodebuild..."
 rm -rf "${DERIVED_DATA}"
 rm -rf "${BUILD_DIR}"
