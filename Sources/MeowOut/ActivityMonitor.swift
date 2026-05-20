@@ -169,7 +169,9 @@ final class ActivityMonitor {
             appState.restRemaining = appState.defaultRestTime
             appState.flushStatsToDisk()
         } else if appState.workElapsed >= appState.alertThreshold {
-            appState.currentState = .alerting
+            if !appState.warningDismissed {
+                appState.currentState = .alerting
+            }
         }
         
         if Date().timeIntervalSince(lastSaveTime) >= 3600 {

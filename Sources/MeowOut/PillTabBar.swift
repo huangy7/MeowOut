@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PillTabBar: View {
     let items: [String]
+    var badgeItems: Set<String> = []
     @Binding var selection: String
     @Namespace private var animation
 
@@ -13,20 +14,25 @@ struct PillTabBar: View {
                         selection = item
                     }
                 } label: {
-                    Text(item)
-                        .font(.system(size: 11, weight: .medium))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .contentShape(Rectangle())
-                        .background {
-                            if selection == item {
-                                Capsule()
-                                    .fill(Color.white)
-                                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                                    .matchedGeometryEffect(id: "pill", in: animation)
-                            }
+                    HStack(spacing: 5) {
+                        Text(item)
+                        if badgeItems.contains(item) {
+                            UpdateBadge()
                         }
-                        .foregroundStyle(selection == item ? .primary : .secondary)
+                    }
+                    .font(.system(size: 11, weight: .medium))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .contentShape(Rectangle())
+                    .background {
+                        if selection == item {
+                            Capsule()
+                                .fill(Color.white)
+                                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                .matchedGeometryEffect(id: "pill", in: animation)
+                        }
+                    }
+                    .foregroundStyle(selection == item ? .primary : .secondary)
                 }
                 .buttonStyle(.plain)
             }

@@ -1,6 +1,10 @@
 import SwiftUI
 import Observation
 
+public struct UpdateInteraction: Equatable {
+    public let version: String
+}
+
 /// 管理桌宠的实时表现状态
 @Observable
 @MainActor
@@ -26,6 +30,8 @@ public final class PetState {
     /// 气泡是否显示喝水 +1 按钮
     public var showWaterButton: Bool = false
 
+    public var updateInteraction: UpdateInteraction?
+
     private var lockTask: Task<Void, Never>?
 
     public init() {}
@@ -50,5 +56,25 @@ public final class PetState {
                 self.pose = .rest
             }
         }
+    }
+
+    public func showUpdateBubble(text: String, version: String) {
+        lockTask?.cancel()
+        showBreathingButton = false
+        showWaterButton = false
+        bubbleText = text
+        bubbleVisible = true
+        isBubbleLocked = true
+        updateInteraction = UpdateInteraction(version: version)
+        pose = .armsUp
+    }
+
+    public func dismissUpdateBubble() {
+        lockTask?.cancel()
+        updateInteraction = nil
+        bubbleVisible = false
+        isBubbleLocked = false
+        bubbleText = ""
+        pose = .rest
     }
 }

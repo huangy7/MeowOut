@@ -46,11 +46,12 @@ struct SettingsView: View {
     }
 
     private var sidebarItems: [SidebarItem] {
-        [
+        let hasPendingUpdate = UpdateChecker.shared.hasPendingUpdate
+        return [
             SidebarItem(id: "rest", title: I18n.localized("settings_tab_rest", language: state.language), icon: "timer"),
             SidebarItem(id: "water", title: I18n.localized("settings_tab_water", language: state.language), icon: "drop.fill"),
             SidebarItem(id: "behavior", title: I18n.localized("settings_section_behavior", language: state.language), icon: "cat.circle"),
-            SidebarItem(id: "system", title: I18n.localized("settings_section_system", language: state.language), icon: "gearshape"),
+            SidebarItem(id: "system", title: I18n.localized("settings_section_system", language: state.language), icon: "gearshape", hasBadge: hasPendingUpdate),
         ]
     }
 
@@ -108,6 +109,19 @@ struct SettingsView: View {
                 isAwaitingAccessibility = false
             }
         }
+        .onAppear {
+            applyPendingNavigationTarget()
+        }
+        .onChange(of: state.settingsNavigationTarget) { _, _ in
+            applyPendingNavigationTarget()
+        }
+    }
+
+    private func applyPendingNavigationTarget() {
+        guard state.settingsNavigationTarget == .update else { return }
+        selectedTab = "system"
+        selectedSystemSubTab = "about"
+        state.settingsNavigationTarget = nil
     }
 
     private func subTabBinding(for selection: Binding<String>, tabs: [(id: String, key: String)]) -> Binding<String> {
@@ -135,7 +149,9 @@ struct SettingsView: View {
             PillTabBar(items: behaviorSubTabs.map { I18n.localized($0.key, language: state.language) },
                        selection: subTabBinding(for: $selectedBehaviorSubTab, tabs: behaviorSubTabs))
         case "system":
+            let aboutTitle = I18n.localized("settings_subtab_about", language: state.language)
             PillTabBar(items: systemSubTabs.map { I18n.localized($0.key, language: state.language) },
+                       badgeItems: UpdateChecker.shared.hasPendingUpdate ? [aboutTitle] : [],
                        selection: subTabBinding(for: $selectedSystemSubTab, tabs: systemSubTabs))
         default:
             PillTabBar(items: restSubTabs.map { I18n.localized($0.key, language: state.language) },
@@ -286,18 +302,138 @@ struct SettingsView: View {
                 }
             }
         } else if selectedSystemSubTab == "about" {
-            let version = Bundle.main.appVersion
-            SettingsCard(
-                icon: "info.circle",
-                iconColor: .secondary,
-                title: I18n.localizedFormat("settings_version", language: state.language, version),
-                description: "v\(version)"
-            ) {
-                Text("MeowOut - Your productivity pet.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            VStack(spacing: 16) {
+                let version = Bundle.main.appVersion
+                SettingsCard(
+                    icon: "info.circle",
+                    iconColor: .secondary,
+                    title: I18n.localizedFormat("settings_version", language: state.language, version),
+                    description: "v\(version)"
+                ) {
+                    Text("MeowOut - Your productivity pet.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                updateCard
             }
         }
+    }
+
+    @ViewBuilder
+    private var updateCard: some View {
+        let checker = UpdateChecker.shared
+        SettingsCard(
+            icon: "arrow.clockwise.circle",
+            iconColor: .blue,
+            title: I18n.localized("settings_check_updates", language: state.language),
+            description: checker.lastCheckedAt.map { date in
+                let formatter = DateFormatter()
+                formatter.dateStyle = .short
+                formatter.timeStyle = .short
+                return I18n.localizedFormat("settings_update_last_checked", language: state.language, formatter.string(from: date))
+            }
+        ) {
+            VStack(alignment: .leading, spacing: 12) {
+                switch checker.status {
+                case .checking:
+                    HStack {
+                        ProgressView().controlSize(.small)
+                        Text(I18n.localized("settings_update_checking", language: state.language))
+                            .font(.caption)
+                    }
+                case .downloading(let progress):
+                    VStack(alignment: .leading, spacing: 4) {
+                        ProgressView(value: progress)
+                            .tint(.blue)
+                        Text(I18n.localizedFormat("settings_update_downloading", language: state.language, Int64(progress * 100)))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                case .available(let version, let notes, _):
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(I18n.localizedFormat("settings_update_available", language: state.language, version))
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.blue)
+                        
+                        if !notes.isEmpty {
+                            VStack(alignment: .leading, spacing: 6) {
+                                ScrollView {
+                                    MarkdownReleaseNotesView(text: notes)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .frame(maxHeight: 140)
+                            }
+                            .padding(10)
+                            .background(Color.secondary.opacity(0.06))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+                            )
+                        }
+
+                        Button(action: {
+                            Task { await checker.downloadAndInstall(language: state.language) }
+                        }) {
+                            Text(I18n.localized("settings_update_download_install", language: state.language))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 6)
+                                .background(Color.blue)
+                                .cornerRadius(8)
+                                .foregroundStyle(.white)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                case .readyToInstall(let version, _):
+                    VStack(alignment: .leading, spacing: 8) {
+                        Button(action: {
+                            Task { await checker.downloadAndInstall(language: state.language) } // Re-triggers install logic
+                        }) {
+                            Text("v\(version) \(I18n.localized("settings_update_download_install", language: state.language))")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 6)
+                                .background(Color.green)
+                                .cornerRadius(8)
+                                .foregroundStyle(.white)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                case .idle:
+                    HStack {
+                        if checker.lastCheckedAt != nil {
+                            Text(I18n.localized("settings_update_up_to_date", language: state.language))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        checkButton
+                    }
+                case .error(let error):
+                    HStack {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                        Spacer()
+                        checkButton
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var checkButton: some View {
+        Button(action: {
+            Task { await UpdateChecker.shared.check() }
+        }) {
+            Text(I18n.localized("settings_check_updates", language: state.language))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .background(Color.accentColor.opacity(0.1))
+                .cornerRadius(6)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -426,4 +562,57 @@ struct VisualEffectView: NSViewRepresentable {
         return view
     }
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
+struct MarkdownReleaseNotesView: View {
+    let text: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(Array(text.components(separatedBy: .newlines).enumerated()), id: \.offset) { _, line in
+                let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmed.isEmpty {
+                    EmptyView()
+                } else if trimmed.hasPrefix("### ") {
+                    Text(LocalizedStringKey(String(trimmed.dropFirst(4))))
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.primary)
+                        .padding(.top, 4)
+                } else if trimmed.hasPrefix("## ") {
+                    Text(LocalizedStringKey(String(trimmed.dropFirst(3))))
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.primary)
+                        .padding(.top, 6)
+                } else if trimmed.hasPrefix("# ") {
+                    Text(LocalizedStringKey(String(trimmed.dropFirst(2))))
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.primary)
+                        .padding(.top, 8)
+                } else if trimmed.hasPrefix("- ") {
+                    HStack(alignment: .top, spacing: 4) {
+                        Text("•")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(String(trimmed.dropFirst(2))))
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                } else if trimmed.hasPrefix("* ") && !trimmed.hasSuffix(" *") {
+                    HStack(alignment: .top, spacing: 4) {
+                        Text("•")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(String(trimmed.dropFirst(2))))
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text(LocalizedStringKey(trimmed))
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineSpacing(3)
+                }
+            }
+        }
+    }
 }

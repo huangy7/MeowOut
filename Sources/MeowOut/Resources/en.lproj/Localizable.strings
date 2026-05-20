@@ -18,6 +18,22 @@
 "settings_tab_statistics" = "Statistics";
 "settings_restore_defaults" = "Restore Defaults";
 "settings_version" = "Version %@";
+"settings_check_updates" = "Check for Updates";
+"settings_update_checking" = "Checking...";
+"settings_update_available" = "New version %@ available";
+"settings_update_up_to_date" = "Up to date";
+"settings_update_download_install" = "Download and Install";
+"settings_update_downloading" = "Downloading... %d%%";
+"settings_update_last_checked" = "Last checked: %@";
+"update_alert_title" = "🚀 Version %@ is Ready";
+"update_alert_body" = "Your pet has brought back a new evolution patch! Click 'Restart Now' to complete the installation. It only takes a few seconds, and I'll be right back with you.";
+"update_alert_confirm" = "Restart Now";
+"update_alert_cancel" = "Later";
+"update_manual_title" = "Manual Installation Required";
+"update_manual_body" = "Due to permissions, I couldn't auto-install. Please drag the new version into your Applications folder.";
+"update_pet_prompt" = "🚀 Evolution patch v%@ found! I smell new features. Want to check it out now?";
+"update_pet_action_open" = "Update";
+"update_pet_action_later" = "Later";
 "settings_section_intervals" = "Time Intervals";
 "settings_work_duration" = "Work Duration";
 "settings_work_duration_desc" = "How long you can work before rest.";
@@ -118,7 +134,7 @@
 "phased_escape_giveup_tsundere" = "Hmph! Do whatever you want! I don't care about you anymore!";
 
 "tap_hint_gentle" = "Tap me a few times, there's a surprise~";
-"tap_hint_strict" = "Tap repeatedly to enforce rest";
+"tap_hint_strict" = "Tap %lld times to force override the rest";
 "tap_hint_tsundere" = "Try tapping me %lld times! Hmph!";
 
 "water_reminder_text" = "Time to drink water 💧";

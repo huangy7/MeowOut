@@ -18,6 +18,22 @@
 "settings_tab_statistics" = "统计";
 "settings_restore_defaults" = "恢复默认设置";
 "settings_version" = "版本 %@";
+"settings_check_updates" = "检查更新";
+"settings_update_checking" = "正在检查...";
+"settings_update_available" = "发现新版本 %@";
+"settings_update_up_to_date" = "已是最新版本";
+"settings_update_download_install" = "下载并安装";
+"settings_update_downloading" = "正在下载... %d%%";
+"settings_update_last_checked" = "上次检查: %@";
+"update_alert_title" = "🚀 新版本 v%@ 已就绪";
+"update_alert_body" = "小伙伴为你带回了最新的进化补丁！点击「立即重启」自动完成更新。整个过程只需几秒钟，完成后我会自动回到你身边。";
+"update_alert_confirm" = "立即重启";
+"update_alert_cancel" = "稍后再说";
+"update_manual_title" = "需要手动安装";
+"update_manual_body" = "由于系统权限限制，请手动将新版 MeowOut 拖入「应用程序」文件夹进行替换。";
+"update_pet_prompt" = "🚀 发现进化补丁 v%@！已经嗅到了新功能的气味，要现在去看看吗？";
+"update_pet_action_open" = "去更新";
+"update_pet_action_later" = "稍后再说";
 "settings_section_intervals" = "时间间隔";
 "settings_work_duration" = "工作时长";
 "settings_work_duration_desc" = "休息前的最长连续工作时间。";
@@ -119,7 +135,7 @@
 "phased_escape_giveup_tsundere" = "哼！随你的便吧！不管你了！";
 
 "tap_hint_gentle" = "多点我几下有惊喜哦~";
-"tap_hint_strict" = "连续点击可强制执行休息";
+"tap_hint_strict" = "连续点击 %lld 次以拒绝休息指令";
 "tap_hint_tsundere" = "戳我 %lld 下试试？哼！";
 
 "water_reminder_text" = "该喝水啦 💧";

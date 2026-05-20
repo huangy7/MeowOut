@@ -10,6 +10,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 对于托盘应用，确保激活策略正确
         NSApp.setActivationPolicy(.accessory)
+        
+        // 启动自动更新检查器
+        UpdateChecker.shared.start()
     }
 
     func tryStartEngine() {
@@ -47,6 +50,8 @@ struct TrayIconView: View {
     @Bindable var appState: AppState
     let animationTimer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
     
+
+    
     private var trayIconConfig: (String, NSColor) {
         switch appState.currentState {
         case .working: return ("cat.fill", .black) // Not used for tinting when isTemplate=true
@@ -73,6 +78,7 @@ struct TrayIconView: View {
                 Image(systemName: trayIconConfig.0)
             }
         }
+        .frame(width: 24, height: 18)
         .onReceive(animationTimer) { _ in
             if appState.isWalking {
                 appState.currentFrameIndex = (appState.currentFrameIndex + 1) % 5
@@ -166,13 +172,13 @@ struct MeowOutApp: App {
     var body: some Scene {
         MenuBarExtra {
             VStack(spacing: 0) {
-                WindowOpener()
                 menuContent
             }
             .frame(width: 280)
             .background(VisualEffectView().ignoresSafeArea())
         } label: {
             TrayIconView(appState: appState)
+                .background(WindowOpener())
                 .onAppear {
                     appDelegate.appState = appState
                     appDelegate.tryStartEngine()
@@ -273,7 +279,7 @@ struct MeowOutApp: App {
 
                 // Section 4: System
                 VStack(spacing: 0) {
-                    menuButton(title: I18n.localized("menu_settings", language: appState.language), icon: "gearshape") {
+                    menuButton(title: I18n.localized("menu_settings", language: appState.language), icon: "gearshape", hasBadge: UpdateChecker.shared.hasPendingUpdate) {
                         NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil)
                     }
                     
@@ -286,8 +292,8 @@ struct MeowOutApp: App {
         }
     }
 
-    private func menuButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
-        ButtonView(title: title, icon: icon, action: action)
+    private func menuButton(title: String, icon: String, hasBadge: Bool = false, action: @escaping () -> Void) -> some View {
+        ButtonView(title: title, icon: icon, hasBadge: hasBadge, action: action)
     }
 
     private func pause(minutes: Int) {
@@ -299,6 +305,7 @@ struct MeowOutApp: App {
 struct ButtonView: View {
     let title: String
     let icon: String
+    var hasBadge: Bool = false
     let action: () -> Void
     @State private var isHovered = false
 
@@ -312,6 +319,9 @@ struct ButtonView: View {
                 Image(systemName: icon)
                     .frame(width: 20)
                 Text(title)
+                if hasBadge {
+                    UpdateBadge()
+                }
                 Spacer()
             }
             .padding(.horizontal, 16)

@@ -16,7 +16,27 @@ public final class CatOverlayController {
     private var timer: Timer?
 
     private let petWindowSize = NSSize(width: 60, height: 60)
-    private let bubbleWindowSize = NSSize(width: 220, height: 60)
+    private let defaultBubbleWindowSize = NSSize(width: 260, height: 115)
+    private let maxBubbleWindowWidth: CGFloat = 260
+    private let bubbleGap: CGFloat = -6 // Since the cat sprite is centered vertically in petWindowSize (height 40 vs 60), there is 10pt of empty space at the top. A bubbleGap of -6 yields a 4pt visual gap.
+    private var currentBubbleWindowSize = NSSize(width: 260, height: 115)
+
+    nonisolated static func bubbleFrame(
+        petCenter: CGPoint,
+        petSize: CGSize,
+        bubbleSize: CGSize,
+        gap: CGFloat
+    ) -> CGRect {
+        let petTop = petCenter.y + petSize.height / 2
+        let bubbleBottom = petTop + gap
+        return CGRect(
+            x: petCenter.x - bubbleSize.width / 2,
+            y: bubbleBottom,
+            width: bubbleSize.width,
+            height: bubbleSize.height
+        )
+    }
+
     private var patrolVelocity: CGPoint = CGPoint(x: 3.0, y: 1.5)
     // For dialogue shuffling
     private var lastDialogueUpdate: Date = Date()
@@ -44,12 +64,39 @@ public final class CatOverlayController {
 
         withObservationTracking {
             _ = appState.currentState
+            _ = petState.updateInteraction
         } onChange: {
             Task { @MainActor in self.evaluateState() }
         }
 
         setupInputMonitoring()
+        startUpdateObservation()
         evaluateState()
+        handleUpdateStatusChanged()
+    }
+
+    private func startUpdateObservation() {
+        withObservationTracking {
+            _ = UpdateChecker.shared.status
+        } onChange: {
+            Task { @MainActor [weak self] in
+                self?.handleUpdateStatusChanged()
+                self?.startUpdateObservation()
+            }
+        }
+    }
+
+    private func handleUpdateStatusChanged() {
+        guard let state = appState else { return }
+        guard case let .available(version, _, _) = UpdateChecker.shared.status else { return }
+        guard state.lastNotifiedUpdateVersion != version else { return }
+
+        state.lastNotifiedUpdateVersion = version
+        showWindows()
+        startTimer()
+        let text = I18n.localizedFormat("update_pet_prompt", language: state.language, version)
+        petState.showUpdateBubble(text: text, version: version)
+        updateWindowPositions()
     }
 
     public func triggerTrayScold() {
@@ -120,11 +167,13 @@ public final class CatOverlayController {
 
         if state.currentState == .resting {
             escapeHatch?.startMonitoring()
+            petState.showBreathingButton = true
         } else {
             escapeHatch?.stopMonitoring()
+            petState.showBreathingButton = false
         }
 
-        if state.currentState == .alerting || state.currentState == .resting || state.currentState == .breathing {
+        if state.currentState == .alerting || state.currentState == .resting || state.currentState == .breathing || petState.updateInteraction != nil {
             showWindows()
             startTimer()
         } else {
@@ -215,10 +264,24 @@ public final class CatOverlayController {
             self.petWindow = panel
         }
         if bubbleWindow == nil {
-            let panel = createPanel(size: bubbleWindowSize, ignoresMouse: false)
-            let view = MeowBubbleView(petState: petState, onWaterAdd: { [weak self] in
-                self?.waterReminderController?.handleWaterAdded()
-            })
+            currentBubbleWindowSize = defaultBubbleWindowSize
+            let panel = createPanel(size: defaultBubbleWindowSize, ignoresMouse: false)
+            let view = MeowBubbleView(
+                petState: petState,
+                appState: state,
+                onWaterAdd: { [weak self] in
+                    self?.waterReminderController?.handleWaterAdded()
+                },
+                onUpdateNow: { [weak self] in
+                    self?.openUpdateSettings()
+                },
+                onUpdateLater: { [weak self] in
+                    self?.hideUpdateWindowsIfIdle()
+                },
+                onSizeChange: { [weak self] size in
+                    self?.updateBubbleWindowSize(size)
+                }
+            )
             let hosting = NSHostingView(rootView: view)
             if #available(macOS 13.0, *) { hosting.sizingOptions = [] }
             panel.contentView = hosting
@@ -231,6 +294,20 @@ public final class CatOverlayController {
         lastDialogueUpdate = Date()
         waterReminderController?.resetTimer()
         updateWindowPositions()
+    }
+
+    private func openUpdateSettings() {
+        appState?.settingsNavigationTarget = .update
+        hideUpdateWindowsIfIdle()
+        NSApp.activate(ignoringOtherApps: true)
+        NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil)
+    }
+
+    private func hideUpdateWindowsIfIdle() {
+        guard let state = appState else { return }
+        guard state.currentState != .alerting, state.currentState != .resting, state.currentState != .breathing else { return }
+        hideWindows()
+        stopTimer()
     }
 
     private func createPanel(size: NSSize, ignoresMouse: Bool) -> NSPanel {
@@ -254,6 +331,7 @@ public final class CatOverlayController {
         bubbleWindow?.orderOut(nil)
         petWindow = nil
         bubbleWindow = nil
+        currentBubbleWindowSize = defaultBubbleWindowSize
     }
 
     private func startTimer() {
@@ -364,9 +442,11 @@ public final class CatOverlayController {
             petState.isWalking = true
             let mildSpeed: CGFloat = 1.5
 
-            let topSafeArea: CGFloat = 100.0
-            let minYBoundary = screen.maxY - topSafeArea
-            let maxYBoundary = screen.maxY - 30
+            // Adjust boundaries to ensure the pet doesn't go off-screen or too high
+            // Visible frame usually excludes menu bar, but we want a safe margin from the top
+            let topMargin: CGFloat = 60.0
+            let minYBoundary = screen.maxY - 120.0
+            let maxYBoundary = screen.maxY - topMargin
 
             // 1. Vertical Movement: If not in the top area, move UP
             if petState.position.y < minYBoundary {
@@ -399,6 +479,17 @@ public final class CatOverlayController {
         // Don't update dialogue at all during breathing — bubble is cleared reactively
         guard !state.isBreathingActive else { return }
         if petState.isBubbleLocked { return }
+        
+        // If an update is pending, keep showing the update prompt
+        if let interaction = petState.updateInteraction {
+            let text = I18n.localizedFormat("update_pet_prompt", language: state.language, interaction.version)
+            if petState.bubbleText != text {
+                petState.bubbleText = text
+                petState.bubbleVisible = true
+            }
+            return
+        }
+
         let now = Date()
         guard now.timeIntervalSince(lastDialogueUpdate) > 4.0 else { return }
 
@@ -406,10 +497,8 @@ public final class CatOverlayController {
         let dialogues: [String]
         if state.currentState == .alerting {
             dialogues = pack.alerting
-            petState.showBreathingButton = false
         } else if state.currentState == .resting {
             dialogues = pack.resting
-            petState.showBreathingButton = true
         } else {
             petState.bubbleVisible = false
             return
@@ -452,10 +541,29 @@ public final class CatOverlayController {
     private func updateWindowPositions() {
         guard let pw = petWindow, let bw = bubbleWindow else { return }
         pw.setFrameOrigin(NSPoint(x: petState.position.x - petWindowSize.width / 2, y: petState.position.y - petWindowSize.height / 2))
-        bw.setFrameOrigin(NSPoint(x: petState.position.x - bubbleWindowSize.width / 2, y: petState.position.y + petWindowSize.height / 2 + 5))
+        let bubbleFrame = Self.bubbleFrame(
+            petCenter: petState.position,
+            petSize: petWindowSize,
+            bubbleSize: currentBubbleWindowSize,
+            gap: bubbleGap
+        )
+        bw.setFrame(bubbleFrame, display: true)
         
         // Ensure bubble window doesn't block clicks when invisible
         bw.ignoresMouseEvents = !petState.bubbleVisible
+    }
+
+    private func updateBubbleWindowSize(_ measuredSize: CGSize) {
+        guard measuredSize.width > 0, measuredSize.height > 0 else { return }
+
+        let clampedSize = NSSize(
+            width: maxBubbleWindowWidth,
+            height: ceil(measuredSize.height)
+        )
+        guard currentBubbleWindowSize != clampedSize else { return }
+
+        currentBubbleWindowSize = clampedSize
+        updateWindowPositions()
     }
 
     // MARK: - Drag Handlers

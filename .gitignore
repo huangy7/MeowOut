@@ -27,3 +27,7 @@ graphify-out/
 TODO.md
 AGENTS.md
 CLAUDE.md
+
+# Local test scripts
+reset_update_reminder.sh
+

@@ -5,6 +5,7 @@ struct SidebarItem: Identifiable, Hashable {
     let id: String
     let title: String
     let icon: String
+    var hasBadge: Bool = false
 }
 
 /// A macOS-style vertical sidebar tab bar.
@@ -29,7 +30,14 @@ struct SidebarTabBar: View {
         return Button {
             selection = item.id
         } label: {
-            Label(item.title, systemImage: item.icon)
+            HStack(spacing: 8) {
+                Image(systemName: item.icon)
+                    .frame(width: 16)
+                Text(item.title)
+                if item.hasBadge {
+                    UpdateBadge()
+                }
+            }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
@@ -38,5 +46,14 @@ struct SidebarTabBar: View {
         .buttonStyle(.plain)
         .background(isSelected ? Color.accentColor.opacity(0.12) : .clear)
         .foregroundStyle(isSelected ? Color.accentColor : .primary)
+    }
+}
+
+struct UpdateBadge: View {
+    var body: some View {
+        Circle()
+            .fill(Color.red)
+            .frame(width: 7, height: 7)
+            .accessibilityHidden(true)
     }
 }

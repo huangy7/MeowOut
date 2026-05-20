@@ -88,4 +88,39 @@ final class ActivityMonitorTests: XCTestCase {
         XCTAssertEqual(appState.dailyLogs.count, 1)
         XCTAssertEqual(appState.dailyLogs.first?.phase, appState.currentState)
     }
+
+    func testWarningDismissal() {
+        let state = AppState()
+        state.workDurationMinutes = 2
+        state.alertBeforeRestMinutes = 1
+        
+        let monitor = ActivityMonitor(appState: state)
+        let escapeHatch = EscapeHatch(appState: state)
+        
+        // 1. Move to alerting state (65s elapsed, threshold is 60s)
+        monitor.tick(simulatedIdleTime: 0, dt: 65)
+        XCTAssertEqual(state.currentState, .alerting)
+        XCTAssertFalse(state.warningDismissed)
+        
+        // 2. Drive the warning cat away (trigger escape during alerting)
+        escapeHatch.triggerEscape()
+        XCTAssertEqual(state.currentState, .working)
+        XCTAssertTrue(state.warningDismissed)
+        XCTAssertEqual(state.workElapsed, 65) // Work timer should NOT be reset
+        
+        // 3. Tick again (5s). Should stay in working state because warning is dismissed
+        monitor.tick(simulatedIdleTime: 0, dt: 5)
+        XCTAssertEqual(state.currentState, .working)
+        XCTAssertEqual(state.workElapsed, 70)
+        
+        // 4. Tick past maxWorkTime (120s). Should transition to resting
+        monitor.tick(simulatedIdleTime: 0, dt: 51) // 70 + 51 = 121s (> 120s)
+        XCTAssertEqual(state.currentState, .resting)
+        
+        // 5. Escape rest -> resets workElapsed to 0 -> warningDismissed becomes false
+        escapeHatch.triggerEscape()
+        XCTAssertEqual(state.currentState, .working)
+        XCTAssertEqual(state.workElapsed, 0)
+        XCTAssertFalse(state.warningDismissed)
+    }
 }

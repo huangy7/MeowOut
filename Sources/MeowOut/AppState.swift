@@ -18,6 +18,10 @@ public enum PetPersonality: String, CaseIterable, Identifiable {
     public var id: String { rawValue }
 }
 
+public enum SettingsNavigationTarget: Equatable {
+    case update
+}
+
 public struct SessionLog: Identifiable, Equatable {
     public let id = UUID()
     public let startTime: Date
@@ -56,6 +60,7 @@ public final class AppState {
         case dailyWaterGoal
         case todayWaterCups
         case lastWaterResetDate
+        case lastNotifiedUpdateVersion
     }
 
     public enum AppLanguage: String, CaseIterable, Identifiable {
@@ -177,6 +182,22 @@ public final class AppState {
         }
     }
 
+    public var lastNotifiedUpdateVersion: String? {
+        get {
+            access(keyPath: \.lastNotifiedUpdateVersion)
+            return UserDefaults.standard.string(forKey: Keys.lastNotifiedUpdateVersion.rawValue)
+        }
+        set {
+            withMutation(keyPath: \.lastNotifiedUpdateVersion) {
+                UserDefaults.standard.set(newValue, forKey: Keys.lastNotifiedUpdateVersion.rawValue)
+            }
+        }
+    }
+
+    public func resetUpdateReminderMemory() {
+        lastNotifiedUpdateVersion = nil
+    }
+
     // Derived properties for internal logic
     public var maxWorkTime: TimeInterval { TimeInterval(workDurationMinutes * 60) }
     public var alertThreshold: TimeInterval { TimeInterval((workDurationMinutes - alertBeforeRestMinutes) * 60) }
@@ -229,7 +250,14 @@ public final class AppState {
         changeState(to: newPhase, at: date)
     }
 
-    public var workElapsed: TimeInterval = 0
+    public var workElapsed: TimeInterval = 0 {
+        didSet {
+            if workElapsed == 0 {
+                warningDismissed = false
+            }
+        }
+    }
+    public var warningDismissed: Bool = false
     public var isPaused: Bool = false
     public var restRemaining: TimeInterval = 0
     public var pauseRemaining: TimeInterval = 0
@@ -237,6 +265,7 @@ public final class AppState {
     public var currentFrameIndex: Int = 0
     public var isPreviewing: Bool = false
     public var isBreathingActive: Bool = false
+    public var settingsNavigationTarget: SettingsNavigationTarget?
 
     // Water Reminder
     public var waterReminderEnabled: Bool {

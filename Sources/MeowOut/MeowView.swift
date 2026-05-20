@@ -47,10 +47,26 @@ public struct MeowView: View {
                     dragStarted = false
                 }
         )
-        .frame(width: 60, height: 60, alignment: .top) // Align to top to bring bubble closer to head
+        .frame(width: 60, height: 60)
     }
 
     private func handleTap() {
+        // If there's an update interaction active, prioritize it.
+        // Tapping the cat while updating should show a special evolution-related quote
+        // but keep the buttons visible.
+        if petState.updateInteraction != nil {
+            let pack = DialogueManager.pack(for: appState.selectedPersonality, language: appState.language)
+            // Use a specific evolution quote if available, otherwise a generic tap quote
+            let quote = pack.tapQuotes.randomElement() ?? ""
+            petState.showLockedBubble(quote, duration: 2.0)
+            
+            // Re-lock after a short delay or just let it stay locked because updateInteraction is still there?
+            // Actually, we need to ensure CatOverlayController doesn't overwrite this with idle chatter.
+            // But showLockedBubble sets isBubbleLocked = true. After 2s it becomes false.
+            // We want it to revert to the update prompt if the user hasn't acted.
+            return
+        }
+
         guard appState.currentState == .alerting || appState.currentState == .resting else {
             let pack = DialogueManager.pack(for: appState.selectedPersonality, language: appState.language)
             if let quote = pack.tapQuotes.randomElement() {

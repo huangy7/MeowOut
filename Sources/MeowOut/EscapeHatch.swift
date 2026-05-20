@@ -41,6 +41,9 @@ public final class EscapeHatch {
     }
 
     public func triggerEscape() {
+        if appState.currentState == .alerting {
+            appState.warningDismissed = true
+        }
         // Only reset work timer when escaping from forced rest, not from alerting warning
         if appState.currentState == .resting || appState.currentState == .overworking {
             appState.workElapsed = 0
