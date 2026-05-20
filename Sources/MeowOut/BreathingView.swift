@@ -98,8 +98,7 @@ public struct BreathingView: View {
 
                     Button {
                         state.stop()
-                        appState.isBreathingActive = false
-                        if let window = NSApp.windows.first(where: { $0.title == "深呼吸" }) {
+                        if let window = NSApp.windows.first(where: { $0.title == "正念练习" }) {
                             window.close()
                         }
                     } label: {
@@ -196,15 +195,18 @@ public struct BreathingView: View {
                 // ── Bottom controls ────────────────────────────────────────
                 VStack(spacing: 12) {
                     if state.isRunning {
+                        Text(formatTime(state.sessionSecondsRemaining))
+                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .foregroundStyle(.white.opacity(0.5))
+                            .padding(.bottom, 4)
+
                         Button("结束练习") {
                             withAnimation { state.stop() }
-                            appState.isBreathingActive = false
                         }
                         .buttonStyle(BreathingButtonStyle(isProminent: false))
                     } else {
                         Button("开始练习") {
                             state.start()
-                            appState.isBreathingActive = true
                             scheduleControlsHide()
                         }
                         .buttonStyle(BreathingButtonStyle(isProminent: true))
@@ -219,7 +221,8 @@ public struct BreathingView: View {
         .colorScheme(.dark)
         .background(
             WindowAccessor { window in
-                window.level = .floating
+                // Revert to stable shielding level
+                window.level = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()) + 1)
                 window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             }
         )
@@ -230,10 +233,40 @@ public struct BreathingView: View {
         .onDisappear {
             state.stop()
             appState.isBreathingActive = false
+            
+            // BUGFIX: If window is closed directly, ensure state is restored
+            if appState.currentState == .breathing {
+                appState.cleanupShortBreathingLog()
+                if appState.restRemaining > 0 {
+                    appState.currentState = .resting
+                } else {
+                    appState.currentState = .working
+                }
+            }
+        }
+        .onChange(of: state.isRunning) { oldValue, newValue in
+            if newValue {
+                appState.currentState = .breathing
+            } else {
+                appState.cleanupShortBreathingLog()
+                if appState.currentState == .breathing {
+                    if appState.restRemaining > 0 {
+                        appState.currentState = .resting
+                    } else {
+                        appState.currentState = .working
+                    }
+                }
+            }
         }
     }
 
     // MARK: - Helpers
+
+    private func formatTime(_ seconds: Int) -> String {
+        let m = seconds / 60
+        let s = seconds % 60
+        return String(format: "%02d:%02d", m, s)
+    }
 
     private func showControlsBriefly() {
         controlsVisible = true

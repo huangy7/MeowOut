@@ -17,6 +17,15 @@ public final class PetState {
     /// 标记气泡是否被锁定（用于显示高优先级交互对话，防止被自动倒计时覆盖）
     public var isBubbleLocked: Bool = false
 
+    /// 用户点击气泡的次数（用于多段逃逸逻辑）
+    public var tapCount: Int = 0
+
+    /// 标记是否正在执行逃离动画
+    public var isEscaping: Bool = false
+
+    /// 气泡是否显示喝水 +1 按钮
+    public var showWaterButton: Bool = false
+
     private var lockTask: Task<Void, Never>?
 
     public init() {}
@@ -37,6 +46,7 @@ public final class PetState {
             try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
             if !Task.isCancelled {
                 self.isBubbleLocked = false
+                self.tapCount = 0
                 self.pose = .rest
             }
         }

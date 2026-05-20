@@ -32,6 +32,9 @@ public final class BreathingState {
     public var secondsRemaining: Int = 4
     public var isRunning: Bool = false
     
+    public var totalSessionSeconds: Int = 300 // 5 minutes
+    public var sessionSecondsRemaining: Int = 300
+    
     private var timerTask: Task<Void, Never>?
     
     public init() {}
@@ -41,6 +44,7 @@ public final class BreathingState {
         isRunning = true
         currentPhase = .inhale
         secondsRemaining = currentPattern.inhaleDuration
+        sessionSecondsRemaining = totalSessionSeconds
         
         timerTask = Task {
             while !Task.isCancelled {
@@ -57,6 +61,7 @@ public final class BreathingState {
         timerTask = nil
         currentPhase = .inhale
         secondsRemaining = currentPattern.inhaleDuration
+        sessionSecondsRemaining = totalSessionSeconds
     }
     
     public func setPattern(_ pattern: BreathingPattern) {
@@ -67,6 +72,12 @@ public final class BreathingState {
     }
     
     private func tick() {
+        sessionSecondsRemaining -= 1
+        if sessionSecondsRemaining <= 0 {
+            stop()
+            return
+        }
+        
         if secondsRemaining > 1 {
             secondsRemaining -= 1
         } else {

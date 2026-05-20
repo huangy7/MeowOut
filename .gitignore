@@ -20,6 +20,10 @@ build_log.txt
 # Documentation
 docs/
 
-# Local TODO lists
+# Graphify knowledge graph output
+graphify-out/
+
+# Local config files
 TODO.md
 AGENTS.md
+CLAUDE.md

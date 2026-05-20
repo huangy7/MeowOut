@@ -3,10 +3,12 @@ import SwiftUI
 /// 专门用于气泡窗口的视图
 public struct MeowBubbleView: View {
     @Bindable var petState: PetState
+    var onWaterAdd: (() -> Void)?
     @Environment(\.openWindow) private var openWindow
 
-    public init(petState: PetState) {
+    public init(petState: PetState, onWaterAdd: (() -> Void)? = nil) {
         self.petState = petState
+        self.onWaterAdd = onWaterAdd
     }
 
     public var body: some View {
@@ -16,13 +18,15 @@ public struct MeowBubbleView: View {
                     Text(petState.bubbleText)
                         .font(.system(size: 11, weight: .bold, design: .monospaced))
                         .foregroundStyle(.white)
-                        
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+
                     if petState.showBreathingButton {
                         Button(action: {
                             NSApp.activate(ignoringOtherApps: true)
                             openWindow(id: "breathing")
                         }) {
-                            Text("🧘 深呼吸")
+                            Text("🧘 正念练习")
                                 .font(.system(size: 11, weight: .bold))
                                 .foregroundStyle(.white)
                         }
@@ -30,6 +34,21 @@ public struct MeowBubbleView: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(Color.orange.opacity(0.8))
+                        .cornerRadius(10)
+                    }
+
+                    if petState.showWaterButton {
+                        Button(action: {
+                            onWaterAdd?()
+                        }) {
+                            Text("+1 杯")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color.blue.opacity(0.8))
                         .cornerRadius(10)
                     }
                 }

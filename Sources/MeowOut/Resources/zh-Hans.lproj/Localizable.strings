@@ -13,11 +13,11 @@
 "menu_reset_timers" = "重置计时器";
 "menu_settings" = "设置...";
 "menu_quit" = "退出";
-"menu_breathing" = "深呼吸";
+"menu_breathing" = "正念练习";
 "settings_tab_settings" = "设置";
 "settings_tab_statistics" = "统计";
 "settings_restore_defaults" = "恢复默认设置";
-"settings_version" = "版本 1.0.0";
+"settings_version" = "版本 %@";
 "settings_section_intervals" = "时间间隔";
 "settings_work_duration" = "工作时长";
 "settings_work_duration_desc" = "休息前的最长连续工作时间。";
@@ -33,6 +33,7 @@
 "settings_personality_strict" = "严厉";
 "settings_personality_tsundere" = "傲娇";
 "settings_personality_desc" = "改变宠物与你互动和交谈的方式。";
+"settings_pet_selection" = "选择宠物";
 "settings_cursor_chasing" = "启用光标追逐";
 "settings_cursor_chasing_desc" = "休息期间宠物会跟随你的鼠标。";
 "settings_global_scold" = "全局敲击警告";
@@ -58,11 +59,13 @@
 "settings_header_subtitle" = "自定义你的工作-休息平衡";
 "unit_minutes_short" = "%lld分";
 "unit_hours_short" = "%@ / %lld小时";
+"unit_hours" = "%lld小时";
+"unit_cups" = "%lld杯";
 
 "personality_gentle_alerting_0" = "时间不早了，要不要拉伸一下？";
 "personality_gentle_alerting_1" = "你已经很努力了，抱抱自己吧";
 "personality_gentle_alerting_2" = "记得多喝水哦，朋友";
-"personality_gentle_resting_0" = "深呼吸... 休息也是一种生产力";
+"personality_gentle_resting_0" = "正念练习... 休息也是一种生产力";
 "personality_gentle_resting_1" = "享受属于你的片刻宁静";
 "personality_gentle_resting_2" = "放松肩膀，闭上眼休息会吧";
 "personality_gentle_tap_0" = "你好呀！";
@@ -96,3 +99,72 @@
 "personality_tsundere_trayScold" = "笨蛋，不准点那里！好好休息听不懂吗？";
 "settings_tab_today_review" = "今日回顾";
 
+"phased_escape_gentle" = "真的需要休息呢 (%lld/%lld)";
+"phased_escape_gentle_1" = "哎呀，别闹啦 (%lld/%lld)";
+"phased_escape_gentle_2" = "真的还在忙吗？ (%lld/%lld)";
+"phased_escape_gentle_3" = "好痒哦！ (%lld/%lld)";
+"phased_escape_gentle_4" = "休息一下嘛... (%lld/%lld)";
+"phased_escape_strict" = "执行休息指令！ (%lld/%lld)";
+"phased_escape_strict_1" = "放下键盘！ (%lld/%lld)";
+"phased_escape_strict_2" = "不准逃避！ (%lld/%lld)";
+"phased_escape_strict_3" = "你要造反吗？！ (%lld/%lld)";
+"phased_escape_strict_4" = "最后警告一次！ (%lld/%lld)";
+"phased_escape_tsundere" = "不准点了！笨蛋！ (%lld/%lld)";
+"phased_escape_tsundere_1" = "别戳啦！ (%lld/%lld)";
+"phased_escape_tsundere_2" = "快去休息！ (%lld/%lld)";
+"phased_escape_tsundere_3" = "最讨厌你了！ (%lld/%lld)";
+"phased_escape_tsundere_4" = "哼，再点我就走！ (%lld/%lld)";
+"phased_escape_giveup_gentle" = "好啦好啦，真拿你没办法，就让你继续工作一会吧。";
+"phased_escape_giveup_strict" = "下不为例！这是最后的警告！";
+"phased_escape_giveup_tsundere" = "哼！随你的便吧！不管你了！";
+
+"tap_hint_gentle" = "多点我几下有惊喜哦~";
+"tap_hint_strict" = "连续点击可强制执行休息";
+"tap_hint_tsundere" = "戳我 %lld 下试试？哼！";
+
+"water_reminder_text" = "该喝水啦 💧";
+"water_add_cup" = "+1 杯";
+"water_recorded" = "已记录 ✓";
+"water_today_label" = "今日喝水";
+"water_settings_title" = "喝水提醒";
+"water_settings_enabled" = "开启喝水提醒";
+"water_settings_mode" = "提醒模式";
+"water_settings_mode_rhythm" = "跟随工作节奏";
+"water_settings_mode_custom" = "自定义间隔";
+"water_settings_interval" = "提醒间隔";
+"water_settings_goal" = "每日目标（杯）";
+"settings_section_water" = "喝水提醒";
+
+
+"stats_tab_work" = "工作时长";
+"stats_tab_water" = "饮水记录";
+"stats_tab_logs" = "记录";
+"stats_subtab_today" = "今日";
+"stats_subtab_history" = "历史";
+"settings_tab_rest" = "休息提醒";
+"settings_tab_water" = "喝水提醒";
+
+"settings_subtab_goal" = "目标";
+"settings_subtab_durations" = "时长";
+"settings_subtab_alerts" = "提醒";
+"settings_subtab_general" = "常规";
+"settings_subtab_schedule" = "排程";
+"settings_subtab_pet" = "宠物";
+"settings_subtab_personality" = "性格";
+"settings_subtab_interactions" = "互动";
+"settings_subtab_about" = "关于";
+
+"log_phase_working" = "工作";
+"log_phase_resting" = "休息";
+"log_phase_overworking" = "超量";
+"log_phase_breathing" = "正念";
+"log_phase_idle" = "离开/其他";
+"log_duration_working" = "工作时长";
+"log_duration_resting" = "休息时长";
+"log_duration_overworking" = "超量工作";
+"log_duration_breathing" = "正念练习";
+"log_duration_idle" = "离开时长";
+"log_view_details" = "查看详细记录";
+"log_no_records" = "暂无记录";
+"unit_hours_label" = "小时";
+"unit_minutes_label" = "分钟";

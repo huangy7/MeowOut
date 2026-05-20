@@ -41,8 +41,35 @@ public final class EscapeHatch {
     }
 
     public func triggerEscape() {
-        appState.workElapsed = 0
+        // Only reset work timer when escaping from forced rest, not from alerting warning
+        if appState.currentState == .resting || appState.currentState == .overworking {
+            appState.workElapsed = 0
+        }
         appState.currentState = .working
         escPresses.removeAll()
+    }
+
+    /// Process one frame of the escape run-off-screen animation.
+    /// Returns true if the escape animation is still in progress (caller should skip normal tick logic).
+    public func tick(petState: PetState, screen: NSRect) -> Bool {
+        guard petState.isEscaping else { return false }
+
+        petState.isWalking = true
+        petState.facingRight = true
+        petState.position.x += 4.5
+
+        // Hide bubble as we run away past center
+        if petState.position.x > screen.midX + 100 {
+            petState.bubbleVisible = false
+        }
+
+        if petState.position.x > screen.maxX + 100 {
+            // Fully off-screen, finalize escape
+            petState.isEscaping = false
+            petState.isWalking = false
+            return false
+        }
+
+        return true
     }
 }

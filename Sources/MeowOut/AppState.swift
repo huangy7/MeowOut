@@ -9,6 +9,8 @@ public enum AppPhase: Equatable {
     case alerting
     case resting
     case paused
+    case breathing
+    case overworking
 }
 
 public enum PetPersonality: String, CaseIterable, Identifiable {
@@ -31,6 +33,14 @@ public struct SessionLog: Identifiable, Equatable {
 
 @Observable
 public final class AppState {
+    public enum PetType: String, CaseIterable, Identifiable {
+        case clawd = "Clawd"
+        case robot = "Robot"
+        case cloud = "Cloud"
+        case horse = "Horse"
+        public var id: String { rawValue }
+    }
+
     private enum Keys: String {
         case workDurationMinutes
         case alertBeforeRestMinutes
@@ -38,7 +48,14 @@ public final class AppState {
         case enableCursorChasing
         case restToResetMinutes
         case language
+        case selectedPet
         case enableGlobalKeyboardScold
+        case waterReminderEnabled
+        case waterReminderMode
+        case waterCustomInterval
+        case dailyWaterGoal
+        case todayWaterCups
+        case lastWaterResetDate
     }
 
     public enum AppLanguage: String, CaseIterable, Identifiable {
@@ -53,6 +70,12 @@ public final class AppState {
         }
     }
 
+    public enum WaterReminderMode: String, CaseIterable, Identifiable {
+        case followRhythm = "followRhythm"
+        case custom = "custom"
+        public var id: String { rawValue }
+    }
+
     public var language: AppLanguage {
         get {
             access(keyPath: \.language)
@@ -61,6 +84,18 @@ public final class AppState {
         set {
             withMutation(keyPath: \.language) {
                 UserDefaults.standard.set(newValue.rawValue, forKey: Keys.language.rawValue)
+            }
+        }
+    }
+
+    public var selectedPet: PetType {
+        get {
+            access(keyPath: \.selectedPet)
+            return PetType(rawValue: UserDefaults.standard.string(forKey: Keys.selectedPet.rawValue) ?? "Clawd") ?? .clawd
+        }
+        set {
+            withMutation(keyPath: \.selectedPet) {
+                UserDefaults.standard.set(newValue.rawValue, forKey: Keys.selectedPet.rawValue)
             }
         }
     }
@@ -155,21 +190,43 @@ public final class AppState {
     // Transient State
     public var dailyLogs: [SessionLog] = []
 
-    public var currentState: AppPhase = .working {
-        didSet {
-            if oldValue != currentState {
-                if dailyLogs.last?.phase != currentState {
-                    recordPhaseTransition(from: oldValue, to: currentState)
+    private var _currentState: AppPhase = .working
+    public var currentState: AppPhase {
+        get { _currentState }
+        set { changeState(to: newValue) }
+    }
+
+    public func changeState(to newPhase: AppPhase, at date: Date = Date()) {
+        guard _currentState != newPhase else { return }
+        let oldPhase = _currentState
+        _currentState = newPhase
+        
+        // Smart merge for Resting <-> Overworking <-> Breathing
+        if let last = dailyLogs.last {
+            let duration = date.timeIntervalSince(last.startTime)
+            if duration < 60 {
+                let isMergeable = (oldPhase == .resting && newPhase == .overworking) ||
+                                  (oldPhase == .overworking && newPhase == .resting) ||
+                                  (oldPhase == .resting && newPhase == .breathing) ||
+                                  (oldPhase == .overworking && newPhase == .breathing) ||
+                                  (oldPhase == .working && (newPhase == .resting || newPhase == .overworking))
+                
+                if isMergeable {
+                    dailyLogs.removeLast()
+                    dailyLogs.append(SessionLog(startTime: last.startTime, phase: newPhase))
+                    return
                 }
             }
         }
-    }
-
-    public func recordPhaseTransition(from oldPhase: AppPhase, to newPhase: AppPhase, at date: Date = Date()) {
+        
         if !dailyLogs.isEmpty {
             dailyLogs[dailyLogs.count - 1].endTime = date
         }
         dailyLogs.append(SessionLog(startTime: date, phase: newPhase))
+    }
+
+    public func recordPhaseTransition(from oldPhase: AppPhase, to newPhase: AppPhase, at date: Date = Date()) {
+        changeState(to: newPhase, at: date)
     }
 
     public var workElapsed: TimeInterval = 0
@@ -180,6 +237,87 @@ public final class AppState {
     public var currentFrameIndex: Int = 0
     public var isPreviewing: Bool = false
     public var isBreathingActive: Bool = false
+
+    // Water Reminder
+    public var waterReminderEnabled: Bool {
+        get {
+            access(keyPath: \.waterReminderEnabled)
+            return UserDefaults.standard.object(forKey: Keys.waterReminderEnabled.rawValue) as? Bool ?? true
+        }
+        set {
+            withMutation(keyPath: \.waterReminderEnabled) {
+                UserDefaults.standard.set(newValue, forKey: Keys.waterReminderEnabled.rawValue)
+            }
+        }
+    }
+
+    public var waterReminderMode: WaterReminderMode {
+        get {
+            access(keyPath: \.waterReminderMode)
+            return WaterReminderMode(rawValue: UserDefaults.standard.string(forKey: Keys.waterReminderMode.rawValue) ?? "followRhythm") ?? .followRhythm
+        }
+        set {
+            withMutation(keyPath: \.waterReminderMode) {
+                UserDefaults.standard.set(newValue.rawValue, forKey: Keys.waterReminderMode.rawValue)
+            }
+        }
+    }
+
+    public var waterCustomInterval: Int {
+        get {
+            access(keyPath: \.waterCustomInterval)
+            let val = UserDefaults.standard.integer(forKey: Keys.waterCustomInterval.rawValue)
+            return val != 0 ? val : 45
+        }
+        set {
+            withMutation(keyPath: \.waterCustomInterval) {
+                UserDefaults.standard.set(newValue, forKey: Keys.waterCustomInterval.rawValue)
+            }
+        }
+    }
+
+    public var dailyWaterGoal: Int {
+        get {
+            access(keyPath: \.dailyWaterGoal)
+            let val = UserDefaults.standard.integer(forKey: Keys.dailyWaterGoal.rawValue)
+            return val != 0 ? val : 8
+        }
+        set {
+            withMutation(keyPath: \.dailyWaterGoal) {
+                UserDefaults.standard.set(newValue, forKey: Keys.dailyWaterGoal.rawValue)
+            }
+        }
+    }
+
+    public var todayWaterCups: Int {
+        get {
+            access(keyPath: \.todayWaterCups)
+            return UserDefaults.standard.integer(forKey: Keys.todayWaterCups.rawValue)
+        }
+        set {
+            withMutation(keyPath: \.todayWaterCups) {
+                UserDefaults.standard.set(newValue, forKey: Keys.todayWaterCups.rawValue)
+            }
+        }
+    }
+
+    public var lastWaterResetDate: Date? {
+        get { UserDefaults.standard.object(forKey: Keys.lastWaterResetDate.rawValue) as? Date }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.lastWaterResetDate.rawValue) }
+    }
+
+    public var lastWaterReminderTime: Date?
+
+    public func cleanupShortBreathingLog() {
+        guard let last = dailyLogs.last, last.phase == .breathing else { return }
+        let duration = Date().timeIntervalSince(last.startTime)
+        if duration < 30 {
+            dailyLogs.removeLast()
+            if !dailyLogs.isEmpty {
+                dailyLogs[dailyLogs.count - 1].endTime = nil
+            }
+        }
+    }
 
     // Statistics
     private var _workHistoryCache: [String: TimeInterval]?
@@ -235,6 +373,19 @@ public final class AppState {
         return formatter.string(from: date)
     }
 
+    public func checkAndResetWaterIfNewDay() {
+        let now = Date()
+        let calendar = Calendar.current
+        if let lastReset = lastWaterResetDate {
+            if !calendar.isDate(now, inSameDayAs: lastReset) {
+                todayWaterCups = 0
+                lastWaterResetDate = now
+            }
+        } else {
+            lastWaterResetDate = now
+        }
+    }
+
     public init() {
         dailyLogs.append(SessionLog(phase: currentState))
     }
@@ -284,6 +435,22 @@ public final class AppState {
         }
         withMutation(keyPath: \.dailyWorkGoal) {
             UserDefaults.standard.removeObject(forKey: "dailyWorkGoal")
+        }
+    }
+}
+
+public protocol PetSpriteView: View {
+    init(pose: ClawdPose, height: CGFloat, isWalking: Bool)
+}
+
+extension AppState.PetType {
+    @ViewBuilder
+    public func makeView(pose: ClawdPose, height: CGFloat, isWalking: Bool) -> some View {
+        switch self {
+        case .clawd: ClawdView(pose: pose, height: height, isWalking: isWalking)
+        case .robot: TerminalView(pose: pose, height: height, isWalking: isWalking)
+        case .cloud: CloudView(pose: pose, height: height, isWalking: isWalking)
+        case .horse: HorseView(pose: pose, height: height, isWalking: isWalking)
         }
     }
 }

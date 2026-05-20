@@ -17,7 +17,7 @@
 "settings_tab_settings" = "Settings";
 "settings_tab_statistics" = "Statistics";
 "settings_restore_defaults" = "Restore Defaults";
-"settings_version" = "Version 1.0.0";
+"settings_version" = "Version %@";
 "settings_section_intervals" = "Time Intervals";
 "settings_work_duration" = "Work Duration";
 "settings_work_duration_desc" = "How long you can work before rest.";
@@ -33,6 +33,7 @@
 "settings_personality_strict" = "Strict";
 "settings_personality_tsundere" = "Tsundere";
 "settings_personality_desc" = "Changes how the pet interacts and talks to you.";
+"settings_pet_selection" = "Select Pet";
 "settings_cursor_chasing" = "Enable Cursor Chasing";
 "settings_cursor_chasing_desc" = "The pet will follow your mouse during rest.";
 "settings_global_scold" = "Global Keyboard Scold";
@@ -57,6 +58,8 @@
 "settings_header_subtitle" = "Customize your work-rest balance";
 "unit_minutes_short" = "%lldm";
 "unit_hours_short" = "%@ / %lldh";
+"unit_hours" = "%lldh";
+"unit_cups" = "%lld cups";
 
 "personality_gentle_alerting_0" = "It's getting late, why not stretch a bit?";
 "personality_gentle_alerting_1" = "You've worked hard, give yourself a hug.";
@@ -95,3 +98,72 @@
 "personality_tsundere_trayScold" = "Idiot, don't click there! Didn't I tell you to rest?";
 "settings_tab_today_review" = "Today's Review";
 
+"phased_escape_gentle" = "Need rest! (%lld/%lld)";
+"phased_escape_gentle_1" = "Oh, stop it (%lld/%lld)";
+"phased_escape_gentle_2" = "Still busy? (%lld/%lld)";
+"phased_escape_gentle_3" = "That tickles! (%lld/%lld)";
+"phased_escape_gentle_4" = "Take a break... (%lld/%lld)";
+"phased_escape_strict" = "Rest order! (%lld/%lld)";
+"phased_escape_strict_1" = "Hands off! (%lld/%lld)";
+"phased_escape_strict_2" = "No escape! (%lld/%lld)";
+"phased_escape_strict_3" = "Rebelling?! (%lld/%lld)";
+"phased_escape_strict_4" = "Last warning! (%lld/%lld)";
+"phased_escape_tsundere" = "Stop it, dummy! (%lld/%lld)";
+"phased_escape_tsundere_1" = "Stop poking! (%lld/%lld)";
+"phased_escape_tsundere_2" = "Go rest now! (%lld/%lld)";
+"phased_escape_tsundere_3" = "I hate this! (%lld/%lld)";
+"phased_escape_tsundere_4" = "I'm leaving! (%lld/%lld)";
+"phased_escape_giveup_gentle" = "Alright, alright, I can't do anything about you. You can work a bit more.";
+"phased_escape_giveup_strict" = "Not another time! This is the final warning!";
+"phased_escape_giveup_tsundere" = "Hmph! Do whatever you want! I don't care about you anymore!";
+
+"tap_hint_gentle" = "Tap me a few times, there's a surprise~";
+"tap_hint_strict" = "Tap repeatedly to enforce rest";
+"tap_hint_tsundere" = "Try tapping me %lld times! Hmph!";
+
+"water_reminder_text" = "Time to drink water 💧";
+"water_add_cup" = "+1 cup";
+"water_recorded" = "Recorded ✓";
+"water_today_label" = "Today's Water";
+"water_settings_title" = "Water Reminder";
+"water_settings_enabled" = "Enable Water Reminder";
+"water_settings_mode" = "Reminder Mode";
+"water_settings_mode_rhythm" = "Follow Work Rhythm";
+"water_settings_mode_custom" = "Custom Interval";
+"water_settings_interval" = "Reminder Interval";
+"water_settings_goal" = "Daily Goal (cups)";
+"settings_section_water" = "Water Reminder";
+
+
+"stats_tab_work" = "Work Hours";
+"stats_tab_water" = "Hydration";
+"stats_tab_logs" = "Logs";
+"stats_subtab_today" = "Today";
+"stats_subtab_history" = "History";
+"settings_tab_rest" = "Rest Reminder";
+"settings_tab_water" = "Water Reminder";
+
+"settings_subtab_goal" = "Goal";
+"settings_subtab_durations" = "Durations";
+"settings_subtab_alerts" = "Alerts";
+"settings_subtab_general" = "General";
+"settings_subtab_schedule" = "Schedule";
+"settings_subtab_pet" = "Pet";
+"settings_subtab_personality" = "Personality";
+"settings_subtab_interactions" = "Interactions";
+"settings_subtab_about" = "About";
+
+"log_phase_working" = "Working";
+"log_phase_resting" = "Resting";
+"log_phase_overworking" = "Overworking";
+"log_phase_breathing" = "Mindfulness";
+"log_phase_idle" = "Idle/Other";
+"log_duration_working" = "Work Duration";
+"log_duration_resting" = "Rest Duration";
+"log_duration_overworking" = "Overwork Duration";
+"log_duration_breathing" = "Mindfulness Duration";
+"log_duration_idle" = "Idle Duration";
+"log_view_details" = "View Detailed Logs";
+"log_no_records" = "No records yet";
+"unit_hours_label" = "hours";
+"unit_minutes_label" = "minutes";

@@ -91,17 +91,6 @@ final class ActivityMonitor {
         
         guard !appState.isPreviewing else { return }
         
-        if appState.currentState == .paused {
-            appState.pauseRemaining -= dt
-            if appState.pauseRemaining <= 0 {
-                appState.currentState = .working
-                appState.workElapsed = 0
-                appState.flushStatsToDisk()
-            }
-            appState.isWalking = false
-            return
-        }
-        
         let idle: TimeInterval
         if let sim = simulatedIdleTime {
             idle = sim
@@ -109,6 +98,39 @@ final class ActivityMonitor {
             let m = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .mouseMoved)
             let k = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .keyDown)
             idle = min(m, k)
+        }
+        
+        if appState.currentState == .paused || appState.currentState == .breathing || appState.currentState == .overworking || appState.currentState == .resting {
+            if appState.currentState == .paused {
+                appState.pauseRemaining -= dt
+                if appState.pauseRemaining <= 0 {
+                    appState.currentState = .working
+                    appState.workElapsed = 0
+                    appState.flushStatsToDisk()
+                }
+            }
+            
+            // Allow rest to continue if user is breathing/resting/overworking
+            if appState.currentState == .breathing || appState.currentState == .resting || appState.currentState == .overworking {
+                appState.restRemaining -= dt
+                if appState.restRemaining <= 0 {
+                    if appState.currentState != .breathing {
+                        appState.workElapsed = 0
+                        appState.currentState = .working
+                        appState.flushStatsToDisk()
+                    }
+                } else {
+                    // Smart transition between Overworking and Resting
+                    if idle < 30 && appState.currentState == .resting {
+                        appState.changeState(to: .overworking)
+                    } else if idle >= 30 && appState.currentState == .overworking {
+                        appState.changeState(to: .resting, at: Date().addingTimeInterval(-30))
+                    }
+                }
+            }
+            
+            appState.isWalking = (appState.currentState == .breathing)
+            return
         }
         
         if idle >= appState.rollbackThreshold {
@@ -124,15 +146,6 @@ final class ActivityMonitor {
                 appState.flushStatsToDisk()
             }
             
-            if appState.currentState == .resting {
-                appState.restRemaining -= dt
-                if appState.restRemaining <= 0 {
-                    appState.workElapsed = 0
-                    appState.currentState = .working
-                    appState.flushStatsToDisk()
-                }
-            }
-            
             if idle >= appState.resetThreshold {
                 appState.workElapsed = 0
             }
@@ -145,26 +158,17 @@ final class ActivityMonitor {
             appState.currentState = .working
         }
         
-        if appState.currentState != .resting {
-            appState.workElapsed += dt
-            updateHistory(dt: dt)
-        } else {
-            appState.restRemaining -= dt
-            if appState.restRemaining <= 0 {
-                appState.workElapsed = 0
-                appState.currentState = .working
-                appState.flushStatsToDisk()
-            }
-        }
+        appState.workElapsed += dt
+        updateHistory(dt: dt)
         
         // 只要用户在动，标记为行走，具体的动画帧由 View 层的 Timer 驱动
         appState.isWalking = true
         
-        if appState.currentState != .resting && appState.workElapsed >= appState.maxWorkTime {
+        if appState.workElapsed >= appState.maxWorkTime {
             appState.currentState = .resting
             appState.restRemaining = appState.defaultRestTime
             appState.flushStatsToDisk()
-        } else if appState.currentState == .working && appState.workElapsed >= appState.alertThreshold {
+        } else if appState.workElapsed >= appState.alertThreshold {
             appState.currentState = .alerting
         }
         

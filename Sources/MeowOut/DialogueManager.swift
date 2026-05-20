@@ -38,4 +38,36 @@ final class DialogueManager {
             ]
         )
     }
+
+    public static func phasedEscapeQuotes(personality: PetPersonality, language: AppState.AppLanguage, current: Int, target: Int) -> String {
+        let typeStr: String
+        switch personality {
+        case .gentle: typeStr = "gentle"
+        case .strict: typeStr = "strict"
+        case .tsundere: typeStr = "tsundere"
+        }
+
+        if current >= target {
+            return I18n.localized("phased_escape_giveup_\(typeStr)", language: language)
+        } else {
+            // Use variation if available
+            let key = "phased_escape_\(typeStr)_\(current)"
+            let localized = I18n.localized(key, language: language)
+            if localized != key {
+                return String(format: localized, Int64(current), Int64(target))
+            }
+            return I18n.localizedFormat("phased_escape_\(typeStr)", language: language, Int64(current), Int64(target))
+        }
+    }
+
+    public static func tapHintText(personality: PetPersonality, language: AppState.AppLanguage = .system, targetCount: Int = 3) -> String {
+        let typeStr: String
+        switch personality {
+        case .gentle: typeStr = "gentle"
+        case .strict: typeStr = "strict"
+        case .tsundere: typeStr = "tsundere"
+        }
+        let format = I18n.localized("tap_hint_\(typeStr)", language: language)
+        return String(format: format, Int64(targetCount))
+    }
 }

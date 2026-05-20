@@ -10,6 +10,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "MeowOut",
+            exclude: ["Info.plist"],
             resources: [.process("Resources")],
             linkerSettings: [
                 .linkedFramework("Carbon"),

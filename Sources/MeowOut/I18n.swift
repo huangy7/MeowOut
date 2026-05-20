@@ -2,6 +2,16 @@ import Foundation
 
 /// 强制资源管理器：确保在不同环境下都能正确加载到语言包
 public final class I18n {
+    /// 兼容性 Bundle 访问器
+    private static var bundle: Bundle {
+        #if SWIFT_PACKAGE
+        return Bundle.module
+        #else
+        // 在 Xcode 环境下，资源通常在主 Bundle 或与类关联的 Bundle 中
+        return Bundle(for: I18n.self)
+        #endif
+    }
+
     /// 获取当前应该使用的有效语言代码
     private static func resolveLanguage(_ language: AppState.AppLanguage) -> String {
         if language != .system {
@@ -18,24 +28,24 @@ public final class I18n {
 
     /// 获取本地化字符串
     public static func localized(_ key: String, language: AppState.AppLanguage = .system) -> String {
-        let bundle = Bundle.main
+        let currentBundle = bundle
         let targetLang = resolveLanguage(language)
 
         // 尝试加载对应语言的 .lproj 文件夹
-        if let path = bundle.path(forResource: targetLang, ofType: "lproj"),
+        if let path = currentBundle.path(forResource: targetLang, ofType: "lproj"),
            let langBundle = Bundle(path: path) {
             return NSLocalizedString(key, bundle: langBundle, comment: "")
         }
 
         // 大小写兼容兜底 (针对 zh-Hans / zh-hans)
         let altLang = targetLang == "zh-hans" ? "zh-Hans" : targetLang
-        if let path = bundle.path(forResource: altLang, ofType: "lproj"),
+        if let path = currentBundle.path(forResource: altLang, ofType: "lproj"),
            let langBundle = Bundle(path: path) {
             return NSLocalizedString(key, bundle: langBundle, comment: "")
         }
 
         // 最终兜底
-        return NSLocalizedString(key, bundle: bundle, comment: "")
+        return NSLocalizedString(key, bundle: currentBundle, comment: "")
     }
 
     public static func localizedFormat(_ key: String, language: AppState.AppLanguage = .system, _ arguments: CVarArg...) -> String {

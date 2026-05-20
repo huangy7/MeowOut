@@ -14,12 +14,14 @@ struct ClawdRect {
     let h: CGFloat
 }
 
-/// 官方 Clawd 像素渲染器 (复用自 HermesPet)
-public struct ClawdView: View {
+// Portions derived from HermesPet (https://github.com/basionwang-bot/HermesPet)
+// Licensed under Apache 2.0 — see LICENSE.HermesPet
+// Modifications: hardcoded colors, simplified animation parameters
+public struct ClawdView: View, PetSpriteView {
     public let pose: ClawdPose
     public let height: CGFloat
     public var isWalking: Bool = false
-    public var followMouse: Bool = false
+    private let followMouse: Bool = true
 
     private static let bodyColor = Color(red: 222.0/255, green: 136.0/255, blue: 109.0/255)
     private static let bodyTopColor = Color(red: 240.0/255, green: 161.0/255, blue: 135.0/255)
@@ -42,11 +44,10 @@ public struct ClawdView: View {
     private static let rightEye = ClawdRect(x: 10, y: 2, w: 1, h: 2)
     private static let shadow   = ClawdRect(x: 3,  y: 9, w: 9, h: 1)
 
-    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, followMouse: Bool = false) {
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
-        self.followMouse = followMouse
     }
 
     public var body: some View {

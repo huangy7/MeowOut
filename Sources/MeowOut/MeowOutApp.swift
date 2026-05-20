@@ -50,8 +50,10 @@ struct TrayIconView: View {
     private var trayIconConfig: (String, NSColor) {
         switch appState.currentState {
         case .working: return ("cat.fill", .black) // Not used for tinting when isTemplate=true
+        case .breathing: return ("cat.fill", NSColor.systemTeal)
         case .alerting: return ("cat.fill", NSColor.orange)
         case .resting: return ("cat.fill", NSColor.red)
+        case .overworking: return ("cat.fill", NSColor.red)
         case .paused: return ("pause.circle", NSColor.lightGray)
         case .idle: return ("cat.fill", NSColor.lightGray)
         }
@@ -187,13 +189,15 @@ struct MeowOutApp: App {
             SettingsView(state: appState)
         }
         .windowResizability(.contentSize)
+        .environment(appState)
 
         Window(I18n.localized("settings_tab_statistics", language: appState.language), id: "statistics") {
             StatsView(state: appState)
         }
         .windowResizability(.contentSize)
+        .environment(appState)
 
-        Window("深呼吸", id: "breathing") {
+        Window("正念练习", id: "breathing") {
             BreathingView()
         }
         .windowStyle(.hiddenTitleBar)
@@ -220,6 +224,15 @@ struct MeowOutApp: App {
                         Button {
                             appState.currentState = .working
                             appState.pauseRemaining = 0
+                            
+                            // Dismiss menu
+                            NSApp.windows.forEach { window in
+                                if window.styleMask.contains(.nonactivatingPanel) && 
+                                   window.isVisible && 
+                                   abs(window.frame.width - 280) < 2 {
+                                    window.orderOut(nil)
+                                }
+                            }
                         } label: {
                             Image(systemName: "play.fill")
                         }
@@ -290,7 +303,11 @@ struct ButtonView: View {
     @State private var isHovered = false
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            // macOS standard: dismiss menu before or during action
+            dismissMenu()
+            action()
+        } label: {
             HStack {
                 Image(systemName: icon)
                     .frame(width: 20)
@@ -307,6 +324,18 @@ struct ButtonView: View {
             isHovered = hovering
         }
     }
+
+    private func dismissMenu() {
+        // For .window style MenuBarExtra, we manually hide the window
+        // The menu window is typically a nonactivatingPanel with our fixed width
+        NSApp.windows.forEach { window in
+            if window.styleMask.contains(.nonactivatingPanel) && 
+               window.isVisible && 
+               abs(window.frame.width - 280) < 2 {
+                window.orderOut(nil)
+            }
+        }
+    }
 }
 
 struct QuickPauseButton: View {
@@ -315,7 +344,10 @@ struct QuickPauseButton: View {
     @State private var isHovered = false
     
     var body: some View {
-        Button(action: action) {
+        Button {
+            dismissMenu()
+            action()
+        } label: {
             Text(title)
                 .font(.system(size: 11, weight: .medium))
                 .padding(.horizontal, 10)
@@ -330,56 +362,94 @@ struct QuickPauseButton: View {
             isHovered = hovering
         }
     }
+
+    private func dismissMenu() {
+        NSApp.windows.forEach { window in
+            if window.styleMask.contains(.nonactivatingPanel) && 
+               window.isVisible && 
+               abs(window.frame.width - 280) < 2 {
+                window.orderOut(nil)
+            }
+        }
+    }
 }
 
 struct MenuDashboardCard: View {
     @Bindable var appState: AppState
     
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
-            // Left Column: Goal
-            VStack(alignment: .leading, spacing: 8) {
-                Label {
-                    Text(I18n.localized("stats_todays_goal", language: appState.language))
-                        .font(.system(size: 13, weight: .medium))
-                } icon: {
-                    Image(systemName: "target")
-                        .font(.system(size: 14, weight: .ultraLight))
-                        .foregroundStyle(.orange)
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 0) {
+                // Left Column: Goal
+                VStack(alignment: .leading, spacing: 8) {
+                    Label {
+                        Text(I18n.localized("stats_todays_goal", language: appState.language))
+                            .font(.system(size: 13, weight: .medium))
+                            .lineLimit(1)
+                    } icon: {
+                        Image(systemName: "target")
+                            .font(.system(size: 14, weight: .ultraLight))
+                            .foregroundStyle(.orange)
+                    }
+
+                    let goalProgress = min(1.0, appState.totalWorkToday / (Double(appState.dailyWorkGoal) * 3600))
+                    HStack(alignment: .center, spacing: 10) {
+                        CapsuleProgressView(value: goalProgress)
+
+                        Text("\(String(format: "%.1f", appState.totalWorkToday / 3600)) / \(appState.dailyWorkGoal).0 h")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
                 }
-                
-                let goalProgress = min(1.0, appState.totalWorkToday / (Double(appState.dailyWorkGoal) * 3600))
-                CapsuleProgressView(value: goalProgress)
-                
-                let unitSuffix = I18n.localized("unit_hours_short", language: appState.language).components(separatedBy: " ").last ?? ""
-                Text("\(String(format: "%.1f", appState.totalWorkToday / 3600)) / \(appState.dailyWorkGoal).0 \(unitSuffix)")
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.trailing, 16)
+
+                Divider()
+                    .frame(height: 44)
+
+                // Right Column: Session
+                VStack(alignment: .center, spacing: 0) {
+                    let sessionProgress = min(1.0, appState.workElapsed / appState.maxWorkTime)
+                    CircularProgressView(
+                        value: sessionProgress,
+                        text: "\(Int(appState.workElapsed / 60))m"
+                    )
+                }
+                .frame(width: 70)
             }
-            .padding(.trailing, 12)
-            
-            Divider()
-                .frame(height: 60)
-                .padding(.horizontal, 4)
-            
-            // Right Column: Session
-            VStack(alignment: .center, spacing: 6) {
-                let sessionProgress = min(1.0, appState.workElapsed / appState.maxWorkTime)
-                CircularProgressView(
-                    value: sessionProgress,
-                    text: "\(Int(appState.workElapsed / 60))m"
-                )
-                
-                Text(I18n.localizedFormat("menu_work_label", language: appState.language, Int64(appState.workElapsed / 60)))
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(width: 280, alignment: .leading)
+
+            // Water Row
+            HStack(spacing: 8) {
+                Image(systemName: "drop.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.blue)
+                Text(I18n.localized("water_today_label", language: appState.language))
+                    .font(.system(size: 12, weight: .medium))
+                Spacer()
+                Text("\(appState.todayWaterCups)/\(appState.dailyWaterGoal)")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.blue)
+                Button(action: {
+                    appState.todayWaterCups += 1
+                    NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.blue)
+                }
+                .buttonStyle(.plain)
             }
-            .frame(width: 80)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .frame(width: 280, alignment: .leading)
+        .onAppear {
+            appState.checkAndResetWaterIfNewDay()
+        }
     }
 }
 
@@ -389,17 +459,19 @@ struct CapsuleProgressView: View {
     var value: Double // 0.0 to 1.0
     
     var body: some View {
-        ZStack(alignment: .leading) {
-            Capsule()
-                .fill(Color.secondary.opacity(0.15))
-                .frame(height: 12)
-            
-            Capsule()
-                .fill(Color.orange)
-                .frame(width: max(12, 120 * value), height: 12)
-                .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 0)
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Color.secondary.opacity(0.15))
+                    .frame(height: 8)
+                
+                Capsule()
+                    .fill(Color.orange)
+                    .frame(width: max(8, geometry.size.width * value), height: 8)
+                    .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 0)
+            }
         }
-        .frame(width: 120)
+        .frame(height: 8)
     }
 }
 

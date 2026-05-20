@@ -10,16 +10,18 @@ public final class CatOverlayController {
     private var bubbleWindow: NSPanel?
     private var appState: AppState?
     private var escapeHatch: EscapeHatch?
+    private var waterReminderController: WaterReminderController?
 
     private let petState = PetState()
     private var timer: Timer?
 
     private let petWindowSize = NSSize(width: 60, height: 60)
-    private let bubbleWindowSize = NSSize(width: 200, height: 60)
+    private let bubbleWindowSize = NSSize(width: 220, height: 60)
     private var patrolVelocity: CGPoint = CGPoint(x: 3.0, y: 1.5)
     // For dialogue shuffling
     private var lastDialogueUpdate: Date = Date()
     private var currentDialogueIndex: Int = 0
+    private var showHintNext: Bool = false
 
     private var localMonitor: Any?
     private var globalMonitor: Any?
@@ -32,9 +34,12 @@ public final class CatOverlayController {
     public func start(appState: AppState) {
         self.appState = appState
         self.escapeHatch = EscapeHatch(appState: appState)
+        self.waterReminderController = WaterReminderController(appState: appState, petState: petState)
 
         NotificationCenter.default.addObserver(forName: NSNotification.Name("TriggerEscapeHatch"), object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.escapeHatch?.triggerEscape() }
+            Task { @MainActor in
+                self?.petState.isEscaping = true
+            }
         }
 
         withObservationTracking {
@@ -61,12 +66,14 @@ public final class CatOverlayController {
             stopPreview()
             return
         }
-        
+
         let originalState = state.currentState
         guard originalState != .alerting && originalState != .resting else { return }
-        
+
         originalStateForPreview = originalState
+        resetPetPositionForPreview()
         state.isPreviewing = true
+        state.restRemaining = state.defaultRestTime
         state.currentState = .alerting
     }
 
@@ -76,13 +83,20 @@ public final class CatOverlayController {
             stopPreview()
             return
         }
-        
+
         let originalState = state.currentState
         guard originalState != .alerting && originalState != .resting else { return }
-        
+
         originalStateForPreview = originalState
+        resetPetPositionForPreview()
         state.isPreviewing = true
+        state.restRemaining = state.defaultRestTime
         state.currentState = .resting
+    }
+
+    private func resetPetPositionForPreview() {
+        let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+        petState.position = CGPoint(x: screen.midX, y: screen.midY)
     }
     
     public func stopPreview() {
@@ -94,6 +108,11 @@ public final class CatOverlayController {
             state.currentState = orig
             originalStateForPreview = nil
         }
+        
+        // Reset pet state to prevent it from continuing an escape animation next time
+        petState.isEscaping = false
+        petState.isWalking = false
+        petState.tapCount = 0
     }
 
     private func evaluateState() {
@@ -105,7 +124,7 @@ public final class CatOverlayController {
             escapeHatch?.stopMonitoring()
         }
 
-        if state.currentState == .alerting || state.currentState == .resting {
+        if state.currentState == .alerting || state.currentState == .resting || state.currentState == .breathing {
             showWindows()
             startTimer()
         } else {
@@ -190,17 +209,27 @@ public final class CatOverlayController {
                 onDragChanged: { [weak self] t in self?.handleDragChanged(translation: t) },
                 onDragEnded: { [weak self] t in self?.handleDragEnded(translation: t) }
             )
-            panel.contentView = NSHostingView(rootView: view)
+            let hosting = NSHostingView(rootView: view)
+            if #available(macOS 13.0, *) { hosting.sizingOptions = [] }
+            panel.contentView = hosting
             self.petWindow = panel
         }
         if bubbleWindow == nil {
             let panel = createPanel(size: bubbleWindowSize, ignoresMouse: false)
-            let view = MeowBubbleView(petState: petState)
-            panel.contentView = NSHostingView(rootView: view)
+            let view = MeowBubbleView(petState: petState, onWaterAdd: { [weak self] in
+                self?.waterReminderController?.handleWaterAdded()
+            })
+            let hosting = NSHostingView(rootView: view)
+            if #available(macOS 13.0, *) { hosting.sizingOptions = [] }
+            panel.contentView = hosting
             self.bubbleWindow = panel
         }
         petWindow?.orderFront(nil)
         bubbleWindow?.orderFront(nil)
+        currentDialogueIndex = 0
+        showHintNext = false
+        lastDialogueUpdate = Date()
+        waterReminderController?.resetTimer()
         updateWindowPositions()
     }
 
@@ -245,9 +274,30 @@ public final class CatOverlayController {
         guard let state = appState else { return }
         let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
 
+        // --- 0. Escape Animation: delegate to EscapeHatch ---
+        if petState.isEscaping {
+            let stillRunning = escapeHatch?.tick(petState: petState, screen: screen) ?? false
+            updateWindowPositions()
+            if !stillRunning {
+                if state.isPreviewing {
+                    stopPreview()
+                } else {
+                    escapeHatch?.triggerEscape()
+                }
+            }
+            return
+        }
+
         // --- Breathing Anchor: keep cat at bottom-center of breathing window ---
         if state.isBreathingActive {
-            if let breathingWindow = NSApp.windows.first(where: { $0.title == "深呼吸" && $0.isVisible }) {
+            if let breathingWindow = NSApp.windows.first(where: { $0.title == "正念练习" && $0.isVisible }),
+               let petWindow = self.petWindow,
+               let bubbleWindow = self.bubbleWindow {
+                
+                // Ensure pet is ordered above the breathing window if they share the same level
+                petWindow.order(.above, relativeTo: breathingWindow.windowNumber)
+                bubbleWindow.order(.above, relativeTo: petWindow.windowNumber)
+                
                 let wf = breathingWindow.frame
                 let targetX = wf.midX
                 let targetY = wf.minY - petWindowSize.height / 2 - 4
@@ -341,6 +391,7 @@ public final class CatOverlayController {
         }
 
         updateWindowPositions()
+        waterReminderController?.tick()
         updateDialogue(state: state)
     }
 
@@ -364,16 +415,47 @@ public final class CatOverlayController {
             return
         }
 
-        currentDialogueIndex = (currentDialogueIndex + 1) % dialogues.count
+        // Insert tap hint after each full dialogue cycle
+        if showHintNext {
+            let targetCount = (state.currentState == .alerting) ? 3 : 5
+            petState.bubbleText = DialogueManager.tapHintText(
+                personality: state.selectedPersonality,
+                language: state.language,
+                targetCount: targetCount
+            )
+            petState.bubbleVisible = true
+            lastDialogueUpdate = now
+            showHintNext = false
+            return
+        }
+
+        // followRhythm 模式：预警阶段每隔一条对话插入喝水提醒
+        if state.waterReminderEnabled && state.waterReminderMode == .followRhythm && state.currentState == .alerting {
+            if currentDialogueIndex % 2 == 1 {
+                waterReminderController?.showBubble()
+                lastDialogueUpdate = now
+                currentDialogueIndex = (currentDialogueIndex + 1) % dialogues.count
+                return
+            }
+        }
+
         petState.bubbleText = dialogues[currentDialogueIndex]
         petState.bubbleVisible = true
         lastDialogueUpdate = now
+        currentDialogueIndex += 1
+        if currentDialogueIndex >= dialogues.count {
+            currentDialogueIndex = 0
+            showHintNext = true
+        }
     }
 
     private func updateWindowPositions() {
         guard let pw = petWindow, let bw = bubbleWindow else { return }
         pw.setFrameOrigin(NSPoint(x: petState.position.x - petWindowSize.width / 2, y: petState.position.y - petWindowSize.height / 2))
         bw.setFrameOrigin(NSPoint(x: petState.position.x - bubbleWindowSize.width / 2, y: petState.position.y + petWindowSize.height / 2 + 5))
+        
+        // Ensure bubble window doesn't block clicks when invisible
+        bw.ignoresMouseEvents = !petState.bubbleVisible
     }
 
     // MARK: - Drag Handlers

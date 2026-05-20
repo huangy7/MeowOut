@@ -77,7 +77,10 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(appState.dailyLogs.first?.phase, .working)
         
         // Changing state should start a new log
-        appState.currentState = .resting
+        // Use a date > 60s in the future to avoid "Smart merge" logic in AppState.changeState
+        let futureDate = Date().addingTimeInterval(70)
+        appState.changeState(to: .resting, at: futureDate)
+        
         XCTAssertEqual(appState.dailyLogs.count, 2)
         XCTAssertNotNil(appState.dailyLogs.first?.endTime)
         XCTAssertEqual(appState.dailyLogs.first?.phase, .working)
