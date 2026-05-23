@@ -15,13 +15,17 @@ final class UpdateInstallWindow: NSWindow {
             appState: appState,
             onConfirm: {
                 onConfirm()
-                Self.shared?.close()
-                Self.shared = nil
+                DispatchQueue.main.async {
+                    Self.shared?.close()
+                    Self.shared = nil
+                }
             },
             onCancel: {
                 onCancel()
-                Self.shared?.close()
-                Self.shared = nil
+                DispatchQueue.main.async {
+                    Self.shared?.close()
+                    Self.shared = nil
+                }
             }
         )
         
@@ -42,6 +46,7 @@ final class UpdateInstallWindow: NSWindow {
         self.backgroundColor = .clear
         self.hasShadow = true
         self.level = .floating // Keep it on top of main app windows
+        self.isReleasedWhenClosed = false
         
         // Center the window on the main screen
         if let mainScreen = NSScreen.main {
@@ -88,6 +93,7 @@ struct UpdateInstallView: View {
                         case .robot: TerminalView(pose: .rest, height: 36)
                         case .cloud: CloudView(pose: .rest, height: 36)
                         case .horse: HorseView(pose: .rest, height: 36)
+                        case .fomo: FomoView(pose: .rest, height: 36)
                         }
                     }
                     .offset(y: isFloating ? -3 : 3)

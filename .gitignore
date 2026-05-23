@@ -31,3 +31,9 @@ CLAUDE.md
 # Local test scripts
 reset_update_reminder.sh
 
+# Release script and release build artifacts
+release.sh
+MeowOut-*-universal.dmg
+MeowOut-*-arm64.dmg
+MeowOut-*-x86_64.dmg
+

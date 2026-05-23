@@ -129,7 +129,7 @@ final class ActivityMonitor {
                 }
             }
             
-            appState.isWalking = (appState.currentState == .breathing)
+            appState.isWalking = (appState.currentState == .breathing || appState.currentState == .overworking)
             return
         }
         

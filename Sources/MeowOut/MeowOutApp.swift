@@ -13,6 +13,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // 启动自动更新检查器
         UpdateChecker.shared.start()
+
     }
 
     func tryStartEngine() {
@@ -21,6 +22,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.monitor?.start()
         CatOverlayController.shared.start(appState: state)
         isStarted = true
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        PowerAssertionService.shared.disable()
+        KeyboardCleaningService.shared.stop()
     }
 }
 
@@ -41,6 +47,10 @@ struct WindowOpener: View {
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenBreathingWindow"))) { _ in
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "breathing")
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenSnippetManagerWindow"))) { _ in
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: "snippet-manager")
             }
     }
 }
@@ -168,6 +178,7 @@ struct TrayIconView: View {
 struct MeowOutApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var appState = AppState()
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some Scene {
         MenuBarExtra {
@@ -175,13 +186,14 @@ struct MeowOutApp: App {
                 menuContent
             }
             .frame(width: 280)
-            .background(VisualEffectView().ignoresSafeArea())
+            .background(MenuVisualEffectView().ignoresSafeArea())
         } label: {
             TrayIconView(appState: appState)
                 .background(WindowOpener())
                 .onAppear {
                     appDelegate.appState = appState
                     appDelegate.tryStartEngine()
+                    appState.initializeKeyboardShortcuts()
                 }
                 .onChange(of: appState.language) { _, _ in
                     // Force engine restart if language changes to pick up new strings
@@ -209,135 +221,120 @@ struct MeowOutApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         .environment(appState)
+
+        Window(I18n.localized("keydrop_manager_title", language: appState.language), id: "snippet-manager") {
+            SnippetManagerView()
+        }
+        .windowResizability(.automatic)
+        .defaultSize(width: 800, height: 600)
+        .environment(appState)
     }
 
     @ViewBuilder
     private var menuContent: some View {
-        VStack(spacing: 0) {
-            // Section 1: Status
+        VStack(spacing: 8) {
+            // Card 1: Dashboard & Pause Controls
             MenuDashboardCard(appState: appState)
-
-            Divider()
-
-            VStack(spacing: 4) {
-                // Section 2: Actions
-                if appState.currentState == .paused {
-                    HStack {
-                        Text(I18n.localizedFormat("menu_paused_label", language: appState.language, Int64(appState.pauseRemaining / 60)))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Button {
-                            appState.currentState = .working
-                            appState.pauseRemaining = 0
-                            
-                            // Dismiss menu
-                            NSApp.windows.forEach { window in
-                                if window.styleMask.contains(.nonactivatingPanel) && 
-                                   window.isVisible && 
-                                   abs(window.frame.width - 280) < 2 {
-                                    window.orderOut(nil)
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "play.fill")
-                        }
-                        .buttonStyle(.plain)
+            
+            // Card 2: Tool Tiles
+            HStack(spacing: 8) {
+                ControlTileButton(
+                    title: I18n.localized("menu_keep_awake", language: appState.language),
+                    subtitleActive: I18n.localized("tile_active", language: appState.language),
+                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
+                    iconEmoji: "☕️",
+                    isActive: appState.isKeepingAwake,
+                    action: {
+                        appState.toggleKeepAwake()
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                } else {
-                    HStack {
-                        Label(I18n.localized("menu_pause", language: appState.language), systemImage: "pause.fill")
-                        Spacer()
-                        HStack(spacing: 6) {
-                            QuickPauseButton(title: "15m") { pause(minutes: 15) }
-                            QuickPauseButton(title: "30m") { pause(minutes: 30) }
-                            QuickPauseButton(title: "1h") { pause(minutes: 60) }
-                        }
+                )
+
+                ControlTileButton(
+                    title: I18n.localized("menu_keyboard_cleaning", language: appState.language),
+                    subtitleActive: I18n.localized("tile_active", language: appState.language),
+                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
+                    iconEmoji: "⌨️",
+                    isActive: appState.isKeyboardCleaningActive,
+                    action: {
+                        dismissMenu()
+                        appState.toggleKeyboardCleaning()
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                )
+            }
+            
+            // Card 3: Features
+            VStack(spacing: 0) {
+                MenuRowButton(
+                    title: I18n.localized("menu_breathing", language: appState.language),
+                    icon: "🌬",
+                    iconColor: .teal
+                ) {
+                    NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil)
                 }
-
-                Divider()
-
-                // Section 3: Features
-                VStack(spacing: 0) {
-                    menuButton(title: I18n.localized("menu_breathing", language: appState.language), icon: "wind") {
-                        NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil)
-                    }
-                    
-                    menuButton(title: I18n.localized("settings_tab_statistics", language: appState.language), icon: "chart.bar.xaxis") {
-                        NSApp.activate(ignoringOtherApps: true)
-                        appDelegate.tryStartEngine()
-                        NotificationCenter.default.post(name: NSNotification.Name("OpenStatisticsWindow"), object: nil)
-                    }
-                }
-
-                Divider()
-
-                // Section 4: System
-                VStack(spacing: 0) {
-                    menuButton(title: I18n.localized("menu_settings", language: appState.language), icon: "gearshape", hasBadge: UpdateChecker.shared.hasPendingUpdate) {
-                        NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil)
-                    }
-                    
-                    menuButton(title: I18n.localized("menu_quit", language: appState.language), icon: "power") {
-                        NSApplication.shared.terminate(nil)
-                    }
+                
+                Divider().background(Color.primary.opacity(0.05)).padding(.horizontal, 14)
+                
+                MenuRowButton(
+                    title: I18n.localized("settings_tab_statistics", language: appState.language),
+                    icon: "📊",
+                    iconColor: .blue
+                ) {
+                    NSApp.activate(ignoringOtherApps: true)
+                    appDelegate.tryStartEngine()
+                    NotificationCenter.default.post(name: NSNotification.Name("OpenStatisticsWindow"), object: nil)
                 }
             }
-            .padding(.vertical, 4)
-        }
-    }
-
-    private func menuButton(title: String, icon: String, hasBadge: Bool = false, action: @escaping () -> Void) -> some View {
-        ButtonView(title: title, icon: icon, hasBadge: hasBadge, action: action)
-    }
-
-    private func pause(minutes: Int) {
-        appState.pauseRemaining = TimeInterval(minutes * 60)
-        appState.currentState = .paused
-    }
-}
-
-struct ButtonView: View {
-    let title: String
-    let icon: String
-    var hasBadge: Bool = false
-    let action: () -> Void
-    @State private var isHovered = false
-
-    var body: some View {
-        Button {
-            // macOS standard: dismiss menu before or during action
-            dismissMenu()
-            action()
-        } label: {
-            HStack {
-                Image(systemName: icon)
-                    .frame(width: 20)
-                Text(title)
-                if hasBadge {
-                    UpdateBadge()
+            .background(
+                colorScheme == .dark
+                    ? Color.black.opacity(0.25)
+                    : Color.white.opacity(0.85)
+            )
+            .cornerRadius(14)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+            )
+            .shadow(color: Color.black.opacity(0.04), radius: 5, x: 0, y: 1.5)
+            
+            // Card 4: System Actions
+            VStack(spacing: 0) {
+                MenuRowButton(
+                    title: I18n.localized("menu_settings", language: appState.language),
+                    icon: "⚙️",
+                    iconColor: .secondary,
+                    hasBadge: UpdateChecker.shared.hasPendingUpdate
+                ) {
+                    NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil)
                 }
-                Spacer()
+                
+                Divider().background(Color.primary.opacity(0.05)).padding(.horizontal, 14)
+                
+                MenuRowButton(
+                    title: I18n.localized("menu_quit", language: appState.language),
+                    icon: "⏻",
+                    iconColor: .red,
+                    showChevron: false
+                ) {
+                    NSApplication.shared.terminate(nil)
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(isHovered ? Color.accentColor.opacity(0.1) : Color.clear)
-            .contentShape(Rectangle())
+            .background(
+                colorScheme == .dark
+                    ? Color.black.opacity(0.25)
+                    : Color.white.opacity(0.85)
+            )
+            .cornerRadius(14)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+            )
+            .shadow(color: Color.black.opacity(0.04), radius: 5, x: 0, y: 1.5)
         }
-        .buttonStyle(.plain)
-        .onHover { hovering in
-            isHovered = hovering
-        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
     }
 
     private func dismissMenu() {
-        // For .window style MenuBarExtra, we manually hide the window
-        // The menu window is typically a nonactivatingPanel with our fixed width
         NSApp.windows.forEach { window in
             if window.styleMask.contains(.nonactivatingPanel) && 
                window.isVisible && 
@@ -347,6 +344,8 @@ struct ButtonView: View {
         }
     }
 }
+
+// MARK: - Component Views
 
 struct QuickPauseButton: View {
     let title: String
@@ -359,11 +358,11 @@ struct QuickPauseButton: View {
             action()
         } label: {
             Text(title)
-                .font(.system(size: 11, weight: .medium))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(isHovered ? Color.orange.opacity(0.15) : Color.secondary.opacity(0.1))
-                .foregroundColor(isHovered ? .orange : .primary)
+                .font(.system(size: 11, weight: .semibold))
+                .padding(.horizontal, 9)
+                .padding(.vertical, 3)
+                .background(isHovered ? Color.orange.opacity(0.12) : Color.primary.opacity(0.06))
+                .foregroundColor(isHovered ? .orange : .primary.opacity(0.8))
                 .cornerRadius(6)
                 .contentShape(Rectangle())
         }
@@ -384,22 +383,141 @@ struct QuickPauseButton: View {
     }
 }
 
+struct ControlTileButton: View {
+    let title: String
+    let subtitleActive: String
+    let subtitleInactive: String
+    let iconEmoji: String
+    let isActive: Bool
+    let action: () -> Void
+    
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var isHovered = false
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .center, spacing: 4) {
+                Text(iconEmoji)
+                    .font(.system(size: 22))
+                    .frame(height: 24)
+                
+                Text(title)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(isActive ? .white : .primary)
+                    .lineLimit(1)
+                
+                Text(isActive ? subtitleActive : subtitleInactive)
+                    .font(.system(size: 9))
+                    .foregroundStyle(isActive ? Color.white.opacity(0.8) : .secondary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .frame(height: 76)
+            .background {
+                if isActive {
+                    LinearGradient(
+                        colors: [Color(red: 255/255, green: 159/255, blue: 67/255), Color(red: 255/255, green: 140/255, blue: 26/255)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                } else {
+                    colorScheme == .dark
+                        ? Color.black.opacity(isHovered ? 0.35 : 0.25)
+                        : Color.white.opacity(isHovered ? 0.95 : 0.85)
+                }
+            }
+            .cornerRadius(14)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(isActive ? Color.orange.opacity(0.2) : Color.primary.opacity(0.06), lineWidth: 0.5)
+            )
+            .shadow(color: isActive ? Color.orange.opacity(0.2) : Color.black.opacity(0.04), radius: isActive ? 5 : 3, x: 0, y: isActive ? 2 : 1)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+}
+
+struct MenuRowButton: View {
+    let title: String
+    let icon: String
+    var iconColor: Color = .primary.opacity(0.8)
+    var hasBadge: Bool = false
+    var showChevron: Bool = true
+    let action: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        Button {
+            dismissMenu()
+            action()
+        } label: {
+            HStack(spacing: 8) {
+                Text(icon)
+                    .font(.system(size: 13))
+                    .frame(width: 20, alignment: .center)
+                    .foregroundColor(iconColor)
+                
+                Text(title)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.primary)
+                
+                if hasBadge {
+                    UpdateBadge()
+                }
+                
+                Spacer()
+                
+                if showChevron {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(.primary.opacity(0.15))
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8.5)
+            .background(isHovered ? Color.primary.opacity(0.04) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+    
+    private func dismissMenu() {
+        NSApp.windows.forEach { window in
+            if window.styleMask.contains(.nonactivatingPanel) && 
+               window.isVisible && 
+               abs(window.frame.width - 280) < 2 {
+                window.orderOut(nil)
+            }
+        }
+    }
+}
+
 struct MenuDashboardCard: View {
     @Bindable var appState: AppState
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
                 // Left Column: Goal
                 VStack(alignment: .leading, spacing: 8) {
-                    Label {
+                    HStack(spacing: 6) {
+                        Text("🎯")
+                            .font(.system(size: 13))
                         Text(I18n.localized("stats_todays_goal", language: appState.language))
-                            .font(.system(size: 13, weight: .medium))
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.primary)
                             .lineLimit(1)
-                    } icon: {
-                        Image(systemName: "target")
-                            .font(.system(size: 14, weight: .ultraLight))
-                            .foregroundStyle(.orange)
                     }
 
                     let goalProgress = min(1.0, appState.totalWorkToday / (Double(appState.dailyWorkGoal) * 3600))
@@ -407,17 +525,18 @@ struct MenuDashboardCard: View {
                         CapsuleProgressView(value: goalProgress)
 
                         Text("\(String(format: "%.1f", appState.totalWorkToday / 3600)) / \(appState.dailyWorkGoal).0 h")
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .font(.system(size: 12, weight: .semibold, design: .rounded))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.trailing, 16)
+                .padding(.trailing, 12)
 
                 Divider()
-                    .frame(height: 44)
+                    .frame(height: 40)
+                    .background(Color.primary.opacity(0.05))
 
                 // Right Column: Session
                 VStack(alignment: .center, spacing: 0) {
@@ -427,22 +546,23 @@ struct MenuDashboardCard: View {
                         text: "\(Int(appState.workElapsed / 60))m"
                     )
                 }
-                .frame(width: 70)
+                .frame(width: 56)
+                .padding(.leading, 12)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .frame(width: 280, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
 
             // Water Row
-            HStack(spacing: 8) {
-                Image(systemName: "drop.fill")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.blue)
+            HStack(spacing: 6) {
+                Text("💧")
+                    .font(.system(size: 13))
                 Text(I18n.localized("water_today_label", language: appState.language))
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundColor(.primary)
                 Spacer()
                 Text("\(appState.todayWaterCups)/\(appState.dailyWaterGoal)")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .font(.system(size: 11.5, weight: .semibold, design: .rounded))
                     .foregroundStyle(.blue)
                 Button(action: {
                     appState.todayWaterCups += 1
@@ -454,11 +574,89 @@ struct MenuDashboardCard: View {
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 14)
+            .padding(.bottom, 10)
+            
+            Divider()
+                .background(Color.primary.opacity(0.05))
+                .padding(.horizontal, 14)
+            
+            // Pause Row
+            if appState.currentState == .paused {
+                HStack(spacing: 8) {
+                    Text("⏸")
+                        .font(.system(size: 12))
+                    Text(I18n.localizedFormat("menu_paused_label", language: appState.language, Int64(appState.pauseRemaining / 60)))
+                        .font(.system(size: 11.5, weight: .medium))
+                        .foregroundColor(.primary)
+                    Spacer()
+                    Button {
+                        appState.currentState = .working
+                        appState.pauseRemaining = 0
+                        dismissMenu()
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 8, weight: .bold))
+                            Text(I18n.localized("menu_resume", language: appState.language))
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.orange.opacity(0.12))
+                        .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+            } else {
+                HStack(spacing: 8) {
+                    Text("⏸")
+                        .font(.system(size: 12))
+                    Text(I18n.localized("menu_pause", language: appState.language))
+                        .font(.system(size: 11.5, weight: .medium))
+                        .foregroundColor(.primary)
+                    Spacer()
+                    HStack(spacing: 4) {
+                        QuickPauseButton(title: "15m") { pause(minutes: 15) }
+                        QuickPauseButton(title: "30m") { pause(minutes: 30) }
+                        QuickPauseButton(title: "1h") { pause(minutes: 60) }
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+            }
         }
         .onAppear {
             appState.checkAndResetWaterIfNewDay()
+        }
+        .background(
+            colorScheme == .dark
+                ? Color.black.opacity(0.25)
+                : Color.white.opacity(0.85)
+        )
+        .cornerRadius(14)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+        )
+        .shadow(color: Color.black.opacity(0.04), radius: 5, x: 0, y: 1.5)
+    }
+    
+    private func pause(minutes: Int) {
+        appState.pauseRemaining = TimeInterval(minutes * 60)
+        appState.currentState = .paused
+    }
+    
+    private func dismissMenu() {
+        NSApp.windows.forEach { window in
+            if window.styleMask.contains(.nonactivatingPanel) && 
+               window.isVisible && 
+               abs(window.frame.width - 280) < 2 {
+                window.orderOut(nil)
+            }
         }
     }
 }
@@ -473,15 +671,21 @@ struct CapsuleProgressView: View {
             ZStack(alignment: .leading) {
                 Capsule()
                     .fill(Color.secondary.opacity(0.15))
-                    .frame(height: 8)
+                    .frame(height: 7)
                 
                 Capsule()
-                    .fill(Color.orange)
-                    .frame(width: max(8, geometry.size.width * value), height: 8)
-                    .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 0)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.orange, Color(red: 255/255, green: 173/255, blue: 51/255)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: max(7, geometry.size.width * value), height: 7)
+                    .shadow(color: .orange.opacity(0.3), radius: 3, x: 0, y: 0)
             }
         }
-        .frame(height: 8)
+        .frame(height: 7)
     }
 }
 
@@ -505,3 +709,15 @@ struct CircularProgressView: View {
         .frame(width: 44, height: 44)
     }
 }
+
+struct MenuVisualEffectView: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.blendingMode = .behindWindow
+        view.state = .active
+        view.material = .popover
+        return view
+    }
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+

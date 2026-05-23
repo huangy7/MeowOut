@@ -2,12 +2,18 @@
 name: MeowOut
 options:
   bundleIdPrefix: com.huangy
+packages:
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    from: 2.0.0
 targets:
   MeowOut:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
     sources: [Sources/MeowOut]
+    dependencies:
+      - package: KeyboardShortcuts
     settings:
       LSUIElement: true
       GENERATE_INFOPLIST_FILE: NO

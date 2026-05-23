@@ -1,10 +1,13 @@
 import SwiftUI
+import Cocoa
+import KeyboardShortcuts
 
 struct SettingsView: View {
     @Bindable var state: AppState
     @Bindable var launchManager = LaunchManager.shared
     @Environment(\.openWindow) private var openWindow
     @State private var isAwaitingAccessibility = false
+    @State private var isAwaitingAccessibilityForKeyDrop = false
     @State private var accessibilityStatus = AXIsProcessTrusted()
     @State private var selectedTab: String = "rest"
 
@@ -51,6 +54,8 @@ struct SettingsView: View {
             SidebarItem(id: "rest", title: I18n.localized("settings_tab_rest", language: state.language), icon: "timer"),
             SidebarItem(id: "water", title: I18n.localized("settings_tab_water", language: state.language), icon: "drop.fill"),
             SidebarItem(id: "behavior", title: I18n.localized("settings_section_behavior", language: state.language), icon: "cat.circle"),
+            SidebarItem(id: "keydrop", title: I18n.localized("settings_tab_keydrop", language: state.language), icon: "keyboard"),
+            SidebarItem(id: "permissions", title: I18n.localized("settings_tab_permissions", language: state.language), icon: "lock.shield"),
             SidebarItem(id: "system", title: I18n.localized("settings_section_system", language: state.language), icon: "gearshape", hasBadge: hasPendingUpdate),
         ]
     }
@@ -88,6 +93,8 @@ struct SettingsView: View {
                             switch selectedTab {
                             case "water": waterCards
                             case "behavior": behaviorCards
+                            case "keydrop": keyDropCards
+                            case "permissions": permissionsCards
                             case "system": systemCards
                             default: restCards
                             }
@@ -104,10 +111,19 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willBecomeActiveNotification)) { _ in
             let trusted = AXIsProcessTrusted()
             accessibilityStatus = trusted
-            if isAwaitingAccessibility && trusted {
-                state.enableGlobalKeyboardScold = true
-                isAwaitingAccessibility = false
+            if trusted {
+                if isAwaitingAccessibility {
+                    state.enableGlobalKeyboardScold = true
+                    isAwaitingAccessibility = false
+                }
+                if isAwaitingAccessibilityForKeyDrop {
+                    state.keyDropEnabled = true
+                    isAwaitingAccessibilityForKeyDrop = false
+                }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SwitchToPermissionsTab"))) { _ in
+            selectedTab = "permissions"
         }
         .onAppear {
             applyPendingNavigationTarget()
@@ -118,10 +134,17 @@ struct SettingsView: View {
     }
 
     private func applyPendingNavigationTarget() {
-        guard state.settingsNavigationTarget == .update else { return }
-        selectedTab = "system"
-        selectedSystemSubTab = "about"
-        state.settingsNavigationTarget = nil
+        switch state.settingsNavigationTarget {
+        case .update:
+            selectedTab = "system"
+            selectedSystemSubTab = "about"
+            state.settingsNavigationTarget = nil
+        case .permissions:
+            selectedTab = "permissions"
+            state.settingsNavigationTarget = nil
+        case nil:
+            break
+        }
     }
 
     private func subTabBinding(for selection: Binding<String>, tabs: [(id: String, key: String)]) -> Binding<String> {
@@ -153,6 +176,10 @@ struct SettingsView: View {
             PillTabBar(items: systemSubTabs.map { I18n.localized($0.key, language: state.language) },
                        badgeItems: UpdateChecker.shared.hasPendingUpdate ? [aboutTitle] : [],
                        selection: subTabBinding(for: $selectedSystemSubTab, tabs: systemSubTabs))
+        case "keydrop":
+            EmptyView()
+        case "permissions":
+            EmptyView()
         default:
             PillTabBar(items: restSubTabs.map { I18n.localized($0.key, language: state.language) },
                        selection: subTabBinding(for: $selectedRestSubTab, tabs: restSubTabs))
@@ -310,7 +337,7 @@ struct SettingsView: View {
                     title: I18n.localizedFormat("settings_version", language: state.language, version),
                     description: "v\(version)"
                 ) {
-                    Text("MeowOut - Your productivity pet.")
+                    Text(I18n.localized("settings_about_description", language: state.language))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -411,7 +438,7 @@ struct SettingsView: View {
                     }
                 case .error(let error):
                     HStack {
-                        Text(error)
+                        Text(error.localizedDescription(language: state.language))
                             .font(.caption)
                             .foregroundStyle(.red)
                         Spacer()
@@ -448,7 +475,11 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var petSelectionGrid: some View {
-        HStack(spacing: 16) {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 70, maximum: 70), spacing: 16)],
+            alignment: .leading,
+            spacing: 16
+        ) {
             ForEach(AppState.PetType.allCases) { pet in
                 VStack {
                     ZStack(alignment: .top) {
@@ -466,6 +497,7 @@ struct SettingsView: View {
                             case .robot: TerminalView(pose: .rest, height: 36)
                             case .cloud: CloudView(pose: .rest, height: 36)
                             case .horse: HorseView(pose: .rest, height: 36)
+                            case .fomo: FomoView(pose: .rest, height: 36)
                             }
                         }
                         .padding(.top, 12)
@@ -482,6 +514,8 @@ struct SettingsView: View {
                 }
             }
         }
+        .padding(.horizontal, 2)
+        .padding(.vertical, 2)
     }
 
     @ViewBuilder
@@ -499,6 +533,7 @@ struct SettingsView: View {
                     } else {
                         state.enableGlobalKeyboardScold = false
                         isAwaitingAccessibility = true
+                        selectedTab = "permissions"
                     }
                 } else {
                     state.enableGlobalKeyboardScold = false
@@ -509,6 +544,116 @@ struct SettingsView: View {
             Text(I18n.localized("settings_global_scold", language: state.language))
         }
         .toggleStyle(.switch)
+    }
+
+    @ViewBuilder
+    private var keyDropToggle: some View {
+        Toggle(isOn: Binding(
+            get: { state.keyDropEnabled && accessibilityStatus },
+            set: { newValue in
+                if newValue {
+                    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+                    let trusted = AXIsProcessTrustedWithOptions(options)
+                    accessibilityStatus = trusted
+                    if trusted {
+                        state.keyDropEnabled = true
+                        isAwaitingAccessibilityForKeyDrop = false
+                    } else {
+                        state.keyDropEnabled = false
+                        isAwaitingAccessibilityForKeyDrop = true
+                        selectedTab = "permissions"
+                    }
+                } else {
+                    state.keyDropEnabled = false
+                    isAwaitingAccessibilityForKeyDrop = false
+                }
+            }
+        )) {
+            Text(I18n.localized("keydrop_enabled", language: state.language))
+        }
+        .toggleStyle(.switch)
+    }
+
+    @ViewBuilder
+    private var keyDropCards: some View {
+        VStack(spacing: 16) {
+            SettingsCard(
+                icon: "keyboard",
+                iconColor: .purple,
+                title: I18n.localized("keydrop_enabled", language: state.language),
+                description: I18n.localized("keydrop_enabled_desc", language: state.language)
+            ) {
+                keyDropToggle
+            }
+
+            SettingsCard(
+                icon: "command",
+                iconColor: .blue,
+                title: I18n.localized("keydrop_shortcut", language: state.language),
+                description: I18n.localized("keydrop_shortcut_desc", language: state.language)
+            ) {
+                HStack {
+                    Spacer()
+                    KeyboardShortcuts.Recorder(for: .togglePanel)
+                }
+            }
+
+            SettingsCard(
+                icon: "square.and.pencil",
+                iconColor: .orange,
+                title: I18n.localized("keydrop_manage_title", language: state.language),
+                description: I18n.localized("keydrop_manage_desc", language: state.language)
+            ) {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        NotificationCenter.default.post(name: NSNotification.Name("OpenSnippetManagerWindow"), object: nil)
+                    }) {
+                        Text(I18n.localized("keydrop_open_manager_btn", language: state.language))
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var permissionsCards: some View {
+        SettingsCard(
+            icon: "lock.shield",
+            iconColor: accessibilityStatus ? .green : .red,
+            title: I18n.localized("accessibility_card_title", language: state.language),
+            description: I18n.localized("accessibility_card_desc", language: state.language)
+        ) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(accessibilityStatus ? Color.green : Color.red)
+                        .frame(width: 8, height: 8)
+                    Text(accessibilityStatus ? I18n.localized("accessibility_status_granted", language: state.language) : I18n.localized("accessibility_status_denied", language: state.language))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(accessibilityStatus ? .green : .red)
+                }
+                
+                if !accessibilityStatus {
+                    Button(action: {
+                        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+                        _ = AXIsProcessTrustedWithOptions(options)
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }) {
+                        Text(I18n.localized("accessibility_auth_btn", language: state.language))
+                            .font(.system(size: 13, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(Color.accentColor)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
     }
 
     @ViewBuilder

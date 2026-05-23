@@ -18,6 +18,7 @@
 "settings_tab_statistics" = "统计";
 "settings_restore_defaults" = "恢复默认设置";
 "settings_version" = "版本 %@";
+"settings_about_description" = "MeowOut - 您的生产力伴侣宠物。";
 "settings_check_updates" = "检查更新";
 "settings_update_checking" = "正在检查...";
 "settings_update_available" = "发现新版本 %@";
@@ -31,6 +32,7 @@
 "update_alert_cancel" = "稍后再说";
 "update_manual_title" = "需要手动安装";
 "update_manual_body" = "由于系统权限限制，请手动将新版 MeowOut 拖入「应用程序」文件夹进行替换。";
+"update_manual_confirm" = "知道了";
 "update_pet_prompt" = "🚀 发现进化补丁 v%@！已经嗅到了新功能的气味，要现在去看看吗？";
 "update_pet_action_open" = "去更新";
 "update_pet_action_later" = "稍后再说";
@@ -184,3 +186,66 @@
 "log_no_records" = "暂无记录";
 "unit_hours_label" = "小时";
 "unit_minutes_label" = "分钟";
+
+/* KeyDrop Settings & Dialogue */
+"settings_tab_keydrop" = "常用语";
+"settings_tab_permissions" = "安全与权限";
+"settings_subtab_snippets" = "词条编辑";
+"keydrop_enabled" = "启用快捷常用语";
+"keydrop_enabled_desc" = "启用后可使用全局快捷键呼出常用语输入面板";
+"keydrop_shortcut" = "唤起常用语面板快捷键";
+"keydrop_shortcut_desc" = "点击右侧录制框来设置键盘组合键";
+"accessibility_card_title" = "辅助功能权限";
+"accessibility_card_desc" = "MeowOut 需要辅助功能权限才能帮您模拟键盘粘贴常用语、在工作时监督键盘按键，以及在键盘清洁时拦截键盘输入。";
+"accessibility_auth_btn" = "去系统设置授权";
+"accessibility_status_granted" = "已授权辅助功能";
+"accessibility_status_denied" = "未授权辅助功能";
+"dialogue_keydrop_prompt" = "要输入什么呢？";
+"dialogue_keydrop_success" = "已成功注入常用语！";
+"dialogue_keydrop_secure" = "安全输入框受保护，我进不去呀…";
+"dialogue_keydrop_require_accessibility" = "主人，你把我的辅助功能权限关掉了，我没法帮你打字啦！快去设置里重新开启吧！";
+"keydrop_add_btn" = "添加词条";
+"keydrop_save_btn" = "保存";
+"keydrop_cancel_btn" = "取消";
+"keydrop_title_placeholder" = "标题";
+"keydrop_content_placeholder" = "内容";
+"keydrop_default_title" = "新词条";
+"keydrop_default_content" = "内容";
+"keydrop_category_label" = "分类";
+"keydrop_category_new_option" = "输入新分类...";
+"keydrop_category_placeholder" = "新分类名称";
+"keydrop_add_category_btn" = "新增分类";
+"keydrop_add_category_title" = "新增分类";
+"keydrop_add_category_prompt" = "请输入新分类的名称。";
+"keydrop_add_category_placeholder" = "分类名称";
+"keydrop_manager_title" = "常用语管理器";
+"keydrop_manage_title" = "常用语管理";
+"keydrop_manage_desc" = "打开专属的管理器窗口，方便编辑、新增或分类整理所有常用语及快捷短语。";
+"keydrop_open_manager_btn" = "打开常用语管理器...";
+"keydrop_manager_empty_selection" = "选择左侧的词条以进行查看或编辑";
+"keydrop_uncategorized" = "未分类";
+"keydrop_category_all" = "全部";
+"keydrop_search_placeholder" = "搜索...";
+"keydrop_delete_snippet" = "删除词条";
+
+"menu_keep_awake" = "防休眠";
+"menu_keyboard_cleaning" = "键盘清洁";
+"keyboard_cleaning_title" = "键盘清洁模式";
+"keyboard_cleaning_desc" = "清洁键盘时，大部分按键输入已被拦截。这并非硬件级别的键盘禁用，可能无法阻止某些系统级按键。";
+"keyboard_cleaning_exit" = "退出清洁模式";
+"tile_active" = "已开启";
+"tile_inactive" = "关闭";
+
+/* Update Errors */
+"update_error_invalid_url" = "更新 URL 无效";
+"update_error_api_failed" = "检查更新失败，状态码：%lld";
+"update_error_parse_failed" = "解析更新信息失败";
+"update_error_assets_missing" = "更新包中缺少 DMG 安装文件";
+"update_error_request_failed" = "检查更新失败：%@";
+"update_error_update_missing" = "已下载的更新包丢失，请重新检查更新";
+"update_error_download_http" = "下载失败：HTTP 状态码 %lld";
+"update_error_download_failed" = "下载失败：%@";
+"update_error_mount_failed" = "挂载安装包失败";
+"update_error_app_missing" = "未在安装包中找到应用程序";
+"update_error_script_write" = "无法写入更新脚本";
+

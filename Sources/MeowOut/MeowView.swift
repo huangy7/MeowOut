@@ -67,7 +67,7 @@ public struct MeowView: View {
             return
         }
 
-        guard appState.currentState == .alerting || appState.currentState == .resting else {
+        guard appState.currentState == .alerting || appState.currentState == .resting || appState.currentState == .overworking else {
             let pack = DialogueManager.pack(for: appState.selectedPersonality, language: appState.language)
             if let quote = pack.tapQuotes.randomElement() {
                 petState.showLockedBubble(quote)

@@ -18,6 +18,7 @@
 "settings_tab_statistics" = "Statistics";
 "settings_restore_defaults" = "Restore Defaults";
 "settings_version" = "Version %@";
+"settings_about_description" = "MeowOut - Your productivity pet.";
 "settings_check_updates" = "Check for Updates";
 "settings_update_checking" = "Checking...";
 "settings_update_available" = "New version %@ available";
@@ -31,6 +32,7 @@
 "update_alert_cancel" = "Later";
 "update_manual_title" = "Manual Installation Required";
 "update_manual_body" = "Due to permissions, I couldn't auto-install. Please drag the new version into your Applications folder.";
+"update_manual_confirm" = "Got it";
 "update_pet_prompt" = "🚀 Evolution patch v%@ found! I smell new features. Want to check it out now?";
 "update_pet_action_open" = "Update";
 "update_pet_action_later" = "Later";
@@ -183,3 +185,66 @@
 "log_no_records" = "No records yet";
 "unit_hours_label" = "hours";
 "unit_minutes_label" = "minutes";
+
+/* KeyDrop Settings & Dialogue */
+"settings_tab_keydrop" = "Snippets";
+"settings_tab_permissions" = "Permissions";
+"settings_subtab_snippets" = "Edit Snippets";
+"keydrop_enabled" = "Enable Quick Phrases";
+"keydrop_enabled_desc" = "Allows popping up the phrase box via global shortcuts";
+"keydrop_shortcut" = "Popup Shortcut";
+"keydrop_shortcut_desc" = "Click the input box to record your key combination";
+"accessibility_card_title" = "Accessibility Permissions";
+"accessibility_card_desc" = "MeowOut requires Accessibility API rights to paste snippets automatically, listen for global keyboard warnings, and block keyboard input during cleaning.";
+"accessibility_auth_btn" = "Grant Accessibility Access";
+"accessibility_status_granted" = "Accessibility Granted";
+"accessibility_status_denied" = "Accessibility Denied";
+"dialogue_keydrop_prompt" = "What should I type?";
+"dialogue_keydrop_success" = "Phrase injected successfully!";
+"dialogue_keydrop_secure" = "Secure entry is locked, I can't reach in...";
+"dialogue_keydrop_require_accessibility" = "Accessibility permission has been revoked. I can't inject text! Please re-enable it in Settings.";
+"keydrop_add_btn" = "Add Snippet";
+"keydrop_save_btn" = "Save";
+"keydrop_cancel_btn" = "Cancel";
+"keydrop_title_placeholder" = "Title";
+"keydrop_content_placeholder" = "Content";
+"keydrop_default_title" = "New Snippet";
+"keydrop_default_content" = "Content";
+"keydrop_category_label" = "Category";
+"keydrop_category_new_option" = "Enter new category...";
+"keydrop_category_placeholder" = "New category name";
+"keydrop_add_category_btn" = "Add Category";
+"keydrop_add_category_title" = "Add Category";
+"keydrop_add_category_prompt" = "Please enter the name of the new category.";
+"keydrop_add_category_placeholder" = "Category name";
+"keydrop_manager_title" = "Phrase Manager";
+"keydrop_manage_title" = "Manage Phrases";
+"keydrop_manage_desc" = "Open the dedicated manager window to edit, add, or organize categories and phrases.";
+"keydrop_open_manager_btn" = "Open Phrase Manager...";
+"keydrop_manager_empty_selection" = "Select a phrase to view or edit";
+"keydrop_uncategorized" = "Uncategorized";
+"keydrop_category_all" = "All";
+"keydrop_search_placeholder" = "Search...";
+"keydrop_delete_snippet" = "Delete Snippet";
+
+"menu_keep_awake" = "Keep Awake";
+"menu_keyboard_cleaning" = "Keyboard Clean";
+"keyboard_cleaning_title" = "Keyboard Cleaning Mode";
+"keyboard_cleaning_desc" = "Most keyboard input is blocked while you clean. This is not a hardware-level disable and some system keys might still trigger actions.";
+"keyboard_cleaning_exit" = "Exit Cleaning Mode";
+"tile_active" = "Active";
+"tile_inactive" = "Off";
+
+/* Update Errors */
+"update_error_invalid_url" = "Invalid update URL";
+"update_error_api_failed" = "Failed to check for updates (Status code: %lld)";
+"update_error_parse_failed" = "Failed to parse update info";
+"update_error_assets_missing" = "Release assets missing DMG installer";
+"update_error_request_failed" = "Check for updates failed: %@";
+"update_error_update_missing" = "Downloaded update is missing. Please check for updates again.";
+"update_error_download_http" = "Download failed (HTTP %lld)";
+"update_error_download_failed" = "Download failed: %@";
+"update_error_mount_failed" = "Failed to mount installer";
+"update_error_app_missing" = "Could not find application in installer";
+"update_error_script_write" = "Failed to write updater script";
+

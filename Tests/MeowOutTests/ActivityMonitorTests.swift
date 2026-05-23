@@ -123,4 +123,49 @@ final class ActivityMonitorTests: XCTestCase {
         XCTAssertEqual(state.workElapsed, 0)
         XCTAssertFalse(state.warningDismissed)
     }
+    
+    func testOverworkingTransition() {
+        let state = AppState()
+        state.workDurationMinutes = 2
+        state.restDurationMinutes = 1
+        
+        let monitor = ActivityMonitor(appState: state)
+        
+        // 1. Tick past maxWorkTime (120s) to transition to resting
+        monitor.tick(simulatedIdleTime: 0, dt: 121)
+        XCTAssertEqual(state.currentState, .resting)
+        XCTAssertEqual(state.restRemaining, 60)
+        // Transitions to resting at the end of working tick, so remains true until next tick
+        XCTAssertTrue(state.isWalking)
+        
+        // 1b. Tick once while resting with no activity to set isWalking to false
+        monitor.tick(simulatedIdleTime: 30, dt: 0)
+        XCTAssertFalse(state.isWalking)
+        
+        // 2. Next tick with user activity (simulatedIdleTime < 30) -> overworking
+        monitor.tick(simulatedIdleTime: 5, dt: 5)
+        XCTAssertEqual(state.currentState, .overworking)
+        XCTAssertEqual(state.restRemaining, 55)
+        XCTAssertTrue(state.isWalking)
+        
+        // 3. Tick with no user activity (simulatedIdleTime >= 30) -> resting
+        monitor.tick(simulatedIdleTime: 35, dt: 5)
+        XCTAssertEqual(state.currentState, .resting)
+        XCTAssertEqual(state.restRemaining, 50)
+        XCTAssertFalse(state.isWalking)
+        
+        // 4. Tick with user activity again -> overworking
+        monitor.tick(simulatedIdleTime: 0, dt: 5)
+        XCTAssertEqual(state.currentState, .overworking)
+        XCTAssertEqual(state.restRemaining, 45)
+        XCTAssertTrue(state.isWalking)
+        
+        // 5. Tick until restRemaining <= 0 -> back to working
+        monitor.tick(simulatedIdleTime: 0, dt: 46)
+        XCTAssertEqual(state.currentState, .working)
+        XCTAssertEqual(state.workElapsed, 0)
+        // Transition back to working happens inside resting block, so isWalking is false on this tick
+        XCTAssertFalse(state.isWalking)
+    }
 }
+

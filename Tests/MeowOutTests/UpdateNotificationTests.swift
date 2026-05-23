@@ -11,7 +11,7 @@ final class UpdateNotificationTests: XCTestCase {
         XCTAssertFalse(UpdateStatus.idle.hasPendingUpdate)
         XCTAssertFalse(UpdateStatus.checking.hasPendingUpdate)
         XCTAssertFalse(UpdateStatus.downloading(progress: 0.5).hasPendingUpdate)
-        XCTAssertFalse(UpdateStatus.error("failed").hasPendingUpdate)
+        XCTAssertFalse(UpdateStatus.error(.downloadFailed(description: "failed")).hasPendingUpdate)
     }
 
     func testLastNotifiedUpdateVersionPersists() {

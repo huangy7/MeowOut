@@ -2,6 +2,7 @@
 import Foundation
 import Observation
 import SwiftUI
+import KeyboardShortcuts
 
 public enum AppPhase: Equatable {
     case working
@@ -20,6 +21,7 @@ public enum PetPersonality: String, CaseIterable, Identifiable {
 
 public enum SettingsNavigationTarget: Equatable {
     case update
+    case permissions
 }
 
 public struct SessionLog: Identifiable, Equatable {
@@ -42,6 +44,7 @@ public final class AppState {
         case robot = "Robot"
         case cloud = "Cloud"
         case horse = "Horse"
+        case fomo = "Fomo"
         public var id: String { rawValue }
     }
 
@@ -61,6 +64,7 @@ public final class AppState {
         case todayWaterCups
         case lastWaterResetDate
         case lastNotifiedUpdateVersion
+        case keyDropEnabled
     }
 
     public enum AppLanguage: String, CaseIterable, Identifiable {
@@ -169,6 +173,42 @@ public final class AppState {
         }
     }
 
+    public var keyDropEnabled: Bool {
+        get {
+            access(keyPath: \.keyDropEnabled)
+            return UserDefaults.standard.object(forKey: Keys.keyDropEnabled.rawValue) as? Bool ?? false
+        }
+        set {
+            withMutation(keyPath: \.keyDropEnabled) {
+                UserDefaults.standard.set(newValue, forKey: Keys.keyDropEnabled.rawValue)
+                if newValue {
+                    KeyboardShortcuts.onKeyDown(for: .togglePanel) {
+                        Task { @MainActor in
+                            self.handleKeyDropToggleShortcut()
+                        }
+                    }
+                } else {
+                    KeyboardShortcuts.disable(.togglePanel)
+                }
+            }
+        }
+    }
+
+    public func initializeKeyboardShortcuts() {
+        if keyDropEnabled {
+            KeyboardShortcuts.onKeyDown(for: .togglePanel) {
+                Task { @MainActor in
+                    self.handleKeyDropToggleShortcut()
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func handleKeyDropToggleShortcut() {
+        FloatingPanelController.shared.toggle()
+    }
+
     public var restToResetMinutes: Int {
         get {
             access(keyPath: \.restToResetMinutes)
@@ -266,6 +306,9 @@ public final class AppState {
     public var isPreviewing: Bool = false
     public var isBreathingActive: Bool = false
     public var settingsNavigationTarget: SettingsNavigationTarget?
+
+    public var isKeepingAwake: Bool = false
+    public var isKeyboardCleaningActive: Bool = false
 
     // Water Reminder
     public var waterReminderEnabled: Bool {
@@ -466,6 +509,40 @@ public final class AppState {
             UserDefaults.standard.removeObject(forKey: "dailyWorkGoal")
         }
     }
+
+    @MainActor
+    public func toggleKeepAwake() {
+        if isKeepingAwake {
+            PowerAssertionService.shared.disable()
+            isKeepingAwake = false
+        } else {
+            do {
+                try PowerAssertionService.shared.enable()
+                isKeepingAwake = true
+            } catch {
+                print("Failed to enable Keep Awake: \(error)")
+            }
+        }
+    }
+
+    @MainActor
+    public func toggleKeyboardCleaning() {
+        if isKeyboardCleaningActive {
+            KeyboardCleaningService.shared.stop()
+            isKeyboardCleaningActive = false
+        } else {
+            do {
+                try KeyboardCleaningService.shared.start(language: language) { [weak self] in
+                    Task { @MainActor in
+                        self?.isKeyboardCleaningActive = false
+                    }
+                }
+                isKeyboardCleaningActive = true
+            } catch {
+                print("Failed to start Keyboard Cleaning: \(error)")
+            }
+        }
+    }
 }
 
 public protocol PetSpriteView: View {
@@ -480,6 +557,7 @@ extension AppState.PetType {
         case .robot: TerminalView(pose: pose, height: height, isWalking: isWalking)
         case .cloud: CloudView(pose: pose, height: height, isWalking: isWalking)
         case .horse: HorseView(pose: pose, height: height, isWalking: isWalking)
+        case .fomo: FomoView(pose: pose, height: height, isWalking: isWalking)
         }
     }
 }

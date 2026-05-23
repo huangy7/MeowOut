@@ -29,7 +29,7 @@ public final class EscapeHatch {
     }
 
     private func handleEscPress() {
-        guard appState.currentState == .resting else { return }
+        guard appState.currentState == .resting || appState.currentState == .overworking else { return }
         let now = Date()
         // Keep presses within the last 2 seconds
         escPresses = escPresses.filter { now.timeIntervalSince($0) < 2.0 }

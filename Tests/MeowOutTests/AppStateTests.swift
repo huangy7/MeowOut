@@ -88,4 +88,16 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(appState.dailyLogs.last?.phase, .resting)
         XCTAssertNil(appState.dailyLogs.last?.endTime)
     }
+
+    func testQuickToolsInitialStateAndToggle() {
+        let state = AppState()
+        XCTAssertFalse(state.isKeepingAwake)
+        XCTAssertFalse(state.isKeyboardCleaningActive)
+        
+        state.isKeepingAwake = true
+        XCTAssertTrue(state.isKeepingAwake)
+        
+        state.isKeyboardCleaningActive = true
+        XCTAssertTrue(state.isKeyboardCleaningActive)
+    }
 }
