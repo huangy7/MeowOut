@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>MeowOut - Interactive Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+.screen { width: 1060px; height: 700px; background: radial-gradient(circle at 20% 30%, #1e0a3c 0%, #0a0c1e 60%, #100515 100%); border-radius: 14px; position: relative; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; }
+/* MENUBAR */
+.menubar { height: 28px; background: rgba(10,10,20,0.8); backdrop-filter: blur(20px); border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; padding: 0 14px; font-size: 13px; color: rgba(255,255,255,0.9); z-index: 9999; flex-shrink: 0; }
+.menu-l, .menu-r { display: flex; align-items: center; gap: 14px; }
+.menu-item { cursor: pointer; transition: opacity 0.15s; }
+.menu-item:hover { opacity: 0.7; }
+.tray-btn { display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 5px; cursor: pointer; transition: background 0.15s; }
+.tray-btn:hover, .tray-btn.open { background: rgba(255,255,255,0.15); }
+#tray-canvas { width: 22px; height: 16px; image-rendering: pixelated; }
+.tray-label { font-size: 11px; font-weight: 700; }
+/* DESKTOP */
+.desktop { flex: 1; position: relative; overflow: hidden; }
+/* WINDOWS */
+.win { position: absolute; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column; z-index: 10; }
+.win.focused { z-index: 100; box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); }
+.titlebar { height: 44px; display: flex; align-items: center; padding: 0 14px; cursor: move; position: relative; flex-shrink: 0; }
+.dots { display: flex; gap: 7px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; border: 0.5px solid rgba(0,0,0,0.12); }
+.dot-r { background: #ff5f56; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #27c93f; }
+.win-title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 600; }
+/* SETTINGS WINDOW - LIGHT THEME */
+.win-settings { width: 580px; height: 510px; left: 340px; top: 90px; background: #f5f5f7; border: 0.5px solid rgba(0,0,0,0.12); }
+.win-settings .titlebar { background: rgba(236,236,240,0.9); border-bottom: 0.5px solid rgba(0,0,0,0.08); }
+.win-settings .win-title { color: #1d1d1f; }
+.settings-body { display: flex; flex: 1; overflow: hidden; }
+.sidebar { width: 142px; background: rgba(232,232,238,0.9); border-right: 0.5px solid rgba(0,0,0,0.07); padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.sitem { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 7px; font-size: 12px; font-weight: 500; color: #1d1d1f; cursor: pointer; transition: background 0.15s; position: relative; }
+.sitem:hover { background: rgba(0,0,0,0.05); }
+.sitem.active { background: #0071e3; color: #fff; }
+.sitem .sicon { font-size: 14px; width: 16px; text-align: center; }
+.sbadge { position: absolute; right: 8px; width: 7px; height: 7px; background: #ff3b30; border-radius: 50%; }
+.scontent { flex: 1; background: #fff; display: flex; flex-direction: column; overflow: hidden; }
+.pill-wrap { padding: 14px 18px 8px; display: flex; justify-content: space-between; align-items: center; }
+.pill-bar { display: flex; background: rgba(0,0,0,0.05); padding: 3px; border-radius: 20px; gap: 0; }
+.pill { font-size: 11px; font-weight: 600; padding: 4px 13px; border-radius: 18px; color: #86868b; cursor: pointer; border: none; background: transparent; transition: color 0.15s; display: flex; align-items: center; gap: 4px; }
+.pill.active { color: #1d1d1f; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+.tab-content { flex: 1; padding: 0 18px 16px; overflow-y: auto; display: none; }
+.tab-content.show { display: block; animation: fadein 0.18s ease; }
+.sub-content { display: none; }
+.sub-content.show { display: block; }
+.scard { background: rgba(0,0,0,0.025); border: 0.5px solid rgba(0,0,0,0.07); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+.scard-row { display: flex; align-items: center; gap: 12px; margin-bottom: 2px; }
+.icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.card-texts { display: flex; flex-direction: column; gap: 1px; flex: 1; }
+.card-title { font-size: 13px; font-weight: 600; color: #1d1d1f; }
+.card-desc { font-size: 11px; color: #86868b; }
+.slider-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.slider-ctrl { flex: 1; -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(0,0,0,0.1); outline: none; cursor: pointer; }
+.slider-ctrl::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 0.5px solid rgba(0,0,0,0.15); box-shadow: 0 2px 5px rgba(0,0,0,0.18); cursor: pointer; }
+.slider-val { font-family: monospace; font-size: 12px; font-weight: 700; color: #ff7b00; min-width: 44px; text-align: right; }
+.mac-toggle { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+.mac-toggle input { opacity: 0; width: 0; height: 0; }
+.tog-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(120,120,128,0.2); transition: .22s; border-radius: 20px; }
+.tog-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background: white; transition: .22s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+.mac-toggle input:checked + .tog-slider { background: #34c759; }
+.mac-toggle input:checked + .tog-slider:before { transform: translateX(16px); }
+.mac-seg { display: flex; background: rgba(0,0,0,0.05); padding: 2px; border-radius: 7px; width: 100%; }
+.seg-btn { flex: 1; background: none; border: none; color: #86868b; font-size: 11px; font-weight: 500; padding: 5px 0; border-radius: 5px; cursor: pointer; transition: all 0.14s; }
+.seg-btn.active { background: #fff; color: #1d1d1f; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+/* PET GRID */
+.pet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 6px; }
+.pet-item { border: 1.5px solid transparent; background: rgba(0,0,0,0.02); border-radius: 12px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.18s; }
+.pet-item:hover { background: rgba(0,0,0,0.04); }
+.pet-item.sel { background: rgba(0,113,227,0.07); border-color: #0071e3; }
+.pet-item canvas { width: 56px; height: 40px; image-rendering: pixelated; }
+.pet-item span { font-size: 10px; font-weight: 600; color: #86868b; margin-top: 5px; }
+.pet-item.sel span { color: #0071e3; }
+.mac-btn { border: none; padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.14s; }
+.btn-primary { background: #0071e3; color: #fff; }
+.btn-primary:hover { background: #0077ed; }
+.btn-secondary { background: rgba(0,0,0,0.06); color: #1d1d1f; border: 0.5px solid rgba(0,0,0,0.1); }
+.btn-secondary:hover { background: rgba(0,0,0,0.09); }
+.btn-orange { background: #ff7b00; color: #fff; }
+.btn-orange:hover { background: #ff8f1f; }
+/* BREATHING WINDOW - DARK */
+.win-breath { width: 340px; height: 480px; left: 50px; top: 120px; background: #111118; border: 0.5px solid rgba(255,255,255,0.07); display: none; }
+.win-breath.show { display: flex; }
+.win-breath .titlebar { background: rgba(0,0,0,0.3); border-bottom: 0.5px solid rgba(255,255,255,0.04); }
+.win-breath .win-title { color: #ffffffcc; }
+.breath-chips { display: flex; background: rgba(255,255,255,0.06); padding: 3px; border-radius: 20px; gap: 2px; margin: 8px auto; }
+.bchip { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600; padding: 4px 11px; border-radius: 16px; cursor: pointer; transition: all 0.2s; }
+.bchip.active { background: #ff7b00; color: #000; }
+.breath-area { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+.breath-glow { position: absolute; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(255,123,0,0.2) 0%, transparent 70%); filter: blur(30px); transform: scale(0.7); transition: transform 3s ease-in-out; pointer-events: none; }
+.breath-outer { position: absolute; width: 195px; height: 195px; border-radius: 50%; border: 1px solid rgba(255,123,0,0.15); transform: scale(0.7); opacity: 0; transition: all 3s ease-in-out; }
+.breath-inner { position: absolute; width: 165px; height: 165px; border-radius: 50%; border: 2px solid rgba(255,123,0,0.8); background: radial-gradient(circle, rgba(255,123,0,0.25) 0%, rgba(255,123,0,0.06) 100%); transform: scale(0.7); transition: transform 3s ease-in-out; }
+.breath-labels { position: relative; z-index: 5; text-align: center; pointer-events: none; }
+.breath-main { font-size: 20px; font-weight: 300; color: #fff; margin-bottom: 6px; }
+.breath-sub { font-size: 11px; color: rgba(255,255,255,0.45); font-family: monospace; }
+.breath-bottom { height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding-bottom: 24px; }
+.btn-breath { background: #ff7b00; color: #000; border: none; border-radius: 22px; padding: 11px 32px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; }
+.btn-breath:hover { background: #ff8f1f; }
+.btn-breath.secondary { background: rgba(255,255,255,0.1); color: #fff; }
+.btn-breath.secondary:hover { background: rgba(255,255,255,0.16); }
+.breath-session-time { font-size: 12px; font-family: monospace; color: rgba(255,255,255,0.4); display: none; }
+/* TRAY POPOVER */
+.tray-pop { position: absolute; top: 33px; right: 10px; width: 284px; background: rgba(255,255,255,0.82); backdrop-filter: blur(28px) saturate(160%); border: 0.5px solid rgba(0,0,0,0.1); border-radius: 18px; box-shadow: 0 18px 44px rgba(0,0,0,0.28); padding: 12px; display: flex; flex-direction: column; gap: 9px; z-index: 99999; display: none; color: #1d1d1f; transform-origin: top right; }
+.tray-pop.show { display: flex; animation: popIn 0.18s cubic-bezier(0.16,1,0.3,1); }
+@keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.pop-card { background: #fff; border-radius: 12px; padding: 10px 12px; border: 0.5px solid rgba(0,0,0,0.05); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.goal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.goal-title { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+.goal-val { font-size: 11px; color: #86868b; font-weight: 600; }
+.goal-progress { display: flex; align-items: center; gap: 12px; }
+.prog-bar-wrap { flex: 1; }
+.prog-bar { height: 6px; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, #ff7b00, #ff9e47); border-radius: 3px; width: 17.5%; transition: width 0.4s; }
+.circ-wrap { position: relative; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.circ-wrap svg { position: absolute; width: 100%; height: 100%; transform: rotate(-90deg); }
+.circ-bg { fill: none; stroke: rgba(0,0,0,0.05); stroke-width: 5; }
+.circ-arc { fill: none; stroke: #ff7b00; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 119.38; stroke-dashoffset: 93; transition: stroke-dashoffset 0.4s; }
+.circ-txt { font-size: 9px; font-weight: 800; font-family: monospace; color: #1d1d1f; position: relative; z-index: 1; }
+.water-row { display: flex; align-items: center; justify-content: space-between; padding: 2px 12px; }
+.water-label { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+.water-right { display: flex; align-items: center; gap: 8px; }
+.water-count { font-size: 13px; font-weight: 700; color: #0071e3; }
+.water-add { width: 18px; height: 18px; border-radius: 50%; background: #0071e3; color: #fff; border: none; cursor: pointer; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; transition: transform 0.12s; }
+.water-add:hover { transform: scale(1.15); }
+.pop-divider { height: 0.5px; background: rgba(0,0,0,0.08); margin: 1px 0; }
+.pause-row { display: flex; justify-content: space-between; align-items: center; padding: 0 12px; }
+.pause-label { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.pause-btns { display: flex; gap: 4px; }
+.pbtn { background: rgba(0,0,0,0.05); border: none; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 7px; cursor: pointer; color: #1d1d1f; transition: background 0.14s; }
+.pbtn:hover, .pbtn.on { background: rgba(0,0,0,0.12); }
+.util-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.util-card { background: #fff; border-radius: 12px; padding: 10px; border: 0.5px solid rgba(0,0,0,0.05); box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; transition: all 0.16s; }
+.util-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+.util-icon { font-size: 20px; }
+.util-name { font-size: 11px; font-weight: 700; color: #1d1d1f; }
+.util-status { font-size: 9px; color: #86868b; }
+.util-card.on .util-status { color: #34c759; font-weight: 700; }
+.pop-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.12s; }
+.pop-list-item:hover { background: rgba(0,0,0,0.04); }
+.pop-list-item .left { display: flex; align-items: center; gap: 9px; }
+.pop-list-item.exit { color: #ff3b30; }
+.chevron { color: #86868b; font-size: 10px; }
+/* COMPANION PET */
+.companion { position: absolute; bottom: 28px; left: 200px; width: 112px; height: 80px; cursor: pointer; z-index: 500; transition: left 0.1s linear; }
+.companion canvas { width: 112px; height: 80px; image-rendering: pixelated; display: block; }
+.speech { position: absolute; bottom: 88px; left: 50%; transform: translateX(-50%) translateY(5px); width: 162px; background: rgba(10,10,20,0.88); backdrop-filter: blur(8px); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 7px 10px; font-size: 11px; color: #fff; text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.22s, transform 0.22s; white-space: pre-line; box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+.speech::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 5px 5px 0; border-style: solid; border-color: rgba(10,10,20,0.88) transparent; width: 0; }
+.speech.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* KEYDROP */
+.kd-trigger { position: absolute; bottom: 22px; right: 22px; background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border: 0.5px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 7px 12px; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.25); font-family: 'Outfit', sans-serif; transition: background 0.14s; }
+.kd-trigger:hover { background: rgba(255,255,255,0.15); }
+.kd-panel { position: absolute; bottom: 64px; right: 22px; width: 220px; background: rgba(14,14,24,0.95); backdrop-filter: blur(16px); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 10px; box-shadow: 0 10px 32px rgba(0,0,0,0.4); display: none; flex-direction: column; overflow: hidden; z-index: 1000; }
+.kd-panel.show { display: flex; animation: fadein 0.15s ease; }
+.kd-hdr { padding: 8px 10px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); border-bottom: 0.5px solid rgba(255,255,255,0.07); }
+.kd-item { padding: 8px 10px; font-size: 11px; color: #fff; cursor: pointer; transition: background 0.12s; }
+.kd-item:hover { background: #0071e3; }
+/* CODE WINDOW */
+.win-code { width: 440px; height: 260px; left: 30px; top: 68px; background: #1e1e2e; border: 0.5px solid rgba(255,255,255,0.07); }
+.win-code .titlebar { background: #181825; border-bottom: 0.5px solid rgba(255,255,255,0.05); }
+.win-code .win-title { color: rgba(255,255,255,0.6); }
+.code-body { flex: 1; padding: 12px; font-family: 'Fira Code', monospace; font-size: 12px; line-height: 1.6; color: #cdd6f4; overflow-y: auto; white-space: pre-wrap; }
+.kw { color: #cba6f7; } .fn { color: #89b4fa; } .str { color: #a6e3a1; } .cm { color: #7f849c; font-style: italic; }
+/* ALERTS & OVERLAYS */
+.update-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.9); width: 280px; background: rgba(255,255,255,0.97); border: 0.5px solid rgba(0,0,0,0.1); border-radius: 18px; padding: 18px; box-shadow: 0 20px 55px rgba(0,0,0,0.3); display: none; flex-direction: column; align-items: center; z-index: 999999; opacity: 0; transition: all 0.22s; }
+.update-popup.show { display: flex; opacity: 1; transform: translate(-50%,-50%) scale(1); }
+.upd-avatar { width: 52px; height: 52px; background: rgba(255,123,0,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px; }
+.upd-title { font-size: 14px; font-weight: 700; color: #1d1d1f; text-align: center; margin-bottom: 5px; }
+.upd-desc { font-size: 11px; color: #86868b; text-align: center; line-height: 1.5; margin-bottom: 16px; }
+.upd-btns { display: flex; gap: 9px; width: 100%; }
+.upd-btn { flex: 1; border: none; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.upd-confirm { background: #0071e3; color: #fff; }
+.upd-cancel { background: rgba(0,0,0,0.07); color: #1d1d1f; }
+.clean-overlay { position: absolute; inset: 0; background: rgba(8,8,18,0.96); backdrop-filter: blur(18px); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; color: #fff; text-align: center; }
+.clean-overlay.show { display: flex; animation: fadein 0.2s ease; }
+.clean-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.kp-txt { position: absolute; font-family: 'Fira Code', monospace; font-size: 22px; font-weight: 700; animation: floatKey 0.9s ease-out forwards; pointer-events: none; }
+@keyframes floatKey { 0% { opacity: 1; transform: scale(0.8) translateY(0); } 100% { opacity: 0; transform: scale(1.4) translateY(-90px); } }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="screen" id="screen">
+  <!-- MENU BAR -->
+  <div class="menubar">
+    <div class="menu-l">
+      <span style="font-size:15px;">&#xf8ff;</span>
+      <span class="menu-item" style="font-weight:700;">MeowOut</span>
+      <span class="menu-item">文件</span>
+      <span class="menu-item">编辑</span>
+      <span class="menu-item">显示</span>
+    </div>
+    <div class="menu-r">
+      <span class="menu-item">&#x1F4F6;</span>
+      <span class="menu-item">&#x1F50B; 100%</span>
+      <span class="menu-item" id="menu-time">5月23日 11:30</span>
+      <div class="tray-btn" id="tray-btn">
+        <canvas id="tray-canvas" width="22" height="16"></canvas>
+        <span class="tray-label" id="tray-label">24m</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP AREA -->
+  <div class="desktop" id="desktop">
+
+    <!-- TRAY POPOVER -->
+    <div class="tray-pop" id="tray-pop">
+      <div class="pop-card">
+        <div class="goal-head">
+          <span class="goal-title">&#x1F3AF; 今日目标</span>
+          <span class="goal-val" id="goal-text">1.4 / 8.0 h</span>
+        </div>
+        <div class="goal-progress">
+          <div class="prog-bar-wrap">
+            <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+          </div>
+          <div class="circ-wrap">
+            <svg><circle class="circ-bg" cx="23" cy="23" r="19"/><circle class="circ-arc" id="circ-arc" cx="23" cy="23" r="19"/></svg>
+            <span class="circ-txt" id="circ-txt">24m</span>
+          </div>
+        </div>
+      </div>
+      <div class="pop-card water-row">
+        <span class="water-label">&#x1F4A7; 今日喝水</span>
+        <div class="water-right">
+          <span class="water-count" id="water-count">0/8</span>
+          <button class="water-add" id="water-add">+</button>
+        </div>
+      </div>
+      <div class="pop-divider"></div>
+      <div class="pause-row">
+        <span class="pause-label">&#x23F8; 暂停</span>
+        <div class="pause-btns">
+          <button class="pbtn" data-dur="15">15m</button>
+          <button class="pbtn" data-dur="30">30m</button>
+          <button class="pbtn" data-dur="60">1h</button>
+        </div>
+      </div>
+      <div class="pop-divider"></div>
+      <div class="util-grid">
+        <div class="util-card" id="card-caffeine">
+          <span class="util-icon">&#x2615;</span>
+          <span class="util-name">防休眠</span>
+          <span class="util-status" id="status-caffeine">关闭</span>
+        </div>
+        <div class="util-card" id="card-clean">
+          <span class="util-icon">&#x2328;</span>
+          <span class="util-name">键盘清洁</span>
+          <span class="util-status">关闭</span>
+        </div>
+      </div>
+      <div class="pop-divider"></div>
+      <div class="pop-list-item" id="pop-breath"><span class="left">&#x1F9D8; &nbsp;正念练习</span><span class="chevron">&#x203A;</span></div>
+      <div class="pop-list-item" id="pop-stats"><span class="left">&#x1F4CA; &nbsp;统计</span><span class="chevron">&#x203A;</span></div>
+      <div class="pop-list-item" id="pop-settings"><span class="left">&#x2699; &nbsp;设置...</span><span class="chevron">&#x203A;</span></div>
+      <div class="pop-divider"></div>
+      <div class="pop-list-item exit" onclick="quitApp()"><span class="left">&#x1F6D1; &nbsp;退出</span></div>
+    </div>
+
+    <!-- CODE EDITOR WINDOW -->
+    <div class="win win-code focused" id="win-code">
+      <div class="titlebar">
+        <div class="dots"><span class="dot dot-r" onclick="closeWin('win-code')"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <div class="win-title">MeowOutApp.swift</div>
+      </div>
+      <div class="code-body" id="code-body"><span class="cm">// MeowOut - 原生 macOS 像素伴侣</span>
+<span class="kw">import</span> SwiftUI
+<span class="kw">import</span> AppKit
+
+<span class="kw">struct</span> <span class="fn">MeowOutApp</span>: <span class="fn">App</span> {
+    <span class="kw">@State</span> <span class="kw">var</span> state = <span class="fn">AppState</span>()
+
+    <span class="kw">var</span> body: <span class="kw">some</span> <span class="fn">Scene</span> {
+        <span class="fn">MenuBarExtra</span>(<span class="str">"MeowOut"</span>) {
+            <span class="fn">MenuView</span>(state: state)
+        }
+    }
+}
+</div>
+    </div>
+
+    <!-- SETTINGS WINDOW -->
+    <div class="win win-settings" id="win-settings">
+      <div class="titlebar">
+        <div class="dots"><span class="dot dot-r" onclick="closeWin('win-settings')"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <div class="win-title">MeowOut 设置</div>
+      </div>
+      <div class="settings-body">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+          <div class="sitem active" data-tab="tab-rest"><span class="sicon">&#x23F0;</span> 休息提醒</div>
+          <div class="sitem" data-tab="tab-water"><span class="sicon">&#x1F4A7;</span> 喝水提醒</div>
+          <div class="sitem" data-tab="tab-pet"><span class="sicon">&#x1F408;</span> 宠物行为</div>
+          <div class="sitem" data-tab="tab-kd"><span class="sicon">&#x2328;</span> 常用语</div>
+          <div class="sitem" data-tab="tab-perm"><span class="sicon">&#x1F6E1;</span> 安全与权限</div>
+          <div class="sitem" data-tab="tab-sys"><span class="sicon">&#x2699;</span> 系统<span class="sbadge hidden" id="sys-badge"></span></div>
+        </div>
+        <!-- CONTENT -->
+        <div class="scontent">
+          <!-- REST TAB -->
+          <div class="tab-content show" id="tab-rest">
+            <div class="pill-wrap">
+              <div class="pill-bar" data-tab="tab-rest">
+                <button class="pill" data-sub="rest-goal">目标</button>
+                <button class="pill active" data-sub="rest-dur">时长</button>
+                <button class="pill" data-sub="rest-alert">提醒</button>
+              </div>
+              <button onclick="resetDurations()" title="恢复默认" style="border:none;background:none;font-size:14px;cursor:pointer;color:#86868b;">&#x21BA;</button>
+            </div>
+            <div class="sub-content" id="rest-goal">
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F3AF;</div><div class="card-texts"><div class="card-title">每日目标时间</div><div class="card-desc">您希望达成的总工作时长。</div></div></div>
+                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-goal" min="4" max="12" step="1" value="8"><span class="slider-val" id="lbl-goal" style="color:#ff7b00;">8小时</span></div>
+              </div>
+            </div>
+            <div class="sub-content show" id="rest-dur">
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x23F0;</div><div class="card-texts"><div class="card-title">工作时长</div><div class="card-desc">休息前的最长连续工作时间。</div></div></div>
+                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-work" min="15" max="120" step="5" value="45"><span class="slider-val" id="lbl-work">45分</span></div>
+              </div>
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F49A;</div><div class="card-texts"><div class="card-title">休息时长</div><div class="card-desc">强制休息时的持续时间。</div></div></div>
+                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-rest" min="1" max="30" step="1" value="5"><span class="slider-val" id="lbl-rest">5分</span></div>
+              </div>
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x1F504;</div><div class="card-texts"><div class="card-title">重置所需的休息时间 (完全恢复)</div><div class="card-desc">离开电脑这么久后将完全重置工作计时器。</div></div></div>
+                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-reset" min="2" max="30" step="1" value="5"><span class="slider-val" id="lbl-reset">5分</span></div>
+              </div>
+            </div>
+            <div class="sub-content" id="rest-alert">
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(255,59,48,0.1);">&#x1F514;</div><div class="card-texts"><div class="card-title">休假前警告</div><div class="card-desc">进入强制休息前提前几分钟发出警报。</div></div></div>
+                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-alert" min="1" max="15" step="1" value="1"><span class="slider-val" id="lbl-alert" style="color:#ff3b30;">1分</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- WATER TAB -->
+          <div class="tab-content" id="tab-water">
+            <div class="pill-wrap">
+              <div class="pill-bar" data-tab="tab-water">
+                <button class="pill active" data-sub="water-gen">常规</button>
+                <button class="pill" data-sub="water-sched">计划</button>
+                <button class="pill" data-sub="water-goal">目标</button>
+              </div>
+            </div>
+            <div class="sub-content show" id="water-gen">
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F4A7;</div><div class="card-texts"><div class="card-title">启用喝水提醒</div><div class="card-desc">定时提醒您补充水分，保护健康。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-water" checked><span class="tog-slider"></span></label></div>
+              </div>
+            </div>
+            <div class="sub-content" id="water-sched">
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(85,190,240,0.1);">&#x1F4C5;</div><div class="card-texts"><div class="card-title">提醒模式</div></div></div>
+                <div class="mac-seg" style="margin-top:8px;"><button class="seg-btn active" id="wm-rhythm">跟随工作节奏</button><button class="seg-btn" id="wm-custom">自定义间隔</button></div>
+              </div>
+              <div class="scard" id="water-interval-card" style="display:none;">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x23F0;</div><div class="card-texts"><div class="card-title">喝水提醒间隔</div></div></div>
+                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-wint" min="15" max="120" step="5" value="45"><span class="slider-val" id="lbl-wint" style="color:#0071e3;">45分</span></div>
+              </div>
+            </div>
+            <div class="sub-content" id="water-goal">
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F3AF;</div><div class="card-texts"><div class="card-title">每日喝水目标</div></div></div>
+                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-wgoal" min="4" max="20" step="1" value="8"><span class="slider-val" id="lbl-wgoal" style="color:#ff7b00;">8杯</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- PET TAB -->
+          <div class="tab-content" id="tab-pet">
+            <div class="pill-wrap">
+              <div class="pill-bar" data-tab="tab-pet">
+                <button class="pill active" data-sub="pet-sel">宠物</button>
+                <button class="pill" data-sub="pet-pers">性格</button>
+                <button class="pill" data-sub="pet-inter">互动</button>
+              </div>
+            </div>
+            <div class="sub-content show" id="pet-sel">
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F43E;</div><div class="card-texts"><div class="card-title">选择宠物</div><div class="card-desc">挑选您喜爱的像素精灵伴侣。</div></div></div>
+                <div class="pet-grid">
+                  <div class="pet-item sel" data-pet="clawd"><canvas id="pv-clawd" width="56" height="40"></canvas><span>Clawd</span></div>
+                  <div class="pet-item" data-pet="robot"><canvas id="pv-robot" width="56" height="40"></canvas><span>Robot</span></div>
+                  <div class="pet-item" data-pet="cloud"><canvas id="pv-cloud" width="56" height="40"></canvas><span>Cloud</span></div>
+                  <div class="pet-item" data-pet="horse"><canvas id="pv-horse" width="56" height="40"></canvas><span>Horse</span></div>
+                  <div class="pet-item" id="fomo-item" data-pet="fomo"><canvas id="pv-fomo" width="56" height="40"></canvas><span id="fomo-lbl">Fomo (未解锁)</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="sub-content" id="pet-pers">
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x1F3AD;</div><div class="card-texts"><div class="card-title">性格设定</div><div class="card-desc">宠物的发声态度与督促方式。</div></div></div>
+                <div class="mac-seg" style="margin-top:8px;" id="pers-seg"><button class="seg-btn active" data-pers="gentle">温柔</button><button class="seg-btn" data-pers="strict">严厉</button><button class="seg-btn" data-pers="tsundere">傲娇</button></div>
+              </div>
+            </div>
+            <div class="sub-content" id="pet-inter">
+              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F440;</div><div class="card-texts"><div class="card-title">启用光标追逐</div><div class="card-desc">宠物眼神将跟随您的鼠标移动。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-chase" checked><span class="tog-slider"></span></label></div></div>
+              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,59,48,0.1);">&#x1F620;</div><div class="card-texts"><div class="card-title">键盘敲击警告</div><div class="card-desc">休息时继续打字，宠物会训斥你。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-scold"><span class="tog-slider"></span></label></div></div>
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F441;</div><div class="card-texts"><div class="card-title">效果预览</div><div class="card-desc">快速体验提醒状态。</div></div></div>
+                <div style="display:flex;gap:8px;margin-top:8px;"><button class="mac-btn btn-secondary" id="btn-prev-alert" style="flex:1;">预览预警猫咪</button><button class="mac-btn btn-orange" id="btn-prev-rest" style="flex:1;">模拟强制休息</button></div>
+              </div>
+            </div>
+          </div>
+          <!-- KEYDROP TAB -->
+          <div class="tab-content" id="tab-kd">
+            <div class="pill-wrap"><div style="height:20px;"></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x2328;</div><div class="card-texts"><div class="card-title">启用 KeyDrop 常用语</div><div class="card-desc">按下全局快捷键，快速注入常用短语。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">键盘快捷键</div><div class="card-desc">默认：Cmd + L</div></div></div></div>
+          </div>
+          <!-- PERMISSIONS TAB -->
+          <div class="tab-content" id="tab-perm">
+            <div class="pill-wrap"><div style="height:20px;"></div></div>
+            <div class="scard">
+              <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F6E1;</div><div class="card-texts"><div class="card-title">辅助功能权限</div><div class="card-desc">用于监测键盘空闲状态与打字训斥。</div></div></div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#34c759;"></div><span style="font-size:12px;color:#34c759;font-weight:700;">已授权</span></div>
+            </div>
+          </div>
+          <!-- SYSTEM TAB -->
+          <div class="tab-content" id="tab-sys">
+            <div class="pill-wrap">
+              <div class="pill-bar" data-tab="tab-sys">
+                <button class="pill active" data-sub="sys-gen">常规</button>
+                <button class="pill" data-sub="sys-about">关于</button>
+              </div>
+            </div>
+            <div class="sub-content show" id="sys-gen">
+              <div class="scard">
+                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F310;</div><div class="card-texts"><div class="card-title">应用语言 (Language)</div></div></div>
+                <div class="mac-seg" style="margin-top:8px;" id="lang-seg"><button class="seg-btn active" data-lang="zh">中文</button><button class="seg-btn" data-lang="en">English</button></div>
+              </div>
+              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F680;</div><div class="card-texts"><div class="card-title">开机自启动</div><div class="card-desc">在 macOS 启动时自动运行 MeowOut。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
+            </div>
+            <div class="sub-content" id="sys-about">
+              <div class="scard" style="text-align:center;padding:16px;">
+                <div style="font-size:26px;margin-bottom:8px;">&#x1F43E;</div>
+                <div style="font-size:17px;font-weight:700;margin-bottom:4px;">MeowOut</div>
+                <div style="font-size:11px;color:#86868b;margin-bottom:4px;">版本 1.2.0 (Stable)</div>
+                <div style="font-size:11px;color:#86868b;">原生像素伴侣，呵护您的健康编码。</div>
+              </div>
+              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F504;</div><div class="card-texts"><div class="card-title">检查更新</div><div class="card-desc" id="upd-desc">上次检查：今天 11:20</div></div><button class="mac-btn btn-secondary" id="btn-check-upd">检查</button></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BREATHING WINDOW -->
+    <div class="win win-breath" id="win-breath">
+      <div class="titlebar">
+        <div class="dots"><span class="dot dot-r" onclick="closeBreath()"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <div class="win-title" style="color:rgba(255,255,255,0.7);">正念练习</div>
+        <button onclick="closeBreath()" style="position:absolute;right:14px;border:none;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:11px;">&#x00D7;</button>
+      </div>
+      <div style="display:flex;justify-content:center;">
+        <div class="breath-chips" id="breath-chips">
+          <button class="bchip active" data-pat="box">箱式</button>
+          <button class="bchip" data-pat="478">4-7-8</button>
+          <button class="bchip" data-pat="abdominal">腹式</button>
+        </div>
+      </div>
+      <div class="breath-area">
+        <div class="breath-glow" id="breath-glow"></div>
+        <div class="breath-outer" id="breath-outer"></div>
+        <div class="breath-inner" id="breath-inner"></div>
+        <div class="breath-labels">
+          <div class="breath-main" id="breath-main">准备好了</div>
+          <div class="breath-sub" id="breath-sub">选择模式，点击开始</div>
+        </div>
+      </div>
+      <div class="breath-bottom">
+        <div class="breath-session-time" id="breath-timer">04:00</div>
+        <button class="btn-breath" id="btn-breath">开始练习</button>
+      </div>
+    </div>
+
+    <!-- COMPANION PET -->
+    <div class="companion" id="companion">
+      <div class="speech" id="speech">记得多喝水哦~</div>
+      <canvas id="companion-canvas" width="112" height="80"></canvas>
+    </div>
+
+    <!-- KEYDROP -->
+    <button class="kd-trigger" id="kd-trigger">&#x2328; 常用语 (Cmd+L)</button>
+    <div class="kd-panel" id="kd-panel">
+      <div class="kd-hdr">选择常用语注入代码编辑器：</div>
+      <div class="kd-item" data-code="print('Hello, MeowOut! 🐱')">&#x1F4C4; 打印问候</div>
+      <div class="kd-item" data-code="let pet = Companion(name: 'Clawd')">&#x1F980; 实例化宠物</div>
+      <div class="kd-item" data-code="func takeBreak() { App.shared.forceRest() }">&#x1F9D8; 触发强制休息</div>
+      <div class="kd-item" data-code="git commit -m 'feat: pixel pets interactive'">&#x1F98A; Git 提交命令</div>
+      <div class="kd-item" data-code="💧 Take a break! Drink water!">&#x1F4A7; 喝水打卡字符</div>
+    </div>
+
+    <!-- UPDATE POPUP -->
+    <div class="update-popup" id="update-popup">
+      <div class="upd-avatar">&#x1F98A;</div>
+      <div class="upd-title">发现进化补丁 v1.3.0！</div>
+      <div class="upd-desc">像素宠物带回了「傲娇狐狸 Fomo」精灵！点击更新立即部署。</div>
+      <div class="upd-btns">
+        <button class="upd-btn upd-cancel" onclick="document.getElementById('update-popup').classList.remove('show')">稍后</button>
+        <button class="upd-btn upd-confirm" onclick="applyUpdate()">立即重启</button>
+      </div>
+    </div>
+
+    <!-- KEYBOARD CLEAN OVERLAY -->
+    <div class="clean-overlay" id="clean-overlay">
+      <div class="clean-particles" id="clean-particles"></div>
+      <div style="font-size:50px;margin-bottom:14px;animation:bounce 1.5s infinite;">&#x1F9FC;</div>
+      <h2 style="font-size:20px;font-weight:600;margin-bottom:8px;">键盘清洁模式</h2>
+      <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:22px;">键盘已锁定，请随意清洁。长按 Esc 退出。</p>
+      <button class="mac-btn btn-secondary" onclick="exitClean()" style="z-index:10;">退出模式</button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+</style>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const S = {
+  pet: 'clawd', pers: 'gentle', lang: 'zh',
+  drinkCount: 0, waterGoal: 8,
+  workMin: 45, restMin: 5, resetMin: 5,
+  dailyGoal: 8, timeWorked: 84,
+  chaseEnabled: true, scoldEnabled: false,
+  fomoUnlocked: false, caffeineOn: false,
+  pauseDur: null,
+  compX: 200, compDir: 1, compSpeed: 1.4, compWalk: true,
+  speechTimer: null,
+};
+let mouseX = 0, mouseY = 0;
+let renderT = 0;
+let poseState = 'rest';
+let breathRunning = false, breathPhase = 0, breathRemaining = 4, breathSessionSec = 240;
+let breathTimer = null, breathPat = 'box';
+let cleanMode = false, escHoldTimer = null;
+let keypressCount = 0, lastKeyTime = 0;
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+let audioCtx = null;
+function playTone(f, type, dur, vol) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || 0.08, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  } catch(e) {}
+}
+function click() { playTone(1100,'triangle',0.06,0.05); }
+function water() { playTone(523.25,'sine',0.4,0.14); setTimeout(()=>playTone(659.25,'sine',0.3,0.1),100); }
+function bell() { playTone(293.66,'sine',1.5,0.28); }
+function alert2() { playTone(880,'sine',0.18,0.1); setTimeout(()=>playTone(880,'sine',0.18,0.1),240); }
+
+function showSpeech(txt) {
+  clearTimeout(S.speechTimer);
+  const el = document.getElementById('speech');
+  el.innerText = txt;
+  el.classList.add('show');
+  S.speechTimer = setTimeout(() => el.classList.remove('show'), 3800);
+}
+
+// ─── WINDOW MANAGEMENT ────────────────────────────────────────────────────────
+function makeDraggable(winEl) {
+  const tb = winEl.querySelector('.titlebar');
+  let x=0,y=0,sx=0,sy=0;
+  tb.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('dot') || e.target.tagName === 'BUTTON') return;
+    focusWin(winEl);
+    sx = e.clientX; sy = e.clientY;
+    const onMove = (ev) => {
+      const dx = ev.clientX-sx, dy = ev.clientY-sy;
+      sx=ev.clientX; sy=ev.clientY;
+      let nl = winEl.offsetLeft + dx, nt = winEl.offsetTop + dy;
+      nl = Math.max(0, Math.min(nl, 1060-winEl.offsetWidth));
+      nt = Math.max(28, Math.min(nt, 700-winEl.offsetHeight));
+      winEl.style.left = nl+'px'; winEl.style.top = nt+'px';
+    };
+    const onUp = () => { document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); };
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+  });
+}
+function focusWin(el) {
+  document.querySelectorAll('.win').forEach(w=>w.classList.remove('focused'));
+  el.classList.add('focused');
+}
+function closeWin(id) { document.getElementById(id).style.display='none'; }
+document.querySelectorAll('.win').forEach(w => { makeDraggable(w); w.addEventListener('mousedown',()=>focusWin(w)); });
+
+// ─── TRAY POPOVER ─────────────────────────────────────────────────────────────
+const trayBtn = document.getElementById('tray-btn');
+const trayPop = document.getElementById('tray-pop');
+trayBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  click();
+  trayPop.classList.toggle('show');
+  trayBtn.classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if (!trayPop.contains(e.target) && e.target !== trayBtn && !trayBtn.contains(e.target)) {
+    trayPop.classList.remove('show');
+    trayBtn.classList.remove('open');
+  }
+});
+
+// ─── SETTINGS SIDEBAR ─────────────────────────────────────────────────────────
+document.querySelectorAll('.sitem').forEach(item => {
+  item.addEventListener('click', () => {
+    click();
+    document.querySelectorAll('.sitem').forEach(i=>i.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('show'));
+    item.classList.add('active');
+    const t = document.getElementById(item.dataset.tab);
+    if (t) t.classList.add('show');
+  });
+});
+
+// ─── PILL TABS ────────────────────────────────────────────────────────────────
+document.querySelectorAll('.pill-bar').forEach(bar => {
+  bar.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      click();
+      bar.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+      pill.classList.add('active');
+      const paneId = bar.dataset.tab;
+      const pane = document.getElementById(paneId);
+      pane.querySelectorAll('.sub-content').forEach(s=>s.classList.remove('show'));
+      const target = document.getElementById(pill.dataset.sub);
+      if (target) target.classList.add('show');
+    });
+  });
+});
+
+// ─── SLIDER BINDINGS ──────────────────────────────────────────────────────────
+function bindSlider(id, lblId, fmt, onChange) {
+  const sl = document.getElementById(id), lb = document.getElementById(lblId);
+  sl.addEventListener('input', () => { lb.innerText = fmt(sl.value); if(onChange) onChange(sl.value); });
+}
+bindSlider('sl-work','lbl-work', v=>v+'分', v=>{ S.workMin=+v; updateGoal(); });
+bindSlider('sl-rest','lbl-rest', v=>v+'分', v=>S.restMin=+v);
+bindSlider('sl-reset','lbl-reset', v=>v+'分', v=>S.resetMin=+v);
+bindSlider('sl-goal','lbl-goal', v=>v+'小时', v=>{ S.dailyGoal=+v; updateGoal(); });
+bindSlider('sl-alert','lbl-alert', v=>v+'分');
+bindSlider('sl-wint','lbl-wint', v=>v+'分');
+bindSlider('sl-wgoal','lbl-wgoal', v=>v+'杯', v=>{ S.waterGoal=+v; updateWater(); });
+
+function resetDurations() {
+  document.getElementById('sl-work').value = 45; document.getElementById('lbl-work').innerText = '45分'; S.workMin = 45;
+  document.getElementById('sl-rest').value = 5; document.getElementById('lbl-rest').innerText = '5分'; S.restMin = 5;
+  document.getElementById('sl-reset').value = 5; document.getElementById('lbl-reset').innerText = '5分'; S.resetMin = 5;
+  updateGoal();
+}
+
+// ─── GOAL & WATER UPDATES ─────────────────────────────────────────────────────
+function updateGoal() {
+  const ratio = S.timeWorked / (S.dailyGoal * 60);
+  const pct = Math.min(100, ratio * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('goal-text').innerText = (S.timeWorked/60).toFixed(1)+' / '+S.dailyGoal.toFixed(1)+' h';
+  const perimeter = 119.38;
+  document.getElementById('circ-arc').style.strokeDashoffset = perimeter - (pct/100)*perimeter;
+  const rem = S.workMin - (S.timeWorked % S.workMin);
+  document.getElementById('tray-label').innerText = rem + 'm';
+  document.getElementById('circ-txt').innerText = rem + 'm';
+}
+function updateWater() {
+  const el = document.getElementById('water-count');
+  el.innerText = S.drinkCount + '/' + S.waterGoal;
+  el.style.color = S.drinkCount >= S.waterGoal ? '#34c759' : '#0071e3';
+}
+updateGoal(); updateWater();
+
+// ─── WATER ADD ────────────────────────────────────────────────────────────────
+document.getElementById('water-add').addEventListener('click', () => {
+  S.drinkCount++;
+  water();
+  updateWater();
+  showSpeech('多喝水好棒！+1 ✓');
+});
+
+// ─── PAUSE BUTTONS ────────────────────────────────────────────────────────────
+document.querySelectorAll('.pbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const d = +btn.dataset.dur;
+    if (S.pauseDur === d) {
+      S.pauseDur = null;
+      document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('on'));
+    } else {
+      S.pauseDur = d;
+      document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('on'));
+      btn.classList.add('on');
+      showSpeech(`暂停${d}分钟，好好休息~`);
+    }
+    click();
+  });
+});
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+const caffCard = document.getElementById('card-caffeine');
+caffCard.addEventListener('click', () => {
+  S.caffeineOn = !S.caffeineOn;
+  caffCard.classList.toggle('on', S.caffeineOn);
+  document.getElementById('status-caffeine').innerText = S.caffeineOn ? '开启' : '关闭';
+  showSpeech(S.caffeineOn ? '防睡眠开启！☕ 保持专注~' : '防睡眠已关闭。');
+  playTone(600,'triangle',0.15,0.08);
+});
+
+document.getElementById('card-clean').addEventListener('click', () => {
+  trayPop.classList.remove('show'); trayBtn.classList.remove('open');
+  enterClean();
+});
+
+// ─── KEYBOARD CLEAN MODE ──────────────────────────────────────────────────────
+function enterClean() {
+  cleanMode = true;
+  document.getElementById('clean-overlay').classList.add('show');
+  document.addEventListener('keydown', handleCleanKey);
+  document.addEventListener('keyup', handleCleanKeyUp);
+}
+function exitClean() {
+  cleanMode = false;
+  document.getElementById('clean-overlay').classList.remove('show');
+  document.removeEventListener('keydown', handleCleanKey);
+  document.removeEventListener('keyup', handleCleanKeyUp);
+}
+function handleCleanKey(e) {
+  e.preventDefault();
+  playTone(800+Math.random()*400,'triangle',0.05,0.04);
+  const p = document.createElement('span');
+  p.className = 'kp-txt';
+  p.innerText = e.key.length === 1 ? e.key : e.code.replace('Key','');
+  p.style.left = Math.random()*(window.innerWidth-80)+'px';
+  p.style.top = Math.random()*(window.innerHeight-100)+'px';
+  p.style.color = `hsl(${Math.random()*360},90%,65%)`;
+  document.getElementById('clean-particles').appendChild(p);
+  setTimeout(()=>p.remove(), 900);
+  if (e.key === 'Escape' && !escHoldTimer) escHoldTimer = setTimeout(exitClean, 1400);
+}
+function handleCleanKeyUp(e) { if (e.key==='Escape') { clearTimeout(escHoldTimer); escHoldTimer=null; } }
+
+// ─── POPOVER MENU NAV ─────────────────────────────────────────────────────────
+document.getElementById('pop-breath').addEventListener('click', () => {
+  click(); trayPop.classList.remove('show'); trayBtn.classList.remove('open');
+  const w = document.getElementById('win-breath'); w.classList.add('show'); w.style.display=''; focusWin(w);
+});
+document.getElementById('pop-settings').addEventListener('click', () => {
+  click(); trayPop.classList.remove('show'); trayBtn.classList.remove('open');
+  const w = document.getElementById('win-settings'); w.style.display=''; focusWin(w);
+});
+document.getElementById('pop-stats').addEventListener('click', () => {
+  click(); trayPop.classList.remove('show');
+  alert(`今日统计\n📝 工作：${(S.timeWorked/60).toFixed(1)} 小时\n💧 饮水：${S.drinkCount} 次\n🧘 正念次数：1 次\n\n小猫点评：状态卓越，继续加油！`);
+});
+
+// ─── PERSONALITY ──────────────────────────────────────────────────────────────
+document.querySelectorAll('#pers-seg .seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    click();
+    document.querySelectorAll('#pers-seg .seg-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); S.pers = btn.dataset.pers;
+    showSpeech('性格已切换为：'+btn.innerText);
+  });
+});
+
+// ─── LANGUAGE ─────────────────────────────────────────────────────────────────
+document.querySelectorAll('#lang-seg .seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    click();
+    document.querySelectorAll('#lang-seg .seg-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); S.lang = btn.dataset.lang;
+  });
+});
+
+// ─── WATER MODE ───────────────────────────────────────────────────────────────
+document.getElementById('wm-rhythm').addEventListener('click', () => {
+  document.getElementById('wm-rhythm').classList.add('active');
+  document.getElementById('wm-custom').classList.remove('active');
+  document.getElementById('water-interval-card').style.display = 'none';
+});
+document.getElementById('wm-custom').addEventListener('click', () => {
+  document.getElementById('wm-custom').classList.add('active');
+  document.getElementById('wm-rhythm').classList.remove('active');
+  document.getElementById('water-interval-card').style.display = 'block';
+});
+
+// ─── PET SELECTION ────────────────────────────────────────────────────────────
+document.querySelectorAll('.pet-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const pet = item.dataset.pet;
+    if (pet === 'fomo' && !S.fomoUnlocked) {
+      alert2(); document.getElementById('update-popup').classList.add('show'); return;
+    }
+    click();
+    document.querySelectorAll('.pet-item').forEach(i=>i.classList.remove('sel'));
+    item.classList.add('sel'); S.pet = pet;
+    showSpeech('切换精灵为: '+pet.toUpperCase());
+  });
+});
+
+// ─── TOGGLES ──────────────────────────────────────────────────────────────────
+document.getElementById('tog-chase').addEventListener('change', e => S.chaseEnabled = e.target.checked);
+document.getElementById('tog-scold').addEventListener('change', e => S.scoldEnabled = e.target.checked);
+
+// ─── PREVIEW BUTTONS ──────────────────────────────────────────────────────────
+document.getElementById('btn-prev-alert').addEventListener('click', () => {
+  alert2();
+  showSpeech('⚠️ 连续工作太久了！\n请休息一下！');
+  poseState = 'armsUp'; S.compWalk = false;
+  setTimeout(() => { poseState='rest'; S.compWalk=true; }, 2800);
+});
+document.getElementById('btn-prev-rest').addEventListener('click', () => {
+  click();
+  const w = document.getElementById('win-breath'); w.classList.add('show'); w.style.display=''; focusWin(w);
+  startBreathing();
+});
+
+// ─── UPDATER ──────────────────────────────────────────────────────────────────
+document.getElementById('btn-check-upd').addEventListener('click', () => {
+  click();
+  document.getElementById('upd-desc').innerText = '检查中...';
+  setTimeout(() => {
+    document.getElementById('upd-desc').innerText = '可用补丁 v1.3.0 (傲娇狐狸)';
+    document.getElementById('sys-badge').classList.remove('hidden');
+    document.getElementById('update-popup').classList.add('show');
+  }, 1200);
+});
+function applyUpdate() {
+  document.getElementById('update-popup').classList.remove('show');
+  S.fomoUnlocked = true;
+  document.getElementById('fomo-lbl').innerText = 'Fomo';
+  playTone(880,'sine',0.5,0.2);
+  alert('进化补丁 v1.3.0 部署成功！\n🎉 傲娇狐狸 Fomo 已解锁！');
+  document.querySelector('[data-pet="fomo"]').click();
+}
+function quitApp() {
+  trayPop.classList.remove('show');
+  showSpeech('再见啦！喵~');
+  setTimeout(() => { S.compWalk=true; S.compSpeed=3.5; S.compDir=1; setTimeout(() => document.getElementById('companion').style.opacity='0', 2200); }, 200);
+}
+
+// ─── KEYDROP ──────────────────────────────────────────────────────────────────
+document.getElementById('kd-trigger').addEventListener('click', (e) => {
+  e.stopPropagation(); click();
+  document.getElementById('kd-panel').classList.toggle('show');
+});
+document.addEventListener('click', () => document.getElementById('kd-panel').classList.remove('show'));
+document.querySelectorAll('.kd-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const code = item.dataset.code;
+    const body = document.getElementById('code-body');
+    const div = document.createElement('div');
+    div.style.cssText = 'color:#a6e3a1;margin-top:6px;border-left:2px solid #0071e3;padding-left:6px;';
+    div.innerText = '// KeyDrop:\n'+code;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+    document.getElementById('kd-panel').classList.remove('show');
+    playTone(700,'sine',0.22,0.12);
+    showSpeech('代码短语注入成功！💻');
+  });
+});
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='l') { e.preventDefault(); document.getElementById('kd-trigger').click(); }
+  if (cleanMode) return;
+  // scold logic
+  const now = Date.now();
+  if (now - lastKeyTime < 700) keypressCount++;
+  else keypressCount = 0;
+  lastKeyTime = now;
+  if (S.scoldEnabled && keypressCount > 10) {
+    keypressCount = 0;
+    const msgs = { gentle: '小猫提醒你：快休息一下，喝杯水~', strict: '坐直！停下打字！现在休息！', tsundere: '笨蛋，总是敲个不停... 快休息！' };
+    showSpeech(msgs[S.pers]);
+    poseState='armsUp'; S.compWalk=false;
+    setTimeout(() => { poseState='rest'; S.compWalk=true; }, 2200);
+  }
+});
+
+// ─── BREATHING EXERCISE ──────────────────────────────────────────────────────
+const PATTERNS = {
+  box: [{name:'吸气',s:4,scale:1.0},{name:'屏气',s:4,scale:1.0},{name:'呼气',s:4,scale:0.7},{name:'屏气',s:4,scale:0.7}],
+  478: [{name:'吸气',s:4,scale:1.0},{name:'屏息',s:7,scale:1.0},{name:'呼气',s:8,scale:0.7}],
+  abdominal: [{name:'吸气',s:5,scale:1.0},{name:'呼气',s:5,scale:0.7}],
+};
+document.querySelectorAll('.bchip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    if (breathRunning) return;
+    document.querySelectorAll('.bchip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active'); breathPat = chip.dataset.pat; click();
+  });
+});
+document.getElementById('btn-breath').addEventListener('click', () => {
+  click(); breathRunning ? stopBreathing() : startBreathing();
+});
+function closeBreath() { stopBreathing(); document.getElementById('win-breath').classList.remove('show'); document.getElementById('win-breath').style.display='none'; }
+function startBreathing() {
+  breathRunning=true; breathPhase=0; breathRemaining=4; breathSessionSec=240;
+  document.getElementById('btn-breath').innerText='结束练习';
+  document.getElementById('btn-breath').className='btn-breath secondary';
+  document.getElementById('breath-timer').style.display='block';
+  document.getElementById('companion').style.opacity='0.15';
+  bell();
+  runBreathStep();
+  breathTimer = setInterval(() => {
+    breathSessionSec--;
+    const m=Math.floor(breathSessionSec/60), s=breathSessionSec%60;
+    document.getElementById('breath-timer').innerText = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    if (breathSessionSec<=0) stopBreathing();
+    else { breathRemaining--; if(breathRemaining<=0) { const steps=PATTERNS[breathPat]; breathPhase=(breathPhase+1)%steps.length; breathRemaining=steps[breathPhase].s; runBreathStep(); } else document.getElementById('breath-sub').innerText=breathRemaining+' 秒'; }
+  }, 1000);
+}
+function stopBreathing() {
+  clearInterval(breathTimer); breathRunning=false;
+  document.getElementById('btn-breath').innerText='开始练习';
+  document.getElementById('btn-breath').className='btn-breath';
+  document.getElementById('breath-timer').style.display='none';
+  document.getElementById('breath-main').innerText='准备好了';
+  document.getElementById('breath-sub').innerText='选择模式，点击开始';
+  document.getElementById('companion').style.opacity='1';
+  ['breath-glow','breath-outer','breath-inner'].forEach(id=>{
+    const el=document.getElementById(id); el.style.transform='scale(0.7)';
+    if(id==='breath-outer') el.style.opacity='0';
+  });
+  bell();
+}
+function runBreathStep() {
+  const step = PATTERNS[breathPat][breathPhase];
+  document.getElementById('breath-main').innerText = step.name;
+  breathRemaining = step.s;
+  document.getElementById('breath-sub').innerText = breathRemaining+' 秒';
+  const dur = step.s+'s';
+  const gScale = step.scale===1.0 ? '1.5' : '0.7';
+  ['breath-glow','breath-outer','breath-inner'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.style.transition=`all ${dur} ease-in-out`;
+    el.style.transform = `scale(${id==='breath-outer' ? step.scale*1.25 : id==='breath-glow' ? gScale : step.scale})`;
+    if(id==='breath-outer') el.style.opacity=breathRunning?'0.22':'0';
+  });
+}
+
+// ─── COMPANION PET WALK LOOP ──────────────────────────────────────────────────
+const desktopEl = document.getElementById('desktop');
+desktopEl.addEventListener('mousemove', (e) => {
+  const r = desktopEl.getBoundingClientRect();
+  mouseX = e.clientX-r.left; mouseY = e.clientY-r.top;
+});
+const companion = document.getElementById('companion');
+companion.addEventListener('click', () => {
+  const msgs = {
+    gentle:{zh:['主人，写代码累了就伸个懒腰吧~','记得多喝水，身体才是革命本钱。','我一直在守护你！'],en:['Stretch a bit if tired!','Remember to drink water!','I am always with you!']},
+    strict:{zh:['坐直！不要驼背！','效率优先，快去休息！','不要违规加班！'],en:['Sit straight!','Rest for productivity!','No illegal overtime!']},
+    tsundere:{zh:['哼，才不是担心你，快休息啦！','笨蛋，真让人操心...','累倒了我绝对不管！'],en:["Hmph! Just go rest!",'Dummy, you worry me...','I won\'t care if you collapse!']}
+  };
+  const list = msgs[S.pers][S.lang]; 
+  showSpeech(list[Math.floor(Math.random()*list.length)]);
+  playTone(700+Math.random()*300,'sine',0.1,0.07);
+  poseState='armsUp'; S.compWalk=false;
+  setTimeout(()=>{ poseState='rest'; S.compWalk=true; }, 1600);
+});
+setInterval(() => {
+  if (!S.compWalk || cleanMode || breathRunning) return;
+  S.compX += S.compSpeed * S.compDir;
+  if (S.compX > 940) S.compDir=-1;
+  else if (S.compX < 16) S.compDir=1;
+  companion.style.left = S.compX+'px';
+}, 30);
+
+// ─── TRAY CAT RUNNING (22×16) ─────────────────────────────────────────────────
+const trayCanvas = document.getElementById('tray-canvas');
+const trayCtx = trayCanvas.getContext('2d');
+trayCanvas.width = 22; trayCanvas.height = 16;
+
+function drawTrayCat(t) {
+  trayCtx.clearRect(0,0,22,16);
+  const phase = (t % 1.0);
+  const u = 1;
+  const bodyBob = (phase<0.25||(phase>=0.5&&phase<0.75)) ? 1 : 0;
+  // Shadow
+  trayCtx.fillStyle='rgba(0,0,0,0.3)';
+  trayCtx.fillRect(3*u,14*u,9*u,1*u);
+  // Legs
+  trayCtx.fillStyle='#DE886D';
+  [[3,7],[5,7],[9,7],[11,7]].forEach(([x,y],i)=>{
+    const legGroup = (i===0||i===2)?0:1;
+    let ly = 0;
+    if(legGroup===0 && phase>=0.75) ly=-1;
+    if(legGroup===1 && phase>=0.25&&phase<0.5) ly=-1;
+    trayCtx.fillRect(x*u,(y+ly)*u,1*u,2*u);
+  });
+  // Body
+  trayCtx.fillStyle='#DE886D';
+  trayCtx.fillRect(2*u,bodyBob*u,11*u,7*u);
+  trayCtx.fillStyle='#F0A187';
+  trayCtx.fillRect(2*u,bodyBob*u,11*u,1*u);
+  // Arms
+  const armSw = bodyBob===1?-1:1;
+  trayCtx.fillStyle='#DE886D';
+  trayCtx.fillRect(0,(3+bodyBob+armSw)*u,2*u,2*u);
+  trayCtx.fillRect(13*u,(3+bodyBob-armSw)*u,2*u,2*u);
+  // Eyes
+  const blink = (t%4.5)>4.3;
+  trayCtx.fillStyle='#000';
+  if(blink) {
+    trayCtx.fillRect(4*u,(3.5+bodyBob)*u,1*u,0.3*u);
+    trayCtx.fillRect(10*u,(3.5+bodyBob)*u,1*u,0.3*u);
+  } else {
+    trayCtx.fillRect(4*u,(2+bodyBob)*u,1*u,2*u);
+    trayCtx.fillRect(10*u,(2+bodyBob)*u,1*u,2*u);
+    trayCtx.fillStyle='#fff';
+    trayCtx.fillRect(4.1*u,(2.1+bodyBob)*u,0.4*u,0.4*u);
+    trayCtx.fillRect(10.1*u,(2.1+bodyBob)*u,0.4*u,0.4*u);
+  }
+}
+
+// ─── COMPANION CANVAS RENDERING ───────────────────────────────────────────────
+const compCanvas = document.getElementById('companion-canvas');
+const compCtx = compCanvas.getContext('2d');
+
+// Pet preview canvases
+const PV = { clawd:null, robot:null, cloud:null, horse:null, fomo:null };
+['clawd','robot','cloud','horse','fomo'].forEach(name => {
+  PV[name] = { el: document.getElementById('pv-'+name), ctx: null };
+  PV[name].ctx = PV[name].el.getContext('2d');
+});
+
+function drawClawd(ctx, w, h, t, walk, pose, dir, unit) {
+  const u = unit || 5;
+  const breatheT = Math.sin(t*2*Math.PI/3.2);
+  const sy = 1-breatheT*0.02;
+  const phase = walk ? (t%1.0) : 0;
+  const bob = walk ? ((phase<0.25||(phase>=0.5&&phase<0.75))?0.7:0) : 0;
+  
+  let eyeX=0, eyeY=0;
+  if (S.chaseEnabled && pose==='rest') {
+    const r = companion.getBoundingClientRect();
+    const dx = mouseX-(r.left+56); const dy = mouseY-(r.top+40);
+    eyeX = Math.max(-1,Math.min(1,dx/120))*0.5;
+    eyeY = Math.max(-0.5,Math.min(0.5,dy/120))*0.35;
+  }
+  
+  const ox = (w - 15*u)/2; const oy = (h - 10*u)/2;
+  ctx.save(); ctx.translate(ox,oy);
+  if (dir===-1) { ctx.translate(15*u,0); ctx.scale(-1,1); }
+  
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  ctx.fillRect(3*u,9*u,9*u,0.5*u);
+  // Legs
+  ctx.fillStyle='#DE886D';
+  [[3,7],[5,7],[9,7],[11,7]].forEach(([x,y],i)=>{
+    const g=(i===0||i===2)?0:1;
+    let ly=0;
+    if(walk){if(g===0&&phase>=0.75)ly=-1;if(g===1&&phase>=0.25&&phase<0.5)ly=-1;}
+    ctx.fillRect(x*u,(y+ly)*u*sy,u,2*u);
+  });
+  // Body
+  ctx.fillStyle='#DE886D';
+  ctx.fillRect(2*u,bob*u*sy,11*u,7*u*sy);
+  ctx.fillStyle='#F0A187'; ctx.fillRect(2*u,bob*u*sy,11*u,u*sy);
+  ctx.fillStyle='#C06E56'; ctx.fillRect(2*u,(bob+6)*u*sy,11*u,u*sy);
+  // Arms
+  const armSw=walk?(bob===0.7?-0.8:0.8):0, armR=pose==='armsUp'?-2.5:0;
+  ctx.fillStyle='#DE886D';
+  ctx.fillRect(0,(3+bob+armSw+armR)*u*sy,2*u,2*u);
+  ctx.fillRect(13*u,(3+bob-armSw+armR)*u*sy,2*u,2*u);
+  // Eyes
+  const blink=(t%4.5)>4.3;
+  ctx.fillStyle='#000';
+  if(blink){
+    ctx.fillRect((4+eyeX)*u,(3.5+bob+eyeY)*u*sy,u,0.3*u);
+    ctx.fillRect((10+eyeX)*u,(3.5+bob+eyeY)*u*sy,u,0.3*u);
+  } else {
+    ctx.fillRect((4+eyeX)*u,(2+bob+eyeY)*u*sy,u,2*u);
+    ctx.fillRect((10+eyeX)*u,(2+bob+eyeY)*u*sy,u,2*u);
+    ctx.fillStyle='#fff';
+    ctx.fillRect((4.1+eyeX)*u,(2.1+bob+eyeY)*u*sy,0.4*u,0.4*u);
+    ctx.fillRect((10.1+eyeX)*u,(2.1+bob+eyeY)*u*sy,0.4*u,0.4*u);
+  }
+  ctx.restore();
+}
+
+function drawRobot(ctx, w, h, t, walk, pose, dir, unit) {
+  const u = unit||5;
+  const floatY = Math.sin(t*2*Math.PI/1.8)*(walk?1.5:0.8);
+  const ox=(w-14*u)/2, oy=(h-10*u)/2;
+  ctx.save(); ctx.translate(ox,oy);
+  if(dir===-1){ctx.translate(14*u,0);ctx.scale(-1,1);}
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.beginPath();ctx.ellipse(7*u,(9.3+floatY)*u,3*u,0.4*u,0,0,2*Math.PI);ctx.fill();
+  // Flames
+  const fl=Math.max(2,(walk?8:4)+Math.sin(t*20)*1.5);
+  ctx.fillStyle='#FFB46B';
+  ctx.fillRect(4.5*u,(6.8+floatY)*u,1.2*u,fl);
+  ctx.fillRect(8.5*u,(6.8+floatY)*u,1.2*u,fl);
+  ctx.fillStyle='#5BD4E6';
+  ctx.fillRect(4.8*u,(6.8+floatY)*u,0.6*u,fl*0.75);
+  ctx.fillRect(8.8*u,(6.8+floatY)*u,0.6*u,fl*0.75);
+  // Thrusters
+  ctx.fillStyle='#141E32';
+  ctx.fillRect(4*u,(6+floatY)*u,2.2*u,u);
+  ctx.fillRect(8*u,(6+floatY)*u,2.2*u,u);
+  // Arms
+  const aR=pose==='armsUp'?-2:0;
+  ctx.fillStyle='#283C64';
+  ctx.fillRect(u,(4.5+floatY+aR)*u,u,2.2*u);
+  ctx.fillRect(12*u,(4.5+floatY+aR)*u,u,2.2*u);
+  // Body
+  ctx.fillRect(2.5*u,(3.8+floatY)*u,9*u,2.4*u);
+  ctx.fillStyle='#3C5A96'; ctx.fillRect(2.5*u,(3.8+floatY)*u,9*u,0.4*u);
+  // LED pulse
+  const led=(Math.sin(t*5)+1)*0.5;
+  ctx.fillStyle=`rgba(91,212,230,${0.3+led*0.7})`;
+  ctx.fillRect(5.5*u,(4.4+floatY)*u,0.6*u,0.6*u);
+  ctx.fillRect(8*u,(4.4+floatY)*u,0.6*u,0.6*u);
+  ctx.fillRect(6.8*u,(5+floatY)*u,0.6*u,0.6*u);
+  // Neck+Head
+  ctx.fillStyle='#283C64';
+  ctx.fillRect(6*u,(3.2+floatY)*u,2*u,0.6*u);
+  ctx.fillRect(3.5*u,(0.6+floatY)*u,7*u,2.6*u);
+  ctx.fillStyle='#3C5A96'; ctx.fillRect(3.5*u,(0.6+floatY)*u,7*u,0.4*u);
+  // Face
+  ctx.fillStyle='#0a0f1f';
+  ctx.fillRect(4*u,(u+floatY)*u,6*u,1.8*u);
+  // Eyes
+  let eX=0,eY=0;
+  if(S.chaseEnabled&&pose==='rest'){
+    const r=companion.getBoundingClientRect();
+    eX=Math.max(-0.8,Math.min(0.8,(mouseX-(r.left+56))/120))*0.4;
+    eY=Math.max(-0.4,Math.min(0.4,(mouseY-(r.top+40))/120))*0.2;
+  }
+  const blink=(t%4.8)>4.6;
+  ctx.fillStyle='#5BD4E6';
+  if(blink){
+    ctx.fillRect((5+eX)*u,(1.8+floatY+eY)*u,u,0.25*u);
+    ctx.fillRect((8+eX)*u,(1.8+floatY+eY)*u,u,0.25*u);
+  } else {
+    ctx.fillRect((5+eX)*u,(1.4+floatY+eY)*u,u,u);
+    ctx.fillRect((8+eX)*u,(1.4+floatY+eY)*u,u,u);
+    ctx.fillStyle='#fff';
+    ctx.fillRect((5.1+eX)*u,(1.5+floatY+eY)*u,0.3*u,0.3*u);
+    ctx.fillRect((8.1+eX)*u,(1.5+floatY+eY)*u,0.3*u,0.3*u);
+  }
+  ctx.restore();
+}
+
+function drawCloud(ctx, w, h, t, walk, pose, dir, unit) {
+  const u=unit||5;
+  const floatY=Math.sin(t*2*Math.PI/3.5)*0.3;
+  const swayX=walk?Math.sin(t*2*Math.PI/0.8)*0.2:0;
+  const ox=(w-14*u)/2, oy=(h-10*u)/2;
+  ctx.save(); ctx.translate(ox,oy);
+  if(dir===-1){ctx.translate(14*u,0);ctx.scale(-1,1);}
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.18)';
+  ctx.beginPath();ctx.ellipse((7+swayX)*u,9.2*u,4*u,0.4*u,0,0,2*Math.PI);ctx.fill();
+  // Feet
+  const wp=walk?(t%0.8)/0.8:0;
+  const lfd=walk?(wp<0.5?-0.4:0):0, rfd=walk?(wp>=0.5?-0.4:0):0;
+  ctx.fillStyle='#8e7cc3';
+  ctx.fillRect((4+swayX)*u,(8+floatY+lfd)*u,1.8*u,0.8*u);
+  ctx.fillRect((8.2+swayX)*u,(8+floatY+rfd)*u,1.8*u,0.8*u);
+  // Cloud body
+  ctx.fillRect((2+swayX)*u,(4+floatY)*u,10*u,4*u);
+  ctx.fillRect((3+swayX)*u,(2+floatY)*u,8*u,3*u);
+  ctx.fillRect((1+swayX)*u,(5+floatY)*u,1.5*u,2*u);
+  ctx.fillRect((11.5+swayX)*u,(5+floatY)*u,1.5*u,2*u);
+  ctx.fillStyle='#b4a7d6'; ctx.fillRect((4+swayX)*u,(2+floatY)*u,6*u,0.8*u);
+  ctx.fillStyle='#674ea7'; ctx.fillRect((3+swayX)*u,(7.4+floatY)*u,8*u,0.6*u);
+  // Eyes
+  let eX=0;
+  if(S.chaseEnabled&&pose==='rest'){
+    const r=companion.getBoundingClientRect();
+    eX=Math.max(-0.8,Math.min(0.8,(mouseX-(r.left+56))/120))*0.25;
+  }
+  const blink=(t%5)>4.8;
+  const leX=4.2+swayX+eX, reX=8+swayX+eX, eyY=4.2+floatY;
+  if(blink){
+    ctx.fillStyle='#000';
+    ctx.fillRect(leX*u,(eyY+0.6)*u,1.5*u,0.25*u);
+    ctx.fillRect(reX*u,(eyY+0.6)*u,1.5*u,0.25*u);
+  } else {
+    ctx.fillStyle='#fff';
+    ctx.fillRect(leX*u,eyY*u,1.8*u,1.8*u);
+    ctx.fillRect(reX*u,eyY*u,1.8*u,1.8*u);
+    ctx.fillStyle='#000';
+    ctx.fillRect((leX+0.5)*u,(eyY+0.5)*u,0.9*u,0.9*u);
+    ctx.fillRect((reX+0.5)*u,(eyY+0.5)*u,0.9*u,0.9*u);
+  }
+  ctx.restore();
+}
+
+function drawHorse(ctx, w, h, t, walk, pose, dir, unit) {
+  const u=unit||5;
+  const breatheT=Math.sin(t*2*Math.PI/3.2), sy=1-breatheT*0.025;
+  const dy=walk?Math.sin(t*2*Math.PI*2/0.8)*0.3:0;
+  const wp=walk?(t/0.8)%1.0:0;
+  const ox=(w-14*u)/2, oy=(h-10*u)/2;
+  ctx.save(); ctx.translate(ox,oy);
+  if(dir===-1){ctx.translate(14*u,0);ctx.scale(-1,1);}
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.28)';
+  ctx.fillRect(2.5*u,9.2*u,7*u,0.4*u);
+  // Legs
+  [[3,0],[4,1],[6.8,1],[7.8,0]].forEach(([x,g])=>{
+    let lp=g===0?wp:(wp+0.5)%1;
+    let lift=walk&&lp<0.5?-Math.sin(lp*2*Math.PI)*0.8:0;
+    ctx.fillStyle='#f1c232';
+    ctx.fillRect(x*u,(7+dy+lift)*u*sy,u,1.6*u*sy);
+    ctx.fillStyle='#bf9000';
+    ctx.fillRect(x*u,(8.6+dy+lift)*u*sy,u,0.3*u*sy);
+  });
+  // Tail
+  const tw=Math.sin(t*4)*(walk?0.45:0.2);
+  ctx.fillStyle='#e6b8af';
+  ctx.fillRect((1.5+tw)*u,(4.2+dy)*u*sy,0.7*u,1.4*u*sy);
+  ctx.fillRect((0.8+tw*1.5)*u,(5.2+dy)*u*sy,u,1.6*u*sy);
+  // Torso
+  ctx.fillStyle='#f1c232';
+  ctx.fillRect(2*u,(4+dy)*u*sy,7*u,2.6*u*sy);
+  ctx.fillStyle='#ffd966'; ctx.fillRect(2.3*u,(4+dy)*u*sy,6.4*u,0.4*u*sy);
+  ctx.fillStyle='#bf9000'; ctx.fillRect(2.3*u,(6.2+dy)*u*sy,6.4*u,0.4*u*sy);
+  // Mane
+  ctx.fillStyle='#e6b8af';
+  ctx.fillRect(4.5*u,(3.4+dy)*u*sy,2.6*u,0.9*u*sy);
+  // Wing
+  const wf=Math.sin(t*8)*(walk?0.5:0.2);
+  ctx.fillStyle='#fffae5';
+  ctx.fillRect(4.8*u,(3.4+dy+wf*0.2)*u*sy,2.2*u,u*sy);
+  ctx.fillRect((3.8+wf*0.3)*u,(2.7+dy+wf*0.6)*u*sy,2*u,0.9*u*sy);
+  // Neck+Head
+  const hR=pose==='armsUp'?-1.2:0;
+  ctx.fillStyle='#f1c232';
+  ctx.fillRect(6.5*u,(3+hR+dy)*u*sy,1.8*u,(1.4-hR)*u*sy);
+  ctx.fillRect(8*u,(2+dy+hR)*u*sy,2.5*u,2.5*u*sy);
+  ctx.fillRect(10.4*u,(3.6+dy+hR)*u*sy,u,0.7*u*sy);
+  // Ears
+  ctx.fillRect(9*u,(0.7+dy+hR)*u*sy,0.6*u,1.3*u*sy);
+  ctx.fillRect(9.7*u,(0.7+dy+hR)*u*sy,0.6*u,1.3*u*sy);
+  // Eyes
+  let eX=0;
+  if(S.chaseEnabled&&pose==='rest'){
+    const r=companion.getBoundingClientRect();
+    eX=Math.max(-0.3,Math.min(0.3,(mouseX-(r.left+56))/120))*0.25;
+  }
+  const blink=(t%5)>4.8;
+  ctx.fillStyle='#000';
+  if(blink) ctx.fillRect((9.5+eX)*u,(3+dy+hR)*u*sy,0.6*u,0.2*u*sy);
+  else {
+    ctx.fillRect((9.5+eX)*u,(2.7+dy+hR)*u*sy,0.6*u,0.6*u*sy);
+    ctx.fillStyle='#fff'; ctx.fillRect((9.55+eX)*u,(2.8+dy+hR)*u*sy,0.22*u,0.22*u*sy);
+  }
+  ctx.restore();
+}
+
+function drawFomo(ctx, w, h, t, walk, pose, dir, unit) {
+  const u=unit||5;
+  const breatheT=Math.sin(t*2*Math.PI/3.2), sy=1-breatheT*0.02;
+  const wp=walk?(t%0.9)/0.9:0;
+  const bob=walk?Math.sin(t*2*Math.PI/0.9)*0.25:0;
+  const ox=(w-14*u)/2, oy=(h-10*u)/2;
+  ctx.save(); ctx.translate(ox,oy);
+  if(dir===-1){ctx.translate(14*u,0);ctx.scale(-1,1);}
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.fillRect(3*u,9.6*u,8*u,0.3*u);
+  // Tail
+  const ts=walk?Math.sin(t*2*Math.PI/0.6)*0.5:Math.sin(t*2*Math.PI/2.5)*0.25;
+  const tx=10.5+ts;
+  ctx.fillStyle='#f3f3f3';
+  ctx.fillRect(tx*u,5*u,2.5*u,3*u);
+  ctx.fillRect((tx+1.8)*u,5.8*u,1.5*u,2.2*u);
+  ctx.fillStyle='#fff'; ctx.fillRect((tx+2.5)*u,6.5*u,u,1.5*u);
+  // Body
+  ctx.fillStyle='#f3f3f3';
+  ctx.fillRect(3*u,(6.3+bob)*u*sy,8*u,2.5*u*sy);
+  ctx.fillStyle='#fff'; ctx.fillRect(3.5*u,(7.5+bob)*u*sy,7*u,u*sy);
+  // Legs
+  for(let i=0;i<4;i++){
+    const gA=(i===0||i===2), ph=gA?wp:(wp+0.5)%1;
+    const lift=walk&&ph<0.5?-Math.sin(ph*2*Math.PI)*0.35:0;
+    const lx=[3.5,5.5,7.5,9.5][i];
+    ctx.fillStyle='#f3f3f3';
+    ctx.fillRect(lx*u,(8.5+lift)*u,u,1.5*u);
+    ctx.fillStyle='#d9d9d9'; ctx.fillRect(lx*u,(8.5+1.2+lift)*u,u,0.3*u);
+  }
+  // Head
+  ctx.fillStyle='#f3f3f3';
+  ctx.fillRect(4*u,(2+bob)*u*sy,6*u,5*u*sy);
+  ctx.fillStyle='#d9d9d9'; ctx.fillRect(4*u,(6+bob)*u*sy,6*u,u*sy);
+  // Ears (wiggle)
+  const lew=Math.sin(t*8)*0.3, rew=Math.sin(t*8+1)*0.3;
+  const edY=pose==='armsUp'?0.5:0;
+  const lex=4+lew, ley=0+edY;
+  ctx.fillStyle='#f3f3f3';
+  ctx.fillRect(lex*u,(ley+2+bob)*u*sy,1.8*u,u*sy);
+  ctx.fillRect((lex+0.25)*u,(ley+1+bob)*u*sy,1.3*u,u*sy);
+  ctx.fillRect((lex+0.55)*u,(ley+bob)*u*sy,0.7*u,u*sy);
+  ctx.fillStyle='#f2b8d1'; ctx.fillRect((lex+0.5)*u,(ley+1.3+bob)*u*sy,0.8*u,1.3*u*sy);
+  const rex=8.5+rew, rey=0+edY;
+  ctx.fillStyle='#f3f3f3';
+  ctx.fillRect(rex*u,(rey+2+bob)*u*sy,1.8*u,u*sy);
+  ctx.fillRect((rex+0.25)*u,(rey+1+bob)*u*sy,1.3*u,u*sy);
+  ctx.fillRect((rex+0.55)*u,(rey+bob)*u*sy,0.7*u,u*sy);
+  ctx.fillStyle='#f2b8d1'; ctx.fillRect((rex+0.5)*u,(rey+1.3+bob)*u*sy,0.8*u,1.3*u*sy);
+  // Eyes
+  let eX=0;
+  if(S.chaseEnabled&&pose==='rest'){
+    const r=companion.getBoundingClientRect();
+    eX=Math.max(-0.25,Math.min(0.25,(mouseX-(r.left+56))/120))*0.5;
+  }
+  const blink=(t%4.5)>4.3;
+  ctx.fillStyle='#000';
+  if(!blink){
+    ctx.fillRect((5.2+eX)*u,(4+bob)*u*sy,u,u*sy);
+    ctx.fillRect((7.8+eX)*u,(4+bob)*u*sy,u,u*sy);
+    ctx.fillStyle='#fff';
+    ctx.fillRect((5.7+eX)*u,(4.2+bob)*u*sy,0.3*u,0.4*u*sy);
+    ctx.fillRect((8.2+eX)*u,(4.2+bob)*u*sy,0.3*u,0.4*u*sy);
+  } else {
+    ctx.fillRect(5.2*u,(4.45+bob)*u*sy,u,0.2*u*sy);
+    ctx.fillRect(7.8*u,(4.45+bob)*u*sy,u,0.2*u*sy);
+  }
+  // Nose
+  ctx.fillStyle='#f2b8d1';
+  ctx.fillRect(6.7*u,(5.4+bob)*u*sy,0.6*u,0.5*u*sy);
+  ctx.restore();
+}
+
+const petDrawFns = { clawd:drawClawd, robot:drawRobot, cloud:drawCloud, horse:drawHorse, fomo:drawFomo };
+
+// ─── MAIN RENDER LOOP ─────────────────────────────────────────────────────────
+function render() {
+  renderT += 1/30;
+  
+  // Tray cat
+  drawTrayCat(renderT);
+  
+  // Companion canvas
+  compCtx.clearRect(0,0,112,80);
+  const drawFn = petDrawFns[S.pet] || drawClawd;
+  drawFn(compCtx, 112, 80, renderT, S.compWalk, poseState, S.compDir, 5);
+  
+  // Preview canvases in settings grid
+  ['clawd','robot','cloud','horse','fomo'].forEach(name => {
+    const pv = PV[name];
+    pv.ctx.clearRect(0,0,56,40);
+    petDrawFns[name](pv.ctx, 56, 40, renderT, false, 'rest', 1, 3);
+  });
+  
+  requestAnimationFrame(render);
+}
+render();
+
+// ─── CLOCK ────────────────────────────────────────────────────────────────────
+setInterval(() => {
+  const d = new Date();
+  const h = String(d.getHours()).padStart(2,'0');
+  const m = String(d.getMinutes()).padStart(2,'0');
+  document.getElementById('menu-time').innerText = `${d.getMonth()+1}月${d.getDate()}日 ${h}:${m}`;
+}, 5000);
+</script>
+</body>
+</html>

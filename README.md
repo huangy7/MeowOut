@@ -12,6 +12,16 @@
   <img src=".github/assets/hero.gif" alt="MeowOut Hero" width="800">
 </p>
 
+<p align="center">
+  <a href="https://huangy7.github.io/MeowOut/promo_mockup.html">
+    <img src="https://img.shields.io/badge/🎮_体验交互原型-点击预览全功能_Demo-ff7b00?style=for-the-badge&labelColor=1a0a00" alt="Interactive Demo">
+  </a>
+  &nbsp;
+  <a href="https://github.com/huangy7/MeowOut/releases/latest">
+    <img src="https://img.shields.io/badge/📦_立即下载-MeowOut_v1.2.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
+  </a>
+</p>
+
 MeowOut 是一款 macOS 原生菜单栏应用，用一只奔跑的像素宠物提醒你按时休息与喝水。它通过系统底层接口精准检测用户活跃度，根据连续工作时长自动进入预警、强制休息或正念练习阶段，是开发者预防颈椎病、保持水分充足的贴心健康伙伴。
 
 
