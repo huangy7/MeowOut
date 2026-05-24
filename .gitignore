@@ -18,8 +18,7 @@ build_log.txt
 .superpowers/
 
 # Documentation
-docs/
-
+docs/superpowers/
 # Graphify knowledge graph output
 graphify-out/
 

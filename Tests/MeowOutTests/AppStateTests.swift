@@ -100,4 +100,24 @@ final class AppStateTests: XCTestCase {
         state.isKeyboardCleaningActive = true
         XCTAssertTrue(state.isKeyboardCleaningActive)
     }
+
+    func testEmptyQuickToolsRestoredCorrectly() {
+        let state = AppState()
+        // Clear all quick tools
+        state.quickTools = []
+        
+        // Create a new state instance to trigger loadQuickTools() from UserDefaults
+        let newState = AppState()
+        
+        // The new state should load the empty array from UserDefaults, not default tools
+        XCTAssertTrue(newState.quickTools.isEmpty, "Empty quick tools should be restored correctly")
+    }
+
+    func testScreenCleaningState() {
+        let state = AppState()
+        XCTAssertFalse(state.isScreenCleaningActive)
+        
+        state.isScreenCleaningActive = true
+        XCTAssertTrue(state.isScreenCleaningActive)
+    }
 }

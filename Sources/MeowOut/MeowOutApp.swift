@@ -179,6 +179,8 @@ struct MeowOutApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var appState = AppState()
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("isQuickToolsExpanded") private var isQuickToolsExpanded = false
+    @State private var isHoveredToggle = false
 
     var body: some Scene {
         MenuBarExtra {
@@ -215,7 +217,7 @@ struct MeowOutApp: App {
         .windowResizability(.contentSize)
         .environment(appState)
 
-        Window("正念练习", id: "breathing") {
+        Window(I18n.localized("menu_breathing", language: appState.language), id: "breathing") {
             BreathingView()
         }
         .windowStyle(.hiddenTitleBar)
@@ -236,30 +238,57 @@ struct MeowOutApp: App {
             // Card 1: Dashboard & Pause Controls
             MenuDashboardCard(appState: appState)
             
-            // Card 2: Tool Tiles
-            HStack(spacing: 8) {
-                ControlTileButton(
-                    title: I18n.localized("menu_keep_awake", language: appState.language),
-                    subtitleActive: I18n.localized("tile_active", language: appState.language),
-                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
-                    iconEmoji: "☕️",
-                    isActive: appState.isKeepingAwake,
-                    action: {
-                        appState.toggleKeepAwake()
+            // Card 2: Tools & Shortcuts
+            VStack(spacing: 0) {
+                HStack(spacing: 8) {
+                    let topTools = Array(appState.quickTools.prefix(2))
+                    if topTools.isEmpty {
+                        Text(I18n.localized("menu_shortcuts_empty", language: appState.language))
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    } else {
+                        ForEach(topTools) { tool in
+                            renderToolTile(tool)
+                        }
+                        // Fill empty space if less than 2 tools exist
+                        if topTools.count < 2 {
+                            Spacer()
+                        }
                     }
-                )
-
-                ControlTileButton(
-                    title: I18n.localized("menu_keyboard_cleaning", language: appState.language),
-                    subtitleActive: I18n.localized("tile_active", language: appState.language),
-                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
-                    iconEmoji: "⌨️",
-                    isActive: appState.isKeyboardCleaningActive,
-                    action: {
-                        dismissMenu()
-                        appState.toggleKeyboardCleaning()
+                }
+                .frame(minHeight: 76)
+                
+                if appState.quickTools.count > 2 {
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            isQuickToolsExpanded.toggle()
+                        }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text(isQuickToolsExpanded ? I18n.localized("menu_shortcuts_collapse", language: appState.language) : I18n.localized("menu_shortcuts_expand", language: appState.language))
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                        .padding(.vertical, 6)
+                        .background(Color.primary.opacity(isHoveredToggle ? 0.05 : 0))
+                        .contentShape(Rectangle())
                     }
-                )
+                    .buttonStyle(.plain)
+                    .onHover { h in isHoveredToggle = h }
+                    
+                    if isQuickToolsExpanded {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+                            let remainingTools = Array(appState.quickTools.dropFirst(2))
+                            ForEach(remainingTools) { tool in
+                                renderSmallToolTile(tool)
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
+                }
             }
             
             // Card 3: Features
@@ -332,6 +361,108 @@ struct MeowOutApp: App {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
+    }
+
+    @ViewBuilder
+    private func renderToolTile(_ tool: QuickTool) -> some View {
+        switch tool {
+        case .builtIn(let type):
+            switch type {
+            case .keepAwake:
+                ControlTileButton(
+                    title: type.localizedName(language: appState.language),
+                    subtitleActive: I18n.localized("tile_active", language: appState.language),
+                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
+                    iconEmoji: type.icon,
+                    isActive: appState.isKeepingAwake,
+                    action: { appState.toggleKeepAwake() }
+                )
+            case .keyboardCleaning:
+                ControlTileButton(
+                    title: type.localizedName(language: appState.language),
+                    subtitleActive: I18n.localized("tile_active", language: appState.language),
+                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
+                    iconEmoji: type.icon,
+                    isActive: appState.isKeyboardCleaningActive,
+                    action: { dismissMenu(); appState.toggleKeyboardCleaning() }
+                )
+            case .screenCleaning:
+                ControlTileButton(
+                    title: type.localizedName(language: appState.language),
+                    subtitleActive: I18n.localized("tile_active", language: appState.language),
+                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
+                    iconEmoji: type.icon,
+                    isActive: appState.isScreenCleaningActive,
+                    action: { dismissMenu(); appState.toggleScreenCleaning() }
+                )
+            }
+        case .appShortcut(_, let name, let path, let bookmark):
+            ControlTileButton(
+                title: name,
+                subtitleActive: I18n.localized("menu_shortcuts_launch", language: appState.language),
+                subtitleInactive: I18n.localized("menu_shortcuts_launch", language: appState.language),
+                iconEmoji: "🚀",
+                isActive: false,
+                action: { dismissMenu(); launchApp(path: path, bookmark: bookmark) }
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func renderSmallToolTile(_ tool: QuickTool) -> some View {
+        Button {
+            dismissMenu()
+            switch tool {
+            case .builtIn(let type):
+                switch type {
+                case .keepAwake: appState.toggleKeepAwake()
+                case .keyboardCleaning: appState.toggleKeyboardCleaning()
+                case .screenCleaning: appState.toggleScreenCleaning()
+                }
+            case .appShortcut(_, _, let path, let bookmark):
+                launchApp(path: path, bookmark: bookmark)
+            }
+        } label: {
+            VStack {
+                if case .builtIn(let type) = tool {
+                    Text(type.icon).font(.title2)
+                } else if case .appShortcut(_, _, let path, _) = tool {
+                    AppIconView(path: path)
+                }
+            }
+            .frame(width: 44, height: 44)
+            .background(Color.primary.opacity(0.06))
+            .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
+        .help(tool.displayName(language: appState.language))
+    }
+
+    private func launchApp(path: String, bookmark: Data?) {
+        var urlToLaunch = URL(fileURLWithPath: path)
+        var accessed = false
+        var resolvedUrl: URL?
+
+        if let bookmark = bookmark {
+            var isStale = false
+            if let resolved = try? URL(resolvingBookmarkData: bookmark, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale) {
+                accessed = resolved.startAccessingSecurityScopedResource()
+                urlToLaunch = resolved
+                resolvedUrl = resolved
+                if isStale {
+                    print("Bookmark for \(path) is stale")
+                }
+            }
+        }
+        
+        NSWorkspace.shared.openApplication(at: urlToLaunch, configuration: NSWorkspace.OpenConfiguration()) { _, error in
+            if accessed {
+                resolvedUrl?.stopAccessingSecurityScopedResource()
+            }
+            if let error = error {
+                print("Failed to launch app: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func dismissMenu() {
@@ -719,5 +850,32 @@ struct MenuVisualEffectView: NSViewRepresentable {
         return view
     }
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
+struct AppIconView: View {
+    let path: String
+    @State private var icon: NSImage?
+
+    var body: some View {
+        Group {
+            if let icon = icon {
+                Image(nsImage: icon)
+                    .resizable()
+            } else {
+                Image(systemName: "app.dashed")
+                    .resizable()
+                    .foregroundColor(.secondary)
+            }
+        }
+        .frame(width: 24, height: 24)
+        .onAppear {
+            DispatchQueue.global(qos: .userInitiated).async {
+                let fetchedIcon = NSWorkspace.shared.icon(forFile: path)
+                DispatchQueue.main.async {
+                    self.icon = fetchedIcon
+                }
+            }
+        }
+    }
 }
 

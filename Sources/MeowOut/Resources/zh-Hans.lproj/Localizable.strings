@@ -196,7 +196,7 @@
 "keydrop_shortcut" = "唤起常用语面板快捷键";
 "keydrop_shortcut_desc" = "点击右侧录制框来设置键盘组合键";
 "accessibility_card_title" = "辅助功能权限";
-"accessibility_card_desc" = "MeowOut 需要辅助功能权限才能帮您模拟键盘粘贴常用语、在工作时监督键盘按键，以及在键盘清洁时拦截键盘输入。";
+"accessibility_card_desc" = "MeowOut 需要辅助功能权限才能帮您模拟键盘粘贴常用语、在工作时监督键盘按键，以及在键盘与屏幕清洁时拦截输入。";
 "accessibility_auth_btn" = "去系统设置授权";
 "accessibility_status_granted" = "已授权辅助功能";
 "accessibility_status_denied" = "未授权辅助功能";
@@ -230,9 +230,12 @@
 
 "menu_keep_awake" = "防休眠";
 "menu_keyboard_cleaning" = "键盘清洁";
+"menu_screen_cleaning" = "屏幕清洁";
 "keyboard_cleaning_title" = "键盘清洁模式";
 "keyboard_cleaning_desc" = "清洁键盘时，大部分按键输入已被拦截。这并非硬件级别的键盘禁用，可能无法阻止某些系统级按键。";
 "keyboard_cleaning_exit" = "退出清洁模式";
+"screen_cleaning_active" = "屏幕清洁模式已激活";
+"screen_cleaning_exit_hint" = "长按 ESC 键退出";
 "tile_active" = "已开启";
 "tile_inactive" = "关闭";
 
@@ -249,3 +252,12 @@
 "update_error_app_missing" = "未在安装包中找到应用程序";
 "update_error_script_write" = "无法写入更新脚本";
 
+
+"menu_quick_actions" = "快捷操作";
+"quick_actions_settings_desc" = "排在前 2 位的将显示为大磁贴，其余的在折叠面板中显示";
+"quick_actions_add_app" = "添加应用";
+"quick_actions_add_builtin" = "添加内置功能";
+"menu_shortcuts_collapse" = "⌃ 收起";
+"menu_shortcuts_expand" = "⌄ 展开快捷应用";
+"menu_shortcuts_empty" = "暂未添加快捷应用";
+"menu_shortcuts_launch" = "点击启动";

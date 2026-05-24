@@ -195,7 +195,7 @@
 "keydrop_shortcut" = "Popup Shortcut";
 "keydrop_shortcut_desc" = "Click the input box to record your key combination";
 "accessibility_card_title" = "Accessibility Permissions";
-"accessibility_card_desc" = "MeowOut requires Accessibility API rights to paste snippets automatically, listen for global keyboard warnings, and block keyboard input during cleaning.";
+"accessibility_card_desc" = "MeowOut requires Accessibility API rights to paste snippets automatically, listen for global keyboard warnings, and block keyboard/mouse input during keyboard and screen cleaning.";
 "accessibility_auth_btn" = "Grant Accessibility Access";
 "accessibility_status_granted" = "Accessibility Granted";
 "accessibility_status_denied" = "Accessibility Denied";
@@ -229,9 +229,12 @@
 
 "menu_keep_awake" = "Keep Awake";
 "menu_keyboard_cleaning" = "Keyboard Clean";
+"menu_screen_cleaning" = "Screen Clean";
 "keyboard_cleaning_title" = "Keyboard Cleaning Mode";
 "keyboard_cleaning_desc" = "Most keyboard input is blocked while you clean. This is not a hardware-level disable and some system keys might still trigger actions.";
 "keyboard_cleaning_exit" = "Exit Cleaning Mode";
+"screen_cleaning_active" = "Screen Cleaning Mode Active";
+"screen_cleaning_exit_hint" = "Hold ESC to exit";
 "tile_active" = "Active";
 "tile_inactive" = "Off";
 
@@ -248,3 +251,12 @@
 "update_error_app_missing" = "Could not find application in installer";
 "update_error_script_write" = "Failed to write updater script";
 
+
+"menu_quick_actions" = "Quick Actions";
+"quick_actions_settings_desc" = "The top 2 will be displayed as large tiles, the rest in a collapsible panel";
+"quick_actions_add_app" = "Add App";
+"quick_actions_add_builtin" = "Add Built-in";
+"menu_shortcuts_collapse" = "⌃ Collapse";
+"menu_shortcuts_expand" = "⌄ Expand Quick Apps";
+"menu_shortcuts_empty" = "No quick apps added";
+"menu_shortcuts_launch" = "Click to Launch";

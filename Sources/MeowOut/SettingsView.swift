@@ -55,6 +55,7 @@ struct SettingsView: View {
             SidebarItem(id: "water", title: I18n.localized("settings_tab_water", language: state.language), icon: "drop.fill"),
             SidebarItem(id: "behavior", title: I18n.localized("settings_section_behavior", language: state.language), icon: "cat.circle"),
             SidebarItem(id: "keydrop", title: I18n.localized("settings_tab_keydrop", language: state.language), icon: "keyboard"),
+            SidebarItem(id: "quick_actions", title: I18n.localized("menu_quick_actions", language: state.language), icon: "bolt.fill"),
             SidebarItem(id: "permissions", title: I18n.localized("settings_tab_permissions", language: state.language), icon: "lock.shield"),
             SidebarItem(id: "system", title: I18n.localized("settings_section_system", language: state.language), icon: "gearshape", hasBadge: hasPendingUpdate),
         ]
@@ -94,6 +95,7 @@ struct SettingsView: View {
                             case "water": waterCards
                             case "behavior": behaviorCards
                             case "keydrop": keyDropCards
+                            case "quick_actions": QuickActionsSettingsView(state: state)
                             case "permissions": permissionsCards
                             case "system": systemCards
                             default: restCards
@@ -177,6 +179,8 @@ struct SettingsView: View {
                        badgeItems: UpdateChecker.shared.hasPendingUpdate ? [aboutTitle] : [],
                        selection: subTabBinding(for: $selectedSystemSubTab, tabs: systemSubTabs))
         case "keydrop":
+            EmptyView()
+        case "quick_actions":
             EmptyView()
         case "permissions":
             EmptyView()
@@ -757,6 +761,101 @@ struct MarkdownReleaseNotesView: View {
                         .foregroundStyle(.secondary)
                         .lineSpacing(3)
                 }
+            }
+        }
+    }
+}
+
+struct QuickActionsSettingsView: View {
+    @Bindable var state: AppState
+    @State private var showingBuiltInOptions = false
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(I18n.localized("quick_actions_settings_desc", language: state.language))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.bottom, 4)
+
+            List {
+                ForEach(Array(state.quickTools.enumerated()), id: \.element.id) { index, tool in
+                    HStack {
+                        if case .builtIn(let type) = tool {
+                            Text("\(type.icon) \(type.localizedName(language: state.language))")
+                        } else if case .appShortcut(_, let name, _, _) = tool {
+                            Text("📱 \(name)")
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            state.quickTools.remove(at: index)
+                        }) {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundColor(.red.opacity(0.8))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 4)
+                    }
+                    .padding(.vertical, 4)
+                    .listRowBackground(index == 1 ? Color.primary.opacity(0.05) : Color.clear)
+                }
+                .onMove(perform: moveTool)
+                .onDelete(perform: deleteTool)
+            }
+            .listStyle(.inset(alternatesRowBackgrounds: true))
+            .frame(minHeight: 200)
+
+            HStack {
+                Button(action: addExternalApp) {
+                    Label(I18n.localized("quick_actions_add_app", language: state.language), systemImage: "plus.app")
+                }
+                Button(action: { showingBuiltInOptions = true }) {
+                    Label(I18n.localized("quick_actions_add_builtin", language: state.language), systemImage: "plus.square.fill")
+                }
+                .popover(isPresented: $showingBuiltInOptions) {
+                    VStack(spacing: 8) {
+                        Button(I18n.localized("menu_keep_awake", language: state.language)) { addBuiltIn(.keepAwake) }
+                        Button(I18n.localized("menu_keyboard_cleaning", language: state.language)) { addBuiltIn(.keyboardCleaning) }
+                        Button(I18n.localized("menu_screen_cleaning", language: state.language)) { addBuiltIn(.screenCleaning) }
+                    }.padding()
+                }
+            }
+            .padding(.top, 8)
+        }
+        .padding()
+    }
+
+    private func moveTool(from source: IndexSet, to destination: Int) {
+        state.quickTools.move(fromOffsets: source, toOffset: destination)
+    }
+
+    private func deleteTool(at offsets: IndexSet) {
+        state.quickTools.remove(atOffsets: offsets)
+    }
+
+    private func addBuiltIn(_ type: BuiltInToolType) {
+        if !state.quickTools.contains(.builtIn(type)) {
+            state.quickTools.append(.builtIn(type))
+        }
+        showingBuiltInOptions = false
+    }
+
+    private func addExternalApp() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowedContentTypes = [.application]
+        panel.allowsMultipleSelection = false
+        
+        panel.begin { response in
+            if response == .OK, let url = panel.url {
+                let name = url.deletingPathExtension().lastPathComponent
+                let path = url.path
+                let bookmarkData = try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+                
+                let newTool = QuickTool.appShortcut(id: UUID(), name: name, path: path, bookmarkData: bookmarkData)
+                state.quickTools.append(newTool)
             }
         }
     }

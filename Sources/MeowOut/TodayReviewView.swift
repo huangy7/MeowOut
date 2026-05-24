@@ -1,51 +1,61 @@
 import SwiftUI
 
+/// Minimum session duration to show in detailed log (seconds)
+private let minSessionDuration: TimeInterval = 60
+
 struct TodayReviewView: View {
     @Environment(AppState.self) private var state
     let logs: [SessionLog]
     @State private var isDetailExpanded = false
-    
+
+    /// Visible sessions: duration must be > 0 and >= minSessionDuration
+    private var visibleLogs: [SessionLog] {
+        logs.filter { log in
+            let duration = logDuration(log)
+            return duration >= minSessionDuration
+        }
+    }
+
+    // MARK: - Duration helpers
+
+    /// Clamped, non-negative duration for a log entry
+    private func logDuration(_ log: SessionLog) -> TimeInterval {
+        let raw = (log.endTime ?? Date()).timeIntervalSince(log.startTime)
+        return max(0, raw)
+    }
+
     // Helpers to calculate durations
     private var totalDuration: TimeInterval {
         guard let first = logs.first else { return 0 }
         return Date().timeIntervalSince(first.startTime)
     }
-    
+
     private var totalWorkDuration: TimeInterval {
-        logs.filter { $0.phase == .working }.reduce(0) { total, log in
-            total + (log.endTime ?? Date()).timeIntervalSince(log.startTime)
-        }
+        visibleLogs.filter { $0.phase == .working }.reduce(0) { $0 + logDuration($1) }
     }
-    
+
     private var totalRestDuration: TimeInterval {
-        logs.filter { $0.phase == .resting }.reduce(0) { total, log in
-            total + (log.endTime ?? Date()).timeIntervalSince(log.startTime)
-        }
+        visibleLogs.filter { $0.phase == .resting }.reduce(0) { $0 + logDuration($1) }
     }
 
     private var totalOverworkingDuration: TimeInterval {
-        logs.filter { $0.phase == .overworking }.reduce(0) { total, log in
-            total + (log.endTime ?? Date()).timeIntervalSince(log.startTime)
-        }
+        visibleLogs.filter { $0.phase == .overworking }.reduce(0) { $0 + logDuration($1) }
     }
 
     private var totalBreathingDuration: TimeInterval {
-        logs.filter { $0.phase == .breathing }.reduce(0) { total, log in
-            total + (log.endTime ?? Date()).timeIntervalSince(log.startTime)
-        }
+        visibleLogs.filter { $0.phase == .breathing }.reduce(0) { $0 + logDuration($1) }
     }
-    
+
     private var totalIdleDuration: TimeInterval {
-        logs.filter { $0.phase == .idle || $0.phase == .paused || $0.phase == .alerting }.reduce(0) { total, log in
-            total + (log.endTime ?? Date()).timeIntervalSince(log.startTime)
-        }
+        visibleLogs.filter { $0.phase == .idle || $0.phase == .paused || $0.phase == .alerting }
+            .reduce(0) { $0 + logDuration($1) }
     }
 
     var body: some View {
         if logs.isEmpty {
             Text(I18n.localized("log_no_records", language: state.language)).foregroundColor(.secondary).padding()
         } else {
-            ScrollView(showsIndicators: false) { // Use ScrollView to handle expanded content
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: 30) {
                     // 1. Timeline Bar
                     VStack(alignment: .leading, spacing: 12) {
@@ -60,7 +70,7 @@ struct TodayReviewView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .frame(height: 24)
-                        
+
                         // Legend
                         HStack(spacing: 16) {
                             legendItem(color: .blue, text: I18n.localized("log_phase_working", language: state.language))
@@ -72,7 +82,7 @@ struct TodayReviewView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     }
-                    
+
                     // 2. Summary Statistics
                     VStack(spacing: 16) {
                         summaryRow(title: I18n.localized("log_duration_working", language: state.language), duration: totalWorkDuration, color: .blue)
@@ -84,39 +94,62 @@ struct TodayReviewView: View {
                     .padding()
                     .background(Color(NSColor.controlBackgroundColor))
                     .cornerRadius(12)
-                    
-                    // 3. Detailed Records (DisclosureGroup)
-                    DisclosureGroup(I18n.localized("log_view_details", language: state.language), isExpanded: $isDetailExpanded) {
-                        VStack(spacing: 12) {
-                            ForEach(logs.reversed()) { log in // Show newest first
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(timeRangeString(for: log))
-                                            .font(.system(.subheadline, design: .monospaced))
+
+                    // 3. Detailed Records — custom full-row tappable header
+                    VStack(spacing: 0) {
+                        // Header row: entire row is tappable
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                isDetailExpanded.toggle()
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .rotationEffect(.degrees(isDetailExpanded ? 90 : 0))
+                                    .animation(.easeInOut(duration: 0.2), value: isDetailExpanded)
+                                Text(I18n.localized("log_view_details", language: state.language))
+                                    .font(.body)
+                                Spacer()
+                            }
+                            .contentShape(Rectangle())
+                            .padding()
+                        }
+                        .buttonStyle(.plain)
+
+                        // Expanded content
+                        if isDetailExpanded {
+                            VStack(spacing: 12) {
+                                ForEach(visibleLogs.reversed()) { log in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(timeRangeString(for: log))
+                                                .font(.system(.subheadline, design: .monospaced))
+                                                .foregroundColor(.secondary)
+                                        }
+
+                                        Spacer()
+
+                                        HStack(spacing: 6) {
+                                            Text(icon(for: log.phase))
+                                            Text(name(for: log.phase))
+                                                .font(.subheadline.bold())
+                                        }
+
+                                        Text(durationString(for: log))
+                                            .font(.caption)
                                             .foregroundColor(.secondary)
+                                            .frame(width: 80, alignment: .trailing)
                                     }
-                                    
-                                    Spacer()
-                                    
-                                    HStack(spacing: 6) {
-                                        Text(icon(for: log.phase))
-                                        Text(name(for: log.phase))
-                                            .font(.subheadline.bold())
+                                    if log != visibleLogs.first {
+                                        Divider()
                                     }
-                                    
-                                    Text(durationString(for: log))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .frame(width: 80, alignment: .trailing)
-                                }
-                                if log != logs.first {
-                                    Divider()
                                 }
                             }
+                            .padding([.horizontal, .bottom])
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                         }
-                        .padding(.top, 12)
                     }
-                    .padding()
                     .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
                     .cornerRadius(12)
                 }
@@ -124,13 +157,13 @@ struct TodayReviewView: View {
             }
         }
     }
-    
+
     private func width(for log: SessionLog, in totalWidth: CGFloat) -> CGFloat {
         guard totalDuration > 0 else { return 0 }
-        let duration = (log.endTime ?? Date()).timeIntervalSince(log.startTime)
+        let duration = logDuration(log)
         return totalWidth * CGFloat(duration / totalDuration)
     }
-    
+
     private func color(for phase: AppPhase) -> Color {
         switch phase {
         case .working: return .blue
@@ -140,7 +173,7 @@ struct TodayReviewView: View {
         default: return .gray.opacity(0.5)
         }
     }
-    
+
     private func legendItem(color: Color, text: String) -> some View {
         HStack(spacing: 4) {
             Circle()
@@ -149,7 +182,7 @@ struct TodayReviewView: View {
             Text(text)
         }
     }
-    
+
     private func summaryRow(title: String, duration: TimeInterval, color: Color) -> some View {
         HStack {
             legendItem(color: color, text: title)
@@ -159,12 +192,12 @@ struct TodayReviewView: View {
                 .font(.system(.body, design: .monospaced).bold())
         }
     }
-    
+
     private func format(duration: TimeInterval) -> String {
         let minutes = Int(duration / 60)
         let hourLabel = I18n.localized("unit_hours_label", language: state.language)
         let minuteLabel = I18n.localized("unit_minutes_label", language: state.language)
-        
+
         if minutes >= 60 {
             let hours = minutes / 60
             let mins = minutes % 60
@@ -179,7 +212,7 @@ struct TodayReviewView: View {
         formatter.dateFormat = "HH:mm"
         let start = formatter.string(from: log.startTime)
         let end = log.endTime.map { formatter.string(from: $0) } ?? (state.language == .zhHans ? "至今" : "Now")
-        return "\(start) - \(end)"
+        return "\(start) – \(end)"
     }
 
     private func icon(for phase: AppPhase) -> String {
@@ -202,12 +235,11 @@ struct TodayReviewView: View {
         case .breathing: return I18n.localized("log_phase_breathing", language: state.language)
         case .idle: return I18n.localized("log_phase_idle", language: state.language)
         case .paused: return I18n.localized("menu_pause", language: state.language)
-        case .alerting: return "Alerting" // Could add key if needed, but alerting is usually short
+        case .alerting: return "Alerting"
         }
     }
 
     private func durationString(for log: SessionLog) -> String {
-        let duration = (log.endTime ?? Date()).timeIntervalSince(log.startTime)
-        return format(duration: duration)
+        format(duration: logDuration(log))
     }
 }

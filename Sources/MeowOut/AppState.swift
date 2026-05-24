@@ -265,7 +265,9 @@ public final class AppState {
         // Smart merge for Resting <-> Overworking <-> Breathing
         if let last = dailyLogs.last {
             let duration = date.timeIntervalSince(last.startTime)
-            if duration < 60 {
+            // Guard: if the transition date is before (or at) the last log's startTime,
+            // skip merge to avoid producing a log with endTime < startTime.
+            if duration >= 0 && duration < 60 {
                 let isMergeable = (oldPhase == .resting && newPhase == .overworking) ||
                                   (oldPhase == .overworking && newPhase == .resting) ||
                                   (oldPhase == .resting && newPhase == .breathing) ||
@@ -309,6 +311,7 @@ public final class AppState {
 
     public var isKeepingAwake: Bool = false
     public var isKeyboardCleaningActive: Bool = false
+    public var isScreenCleaningActive: Bool = false
 
     // Water Reminder
     public var waterReminderEnabled: Bool {
@@ -460,6 +463,29 @@ public final class AppState {
 
     public init() {
         dailyLogs.append(SessionLog(phase: currentState))
+        loadQuickTools()
+    }
+
+    @ObservationIgnored
+    private var quickToolsData: Data {
+        get { UserDefaults.standard.data(forKey: "quickToolsData") ?? Data() }
+        set { UserDefaults.standard.set(newValue, forKey: "quickToolsData") }
+    }
+
+    public var quickTools: [QuickTool] = [] {
+        didSet {
+            if let encoded = try? JSONEncoder().encode(quickTools) {
+                quickToolsData = encoded
+            }
+        }
+    }
+    
+    public func loadQuickTools() {
+        if let decoded = try? JSONDecoder().decode([QuickTool].self, from: quickToolsData) {
+            quickTools = decoded
+        } else {
+            quickTools = [.builtIn(.keepAwake), .builtIn(.keyboardCleaning), .builtIn(.screenCleaning)]
+        }
     }
 
     public func resetToDefaults() {
@@ -541,6 +567,17 @@ public final class AppState {
             } catch {
                 print("Failed to start Keyboard Cleaning: \(error)")
             }
+        }
+    }
+
+    @MainActor
+    public func toggleScreenCleaning() {
+        if isScreenCleaningActive {
+            ScreenCleaningService.shared.stop()
+            isScreenCleaningActive = false
+        } else {
+            isScreenCleaningActive = true
+            ScreenCleaningService.shared.start(appState: self)
         }
     }
 }

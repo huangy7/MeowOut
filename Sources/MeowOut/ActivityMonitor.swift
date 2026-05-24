@@ -64,7 +64,10 @@ final class ActivityMonitor {
                 appState.workElapsed = 0
                 appState.currentState = .working
             } else if awayDuration >= appState.rollbackThreshold {
-                let rollbackDate = Date().addingTimeInterval(-appState.rollbackThreshold)
+                let rollbackDate = max(
+                    appState.dailyLogs.last?.startTime ?? Date(),
+                    Date().addingTimeInterval(-appState.rollbackThreshold)
+                )
                 appState.recordPhaseTransition(from: appState.currentState, to: .idle, at: rollbackDate)
                 appState.currentState = .idle
             }
@@ -124,7 +127,11 @@ final class ActivityMonitor {
                     if idle < 30 && appState.currentState == .resting {
                         appState.changeState(to: .overworking)
                     } else if idle >= 30 && appState.currentState == .overworking {
-                        appState.changeState(to: .resting, at: Date().addingTimeInterval(-30))
+                        let restingStartDate = max(
+                            appState.dailyLogs.last?.startTime ?? Date(),
+                            Date().addingTimeInterval(-30)
+                        )
+                        appState.changeState(to: .resting, at: restingStartDate)
                     }
                 }
             }
@@ -139,7 +146,10 @@ final class ActivityMonitor {
                 appState.workElapsed = max(0, appState.workElapsed - rb)
                 updateHistory(dt: -rb)
                 
-                let rollbackDate = Date().addingTimeInterval(-rb)
+                let rollbackDate = max(
+                    appState.dailyLogs.last?.startTime ?? Date(),
+                    Date().addingTimeInterval(-rb)
+                )
                 appState.recordPhaseTransition(from: appState.currentState, to: .idle, at: rollbackDate)
                 
                 appState.currentState = .idle
