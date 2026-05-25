@@ -6,7 +6,20 @@ packages:
   KeyboardShortcuts:
     url: https://github.com/sindresorhus/KeyboardShortcuts
     from: 2.0.0
+  MarkdownUI:
+    url: https://github.com/gonzalezreal/swift-markdown-ui
+    from: 2.4.0
 targets:
+  MemosKit:
+    type: framework
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources: [Sources/MemosKit]
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.huangy.MemosKit
+      GENERATE_INFOPLIST_FILE: YES
+      MARKETING_VERSION: "1.0"
+      CURRENT_PROJECT_VERSION: "1"
   MeowOut:
     type: application
     platform: macOS
@@ -14,6 +27,8 @@ targets:
     sources: [Sources/MeowOut]
     dependencies:
       - package: KeyboardShortcuts
+      - package: MarkdownUI
+      - target: MemosKit
     settings:
       LSUIElement: true
       GENERATE_INFOPLIST_FILE: NO

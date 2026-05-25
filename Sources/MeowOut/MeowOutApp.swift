@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import MemosKit
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -30,6 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+
 struct WindowOpener: View {
     @Environment(\.openWindow) private var openWindow
 
@@ -51,6 +53,18 @@ struct WindowOpener: View {
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenSnippetManagerWindow"))) { _ in
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "snippet-manager")
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ToggleMemosPanel"))) { _ in
+                MemosPanelController.shared.toggle()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .toggleQuickMemoPanel)) { _ in
+                QuickMemoPanelController.shared.toggle()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .toggleMemosBrowserWindow)) { _ in
+                MemosBrowserWindowController.shared.toggle()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .showMemosBrowserWindow)) { _ in
+                MemosBrowserWindowController.shared.show()
             }
     }
 }
@@ -196,6 +210,10 @@ struct MeowOutApp: App {
                     appDelegate.appState = appState
                     appDelegate.tryStartEngine()
                     appState.initializeKeyboardShortcuts()
+                    MemosPanelController.shared.configure(appState: appState)
+                    QuickMemoPanelController.shared.configure(appState: appState)
+                    MemosBrowserWindowController.shared.configure(appState: appState)
+                    QueueProcessor.shared.start()
                 }
                 .onChange(of: appState.language) { _, _ in
                     // Force engine restart if language changes to pick up new strings
@@ -878,4 +896,3 @@ struct AppIconView: View {
         }
     }
 }
-

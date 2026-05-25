@@ -8,9 +8,21 @@ struct TodayReviewView: View {
     let logs: [SessionLog]
     @State private var isDetailExpanded = false
 
+    private var mergedLogs: [SessionLog] {
+        var result: [SessionLog] = []
+        for log in logs {
+            if let last = result.last, last.phase == log.phase {
+                result[result.count - 1].endTime = log.endTime
+            } else {
+                result.append(log)
+            }
+        }
+        return result
+    }
+
     /// Visible sessions: duration must be > 0 and >= minSessionDuration
     private var visibleLogs: [SessionLog] {
-        logs.filter { log in
+        mergedLogs.filter { log in
             let duration = logDuration(log)
             return duration >= minSessionDuration
         }
@@ -61,7 +73,7 @@ struct TodayReviewView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         GeometryReader { geometry in
                             HStack(spacing: 0) {
-                                ForEach(logs) { log in
+                                ForEach(mergedLogs) { log in
                                     Rectangle()
                                         .fill(color(for: log.phase))
                                         .frame(width: max(0, width(for: log, in: geometry.size.width)))

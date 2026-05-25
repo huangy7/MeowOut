@@ -56,6 +56,7 @@ struct SettingsView: View {
             SidebarItem(id: "behavior", title: I18n.localized("settings_section_behavior", language: state.language), icon: "cat.circle"),
             SidebarItem(id: "keydrop", title: I18n.localized("settings_tab_keydrop", language: state.language), icon: "keyboard"),
             SidebarItem(id: "quick_actions", title: I18n.localized("menu_quick_actions", language: state.language), icon: "bolt.fill"),
+            SidebarItem(id: "memos", title: "Memos", icon: "note.text"),
             SidebarItem(id: "permissions", title: I18n.localized("settings_tab_permissions", language: state.language), icon: "lock.shield"),
             SidebarItem(id: "system", title: I18n.localized("settings_section_system", language: state.language), icon: "gearshape", hasBadge: hasPendingUpdate),
         ]
@@ -96,6 +97,7 @@ struct SettingsView: View {
                             case "behavior": behaviorCards
                             case "keydrop": keyDropCards
                             case "quick_actions": QuickActionsSettingsView(state: state)
+                            case "memos": MemosSettingsView(state: state)
                             case "permissions": permissionsCards
                             case "system": systemCards
                             default: restCards
@@ -144,6 +146,9 @@ struct SettingsView: View {
         case .permissions:
             selectedTab = "permissions"
             state.settingsNavigationTarget = nil
+        case .memos:
+            selectedTab = "memos"
+            state.settingsNavigationTarget = nil
         case nil:
             break
         }
@@ -181,6 +186,8 @@ struct SettingsView: View {
         case "keydrop":
             EmptyView()
         case "quick_actions":
+            EmptyView()
+        case "memos":
             EmptyView()
         case "permissions":
             EmptyView()

@@ -22,6 +22,7 @@ public enum PetPersonality: String, CaseIterable, Identifiable {
 public enum SettingsNavigationTarget: Equatable {
     case update
     case permissions
+    case memos
 }
 
 public struct SessionLog: Identifiable, Equatable {
@@ -65,6 +66,9 @@ public final class AppState {
         case lastWaterResetDate
         case lastNotifiedUpdateVersion
         case keyDropEnabled
+        case memosDefaultTags
+        case memosDefaultVisibility
+        case memosTagHistory
     }
 
     public enum AppLanguage: String, CaseIterable, Identifiable {
@@ -200,6 +204,60 @@ public final class AppState {
                 Task { @MainActor in
                     self.handleKeyDropToggleShortcut()
                 }
+            }
+        }
+        KeyboardShortcuts.onKeyDown(for: .toggleMemosQuickCapture) {
+            NotificationCenter.default.post(name: .toggleQuickMemoPanel, object: nil)
+        }
+        KeyboardShortcuts.onKeyDown(for: .toggleMemosBrowserWindow) {
+            NotificationCenter.default.post(name: .toggleMemosBrowserWindow, object: nil)
+        }
+    }
+
+    // MARK: - Memos
+
+    public var memosDefaultTags: [String] {
+        get {
+            access(keyPath: \.memosDefaultTags)
+            guard let data = UserDefaults.standard.data(forKey: Keys.memosDefaultTags.rawValue),
+                  let tags = try? JSONDecoder().decode([String].self, from: data) else {
+                return ["灵感", "待办", "想法"]
+            }
+            return tags
+        }
+        set {
+            withMutation(keyPath: \.memosDefaultTags) {
+                let data = try? JSONEncoder().encode(newValue)
+                UserDefaults.standard.set(data, forKey: Keys.memosDefaultTags.rawValue)
+            }
+        }
+    }
+
+    public var memosDefaultVisibility: String {
+        get {
+            access(keyPath: \.memosDefaultVisibility)
+            return UserDefaults.standard.string(forKey: Keys.memosDefaultVisibility.rawValue) ?? "PRIVATE"
+        }
+        set {
+            withMutation(keyPath: \.memosDefaultVisibility) {
+                UserDefaults.standard.set(newValue, forKey: Keys.memosDefaultVisibility.rawValue)
+            }
+        }
+    }
+
+    public var memosTagHistory: [String] {
+        get {
+            access(keyPath: \.memosTagHistory)
+            guard let data = UserDefaults.standard.data(forKey: Keys.memosTagHistory.rawValue),
+                  let tags = try? JSONDecoder().decode([String].self, from: data) else {
+                return []
+            }
+            return tags
+        }
+        set {
+            withMutation(keyPath: \.memosTagHistory) {
+                let data = try? JSONEncoder().encode(newValue)
+                UserDefaults.standard.set(data, forKey: Keys.memosTagHistory.rawValue)
             }
         }
     }

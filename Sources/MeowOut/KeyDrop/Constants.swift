@@ -3,6 +3,8 @@ import KeyboardShortcuts
 
 extension KeyboardShortcuts.Name {
     public static let togglePanel = Self("keyDropTogglePanel", default: .init(.semicolon, modifiers: [.command, .shift]))
+    public static let toggleMemosQuickCapture = Self("toggleMemosQuickCapture", default: .init(.comma, modifiers: [.command, .shift]))
+    public static let toggleMemosBrowserWindow = Self("toggleMemosBrowserWindow", default: .init(.b, modifiers: [.command, .shift]))
 }
 
 extension Notification.Name {

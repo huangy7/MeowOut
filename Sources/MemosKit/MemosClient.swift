@@ -1,0 +1,149 @@
+import Foundation
+
+public class MemosClient: @unchecked Sendable {
+    public static let shared = MemosClient()
+
+    private let session: URLSession
+    private let auth: MemosAuth
+    private let decoder: JSONDecoder
+    private let encoder: JSONEncoder
+
+    public init(session: URLSession = .shared, auth: MemosAuth = .shared) {
+        self.session = session
+        self.auth = auth
+        self.decoder = MemosDateCoding.makeDecoder()
+        self.encoder = MemosDateCoding.makeEncoder()
+    }
+
+    public var isConfigured: Bool { auth.isConfigured }
+
+    // MARK: - Auth Endpoints
+
+    public func verifyConnection() async throws -> InstanceProfile {
+        try await get(path: "/api/v1/instance/profile")
+    }
+
+    public func getCurrentUser() async throws -> User {
+        let response: GetCurrentUserResponse = try await get(path: "/api/v1/auth/me")
+        return response.user
+    }
+
+    // MARK: - Memo Endpoints
+
+    public func createMemo(content: String, visibility: MemoVisibility) async throws -> Memo {
+        let body = CreateMemoBody(content: content, visibility: visibility)
+        return try await post(path: "/api/v1/memos", body: body)
+    }
+
+    public func listMemos(
+        state: MemoState = .normal, filter: String? = nil,
+        pageSize: Int = 20, pageToken: String? = nil
+    ) async throws -> ListMemosResponse {
+        var queryItems = [
+            URLQueryItem(name: "state", value: state.rawValue),
+            URLQueryItem(name: "pageSize", value: String(pageSize)),
+            URLQueryItem(name: "orderBy", value: "pinned desc, create_time desc")
+        ]
+        if let filter { queryItems.append(URLQueryItem(name: "filter", value: filter)) }
+        if let pageToken { queryItems.append(URLQueryItem(name: "pageToken", value: pageToken)) }
+        return try await get(path: "/api/v1/memos", queryItems: queryItems)
+    }
+
+    public func updateMemo(
+        name: String, content: String? = nil, visibility: MemoVisibility? = nil,
+        state: MemoState? = nil, pinned: Bool? = nil, updateMask: [String]
+    ) async throws -> Memo {
+        let body = UpdateMemoBody(name: name, content: content, visibility: visibility,
+                                  state: state, pinned: pinned)
+        return try await patch(
+            path: "/api/v1/\(name)", body: body,
+            queryItems: [URLQueryItem(name: "updateMask", value: updateMask.joined(separator: ","))])
+    }
+
+    public func deleteMemo(name: String) async throws {
+        try await delete(path: "/api/v1/\(name)")
+    }
+
+    // MARK: - User Endpoints
+
+    public func getUserStats(userName: String) async throws -> UserStats {
+        try await get(path: "/api/v1/\(userName):getStats")
+    }
+
+    // MARK: - HTTP Primitives
+
+    private func makeRequest(path: String, method: String,
+                             queryItems: [URLQueryItem]? = nil) throws -> URLRequest {
+        guard let baseURL = auth.baseURL, let pat = auth.pat else {
+            throw MemosError.notConfigured
+        }
+        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        if let queryItems, !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = method
+        request.setValue("Bearer \(pat)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        return request
+    }
+
+    private func get<T: Decodable>(path: String, queryItems: [URLQueryItem]? = nil) async throws -> T {
+        let request = try makeRequest(path: path, method: "GET", queryItems: queryItems)
+        return try await execute(request)
+    }
+
+    private func post<T: Decodable, B: Encodable>(path: String, body: B) async throws -> T {
+        var request = try makeRequest(path: path, method: "POST")
+        request.httpBody = try encoder.encode(body)
+        return try await execute(request)
+    }
+
+    private func patch<T: Decodable, B: Encodable>(
+        path: String, body: B, queryItems: [URLQueryItem]? = nil
+    ) async throws -> T {
+        var request = try makeRequest(path: path, method: "PATCH", queryItems: queryItems)
+        request.httpBody = try encoder.encode(body)
+        return try await execute(request)
+    }
+
+    private func delete(path: String) async throws {
+        let request = try makeRequest(path: path, method: "DELETE")
+        let (_, response) = try await perform(request)
+        try checkStatus(response)
+    }
+
+    private func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
+        let (data, response) = try await perform(request)
+        try checkStatus(response)
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            throw MemosError.decodingError(error)
+        }
+    }
+
+    private func perform(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw MemosError.networkError(
+                    NSError(domain: "MemosClient", code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Not an HTTP response"]))
+            }
+            return (data, httpResponse)
+        } catch let error as MemosError {
+            throw error
+        } catch {
+            throw MemosError.networkError(error)
+        }
+    }
+
+    private func checkStatus(_ response: HTTPURLResponse) throws {
+        switch response.statusCode {
+        case 200..<300: return
+        case 401: throw MemosError.unauthorized
+        default:
+            throw MemosError.serverError(statusCode: response.statusCode,
+                                         message: HTTPURLResponse.localizedString(forStatusCode: response.statusCode))
+        }
+    }
+}
