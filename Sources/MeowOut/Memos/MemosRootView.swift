@@ -35,23 +35,30 @@ struct MemosRootView: View {
     @State private var selectedPage: MemosRootPage = .memos
 
     var body: some View {
-        HStack(spacing: 0) {
-            MemosNavigationRail(selectedPage: $selectedPage)
-                .frame(width: 72)
+        ZStack {
+            HStack(spacing: 0) {
+                MemosNavigationRail(selectedPage: $selectedPage)
+                    .frame(width: 72)
 
-            Divider()
+                Divider()
 
-            Group {
-                switch selectedPage {
-                case .memos:
-                    MemosHomeView(mode: .normal)
-                case .archived:
-                    MemosHomeView(mode: .archived)
-                case .attachments:
-                    AttachmentsLibraryView()
+                Group {
+                    switch selectedPage {
+                    case .memos:
+                        MemosHomeView(mode: .normal)
+                    case .archived:
+                        MemosHomeView(mode: .archived)
+                    case .attachments:
+                        AttachmentsLibraryView()
+                    }
                 }
             }
+            .background(Color(NSColor.windowBackgroundColor))
+
+            if let activeURL = appState.activeImageURL {
+                MemoImagePreviewOverlay(url: activeURL)
+                    .transition(.opacity)
+            }
         }
-        .background(Color(NSColor.windowBackgroundColor))
     }
 }

@@ -30,8 +30,12 @@ public class MemosClient: @unchecked Sendable {
 
     // MARK: - Memo Endpoints
 
-    public func createMemo(content: String, visibility: MemoVisibility) async throws -> Memo {
-        let body = CreateMemoBody(content: content, visibility: visibility)
+    public func createMemo(
+        content: String,
+        visibility: MemoVisibility,
+        attachments: [Attachment]? = nil
+    ) async throws -> Memo {
+        let body = CreateMemoBody(content: content, visibility: visibility, attachments: attachments)
         return try await post(path: "/api/v1/memos", body: body)
     }
 
@@ -51,10 +55,11 @@ public class MemosClient: @unchecked Sendable {
 
     public func updateMemo(
         name: String, content: String? = nil, visibility: MemoVisibility? = nil,
-        state: MemoState? = nil, pinned: Bool? = nil, updateMask: [String]
+        state: MemoState? = nil, pinned: Bool? = nil, attachments: [Attachment]? = nil,
+        updateMask: [String]
     ) async throws -> Memo {
         let body = UpdateMemoBody(name: name, content: content, visibility: visibility,
-                                  state: state, pinned: pinned)
+                                  state: state, pinned: pinned, attachments: attachments)
         return try await patch(
             path: "/api/v1/\(name)", body: body,
             queryItems: [URLQueryItem(name: "updateMask", value: updateMask.joined(separator: ","))])
@@ -70,6 +75,64 @@ public class MemosClient: @unchecked Sendable {
         try await get(path: "/api/v1/\(userName):getStats")
     }
 
+    // MARK: - Attachment Endpoints
+
+    private struct CreateAttachmentBody: Encodable {
+        let filename: String
+        let content: String // Base64 encoded bytes
+        let type: String    // MIME type
+    }
+
+    public func uploadAttachment(
+        data: Data,
+        filename: String,
+        mimeType: String
+    ) async throws -> Attachment {
+        let base64String = data.base64EncodedString()
+        let body = CreateAttachmentBody(filename: filename, content: base64String, type: mimeType)
+        let response: Attachment = try await post(path: "/api/v1/attachments", body: body)
+        return response
+    }
+
+    private struct ListAttachmentsResponse: Decodable {
+        let attachments: [Attachment]?
+    }
+
+    public func listAllAttachments() async throws -> [Attachment] {
+        do {
+            let response: ListAttachmentsResponse = try await get(
+                path: "/api/v1/attachments",
+                queryItems: [
+                    URLQueryItem(name: "pageSize", value: "200"),
+                    URLQueryItem(name: "t", value: String(Int(Date().timeIntervalSince1970)))
+                ]
+            )
+            return response.attachments ?? []
+        } catch {
+            let memosResponse = try await listMemos(state: .normal, pageSize: 100)
+            let archivedResponse = try? await listMemos(state: .archived, pageSize: 100)
+            
+            var allMemos = memosResponse.memos
+            if let archived = archivedResponse?.memos {
+                allMemos.append(contentsOf: archived)
+            }
+            
+            var seen = Set<String>()
+            var list: [Attachment] = []
+            for memo in allMemos {
+                if let attachments = memo.attachments {
+                    for att in attachments {
+                        if !seen.contains(att.name) {
+                            seen.insert(att.name)
+                            list.append(att)
+                        }
+                    }
+                }
+            }
+            return list
+        }
+    }
+
     // MARK: - HTTP Primitives
 
     private func makeRequest(path: String, method: String,
@@ -81,6 +144,7 @@ public class MemosClient: @unchecked Sendable {
         if let queryItems, !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
         request.httpMethod = method
+        request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("Bearer \(pat)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         return request

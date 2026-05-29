@@ -104,7 +104,7 @@ struct MemosPanelView: View {
                 sendStatus = .idle
             } catch {
                 QueueProcessor.shared.enqueueAndProcess(
-                    .create(content: content, visibility: visibility, archiveAfterCreate: false))
+                    .create(content: content, visibility: visibility, attachments: nil, archiveAfterCreate: false))
                 sendStatus = .queued
                 inputText = ""
                 selectedTags = []

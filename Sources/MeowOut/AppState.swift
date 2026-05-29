@@ -3,6 +3,7 @@ import Foundation
 import Observation
 import SwiftUI
 import KeyboardShortcuts
+import MemosKit
 
 public enum AppPhase: Equatable {
     case working
@@ -26,12 +27,13 @@ public enum SettingsNavigationTarget: Equatable {
 }
 
 public struct SessionLog: Identifiable, Equatable {
-    public let id = UUID()
+    public let id: UUID
     public let startTime: Date
     public var endTime: Date?
     public let phase: AppPhase
     
-    public init(startTime: Date = Date(), endTime: Date? = nil, phase: AppPhase) {
+    public init(id: UUID = UUID(), startTime: Date = Date(), endTime: Date? = nil, phase: AppPhase) {
+        self.id = id
         self.startTime = startTime
         self.endTime = endTime
         self.phase = phase
@@ -216,6 +218,10 @@ public final class AppState {
 
     // MARK: - Memos
 
+    public var memosBaseURL: URL? {
+        MemosAuth.shared.baseURL
+    }
+
     public var memosDefaultTags: [String] {
         get {
             access(keyPath: \.memosDefaultTags)
@@ -366,6 +372,7 @@ public final class AppState {
     public var isPreviewing: Bool = false
     public var isBreathingActive: Bool = false
     public var settingsNavigationTarget: SettingsNavigationTarget?
+    public var activeImageURL: URL? = nil
 
     public var isKeepingAwake: Bool = false
     public var isKeyboardCleaningActive: Bool = false

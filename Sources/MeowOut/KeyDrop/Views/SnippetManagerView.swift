@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SnippetManagerView: View {
     @Environment(AppState.self) private var appState
@@ -7,6 +8,7 @@ struct SnippetManagerView: View {
     @State private var selectedCategory: String = "全部"
     @State private var selectedSnippetId: UUID? = nil
     @State private var searchText: String = ""
+    @State private var draggedSnippet: Snippet? = nil
     
     // Editor State
     @State private var editTitle: String = ""
@@ -177,21 +179,22 @@ struct SnippetManagerView: View {
             Divider()
             
             // Add Category Button
-            Button(action: {
-                showingAddCategoryAlert = true
-            }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "folder.badge.plus")
-                    Text(I18n.localized("keydrop_add_category_btn", language: appState.language))
+            HStack {
+                Button(action: {
+                    showingAddCategoryAlert = true
+                }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
                 }
-                .foregroundColor(.accentColor)
-                .font(.system(size: 13, weight: .medium))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .help(I18n.localized("keydrop_add_category_btn", language: appState.language))
+                Spacer()
             }
-            .buttonStyle(.plain)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
         }
         .alert(I18n.localized("keydrop_add_category_title", language: appState.language), isPresented: $showingAddCategoryAlert) {
             TextField(I18n.localized("keydrop_add_category_placeholder", language: appState.language), text: $newCategoryNameInput)
@@ -209,7 +212,7 @@ struct SnippetManagerView: View {
     // MARK: - Middle List
     private var listView: some View {
         VStack(spacing: 0) {
-            // Search Bar & Add Button
+            // Search Bar
             HStack(spacing: 8) {
                 HStack(spacing: 4) {
                     Image(systemName: "magnifyingglass")
@@ -232,22 +235,12 @@ struct SnippetManagerView: View {
                 .padding(.vertical, 6)
                 .background(Color.primary.opacity(0.06))
                 .cornerRadius(8)
-                
-                Button(action: addSnippet) {
-                    Image(systemName: "square.and.pencil")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.accentColor)
-                        .frame(width: 28, height: 28)
-                        .background(Color.accentColor.opacity(0.1))
-                        .cornerRadius(8)
-                }
-                .buttonStyle(.plain)
-                .help("Add new snippet to current category")
             }
             .padding(.horizontal, 12)
             .padding(.top, 16)
             .padding(.bottom, 12)
             
+
             Divider()
             
             // List of Snippets
@@ -288,12 +281,53 @@ struct SnippetManagerView: View {
                                 .cornerRadius(8)
                             }
                             .buttonStyle(.plain)
+                            .onDrag {
+                                self.draggedSnippet = snippet
+                                return NSItemProvider(object: snippet.id.uuidString as NSString)
+                            }
+                            .onDrop(of: [UTType.text], delegate: SnippetDropDelegate(
+                                item: snippet,
+                                items: filteredSnippets,
+                                draggedItem: $draggedSnippet,
+                                searchText: searchText,
+                                store: store
+                            ))
                         }
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 8)
                 }
             }
+            
+            Divider()
+            
+            // Bottom Toolbar for Add/Remove
+            HStack(spacing: 16) {
+                Button(action: addSnippet) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Add new snippet to current category")
+                
+                Button(action: deleteSnippet) {
+                    Image(systemName: "minus")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(selectedSnippetId == nil ? .secondary.opacity(0.3) : .secondary)
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(selectedSnippetId == nil)
+                .help(I18n.localized("keydrop_delete_snippet", language: appState.language))
+                
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
         }
     }
     
@@ -336,26 +370,7 @@ struct SnippetManagerView: View {
                         .labelsHidden()
                         .frame(width: 140)
                         
-
-                        
                         Spacer()
-                        
-                        // Delete Button in toolbar area
-                        Button(action: deleteSnippet) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "trash")
-                                Text(I18n.localized("keydrop_delete_snippet", language: appState.language))
-                            }
-                            .fixedSize(horizontal: true, vertical: false)
-                            .foregroundColor(.red.opacity(0.8))
-                            .font(.system(size: 12, weight: .medium))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(6)
-                        }
-                        .buttonStyle(.plain)
-                        .layoutPriority(1)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -501,3 +516,38 @@ struct CustomVisualEffectView: NSViewRepresentable {
         nsView.blendingMode = blendingMode
     }
 }
+
+// MARK: - Drop Delegate
+struct SnippetDropDelegate: DropDelegate {
+    let item: Snippet
+    let items: [Snippet]
+    @Binding var draggedItem: Snippet?
+    let searchText: String
+    let store: SnippetStore
+    
+    func dropEntered(info: DropInfo) {
+        // Only allow reordering when not searching
+        guard searchText.isEmpty else { return }
+        
+        guard let draggedItem = draggedItem,
+              draggedItem.id != item.id,
+              let from = items.firstIndex(where: { $0.id == draggedItem.id }),
+              let to = items.firstIndex(where: { $0.id == item.id }) else { return }
+        
+        if from != to {
+            withAnimation(.default) {
+                store.moveSnippet(id: draggedItem.id, toOffset: to > from ? to + 1 : to, inFilteredList: items)
+            }
+        }
+    }
+    
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        return DropProposal(operation: searchText.isEmpty ? .move : .forbidden)
+    }
+    
+    func performDrop(info: DropInfo) -> Bool {
+        draggedItem = nil
+        return true
+    }
+}
+

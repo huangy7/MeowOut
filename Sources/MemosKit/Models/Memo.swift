@@ -12,6 +12,7 @@ public struct Memo: Codable, Identifiable, Equatable, Sendable {
     public var pinned: Bool
     public let snippet: String?
     public let property: MemoProperty?
+    public var attachments: [Attachment]?
 
     public var id: String {
         String(name.split(separator: "/").last ?? "")
@@ -20,7 +21,8 @@ public struct Memo: Codable, Identifiable, Equatable, Sendable {
     public init(
         name: String, creator: String, createTime: Date, updateTime: Date,
         content: String, visibility: MemoVisibility, state: MemoState,
-        tags: [String], pinned: Bool, snippet: String?, property: MemoProperty?
+        tags: [String], pinned: Bool, snippet: String?, property: MemoProperty?,
+        attachments: [Attachment]? = nil
     ) {
         self.name = name
         self.creator = creator
@@ -33,5 +35,6 @@ public struct Memo: Codable, Identifiable, Equatable, Sendable {
         self.pinned = pinned
         self.snippet = snippet
         self.property = property
+        self.attachments = attachments
     }
 }

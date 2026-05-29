@@ -59,6 +59,10 @@ struct MemoRowView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(.leading)
             
+            if let attachments = memo.attachments, !attachments.isEmpty {
+                MemoAttachmentGridView(attachments: attachments)
+            }
+            
             // Tags
             if !memo.tags.isEmpty {
                 FlowLayout(spacing: 6) {
@@ -128,11 +132,11 @@ struct PendingMemoRowView: View {
                     .font(.system(size: 10))
                     .foregroundStyle(.orange)
             }
-            if case .create(let content, _, _) = item.action {
+            if case .create(let content, _, _, _) = item.action {
                 Text(String(content.prefix(80)))
                     .font(.system(size: 12))
                     .lineLimit(2)
-            } else if case .update(let name, _, _, _) = item.action {
+            } else if case .update(let name, _, _, _, _) = item.action {
                 Text(I18n.localizedFormat("memos_status_update_name", language: appState.language, name))
                     .font(.system(size: 12))
             } else if case .delete(let name) = item.action {
@@ -150,10 +154,10 @@ struct PendingMemoRowView: View {
                      ? Color.red.opacity(0.05)
                      : Color.orange.opacity(0.05))
         .contextMenu {
-            if case .create(let content, let vis, _) = item.action {
+            if case .create(let content, let vis, let attachments, _) = item.action {
                 Button(I18n.localized("memos_action_send_archived", language: appState.language)) {
                     OfflineQueue.shared.updateItem(item.id, action: .create(
-                        content: content, visibility: vis, archiveAfterCreate: true))
+                        content: content, visibility: vis, attachments: attachments, archiveAfterCreate: true))
                 }
             }
             Button(I18n.localized("memos_action_delete", language: appState.language), role: .destructive) {

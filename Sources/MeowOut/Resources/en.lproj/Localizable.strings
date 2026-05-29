@@ -340,3 +340,5 @@
 "memos_error_content_permission" = "Save failed, please check content or permissions";
 "memos_error_network" = "Save failed, please check network connection";
 "memos_error_generic" = "Save failed, please try again later";
+"memos_action_paste_image" = "Paste Clipboard Image";
+"memos_error_upload_failed" = "Failed to upload image: %@";

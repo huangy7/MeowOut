@@ -8,24 +8,8 @@ struct TodayReviewView: View {
     let logs: [SessionLog]
     @State private var isDetailExpanded = false
 
-    private var mergedLogs: [SessionLog] {
-        var result: [SessionLog] = []
-        for log in logs {
-            if let last = result.last, last.phase == log.phase {
-                result[result.count - 1].endTime = log.endTime
-            } else {
-                result.append(log)
-            }
-        }
-        return result
-    }
-
-    /// Visible sessions: duration must be > 0 and >= minSessionDuration
-    private var visibleLogs: [SessionLog] {
-        mergedLogs.filter { log in
-            let duration = logDuration(log)
-            return duration >= minSessionDuration
-        }
+    private var processedLogs: [SessionLog] {
+        logs.aggregated(minDuration: minSessionDuration)
     }
 
     // MARK: - Duration helpers
@@ -43,23 +27,23 @@ struct TodayReviewView: View {
     }
 
     private var totalWorkDuration: TimeInterval {
-        visibleLogs.filter { $0.phase == .working }.reduce(0) { $0 + logDuration($1) }
+        processedLogs.filter { $0.phase == .working }.reduce(0) { $0 + logDuration($1) }
     }
 
     private var totalRestDuration: TimeInterval {
-        visibleLogs.filter { $0.phase == .resting }.reduce(0) { $0 + logDuration($1) }
+        processedLogs.filter { $0.phase == .resting }.reduce(0) { $0 + logDuration($1) }
     }
 
     private var totalOverworkingDuration: TimeInterval {
-        visibleLogs.filter { $0.phase == .overworking }.reduce(0) { $0 + logDuration($1) }
+        processedLogs.filter { $0.phase == .overworking }.reduce(0) { $0 + logDuration($1) }
     }
 
     private var totalBreathingDuration: TimeInterval {
-        visibleLogs.filter { $0.phase == .breathing }.reduce(0) { $0 + logDuration($1) }
+        processedLogs.filter { $0.phase == .breathing }.reduce(0) { $0 + logDuration($1) }
     }
 
     private var totalIdleDuration: TimeInterval {
-        visibleLogs.filter { $0.phase == .idle || $0.phase == .paused || $0.phase == .alerting }
+        processedLogs.filter { $0.phase == .idle || $0.phase == .paused || $0.phase == .alerting }
             .reduce(0) { $0 + logDuration($1) }
     }
 
@@ -73,7 +57,7 @@ struct TodayReviewView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         GeometryReader { geometry in
                             HStack(spacing: 0) {
-                                ForEach(mergedLogs) { log in
+                                ForEach(processedLogs) { log in
                                     Rectangle()
                                         .fill(color(for: log.phase))
                                         .frame(width: max(0, width(for: log, in: geometry.size.width)))
@@ -132,7 +116,7 @@ struct TodayReviewView: View {
                         // Expanded content
                         if isDetailExpanded {
                             VStack(spacing: 12) {
-                                ForEach(visibleLogs.reversed()) { log in
+                                ForEach(processedLogs.reversed()) { log in
                                     HStack {
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(timeRangeString(for: log))
@@ -153,7 +137,7 @@ struct TodayReviewView: View {
                                             .foregroundColor(.secondary)
                                             .frame(width: 80, alignment: .trailing)
                                     }
-                                    if log != visibleLogs.first {
+                                    if log != processedLogs.first {
                                         Divider()
                                     }
                                 }

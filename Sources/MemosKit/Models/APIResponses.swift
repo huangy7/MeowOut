@@ -20,6 +20,7 @@ struct GetCurrentUserResponse: Codable {
 struct CreateMemoBody: Codable {
     let content: String
     let visibility: MemoVisibility
+    let attachments: [Attachment]?
 }
 
 struct UpdateMemoBody: Codable {
@@ -28,4 +29,5 @@ struct UpdateMemoBody: Codable {
     var visibility: MemoVisibility?
     var state: MemoState?
     var pinned: Bool?
+    var attachments: [Attachment]?
 }

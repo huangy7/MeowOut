@@ -81,7 +81,7 @@ struct MemosLegacyBrowserContent: View {
                     NotificationCenter.default.post(name: .memosDidChange, object: nil)
                 }
             } catch {
-                QueueProcessor.shared.enqueueAndProcess(.create(content: content, visibility: visibility, archiveAfterCreate: false))
+                QueueProcessor.shared.enqueueAndProcess(.create(content: content, visibility: visibility, attachments: nil, archiveAfterCreate: false))
                 await MainActor.run {
                     editorText = ""
                     selectedTags = []

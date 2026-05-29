@@ -94,7 +94,7 @@ class MemoTimelineViewModel {
                 _ = try await client.updateMemo(name: memo.name, state: .archived, updateMask: ["state"])
                 refresh()
             } catch {
-                processor.enqueueAndProcess(.update(memoName: memo.name, content: nil, state: .archived, updateMask: ["state"]))
+                processor.enqueueAndProcess(.update(memoName: memo.name, content: nil, state: .archived, attachments: nil, updateMask: ["state"]))
             }
         }
     }
@@ -105,7 +105,7 @@ class MemoTimelineViewModel {
                 _ = try await client.updateMemo(name: memo.name, state: .normal, updateMask: ["state"])
                 refresh()
             } catch {
-                processor.enqueueAndProcess(.update(memoName: memo.name, content: nil, state: .normal, updateMask: ["state"]))
+                processor.enqueueAndProcess(.update(memoName: memo.name, content: nil, state: .normal, attachments: nil, updateMask: ["state"]))
             }
         }
     }
@@ -143,7 +143,7 @@ class MemoTimelineViewModel {
                 _ = try await client.updateMemo(name: name, content: editingContent, updateMask: ["content"])
                 refresh()
             } catch {
-                processor.enqueueAndProcess(.update(memoName: name, content: editingContent, state: nil, updateMask: ["content"]))
+                processor.enqueueAndProcess(.update(memoName: name, content: editingContent, state: nil, attachments: nil, updateMask: ["content"]))
             }
         }
     }

@@ -97,4 +97,31 @@ public class SnippetStore: ObservableObject {
     public func delete(snippet: Snippet) {
         snippets.removeAll(where: { $0.id == snippet.id })
     }
+    
+    public func moveSnippet(id: UUID, toOffset offset: Int, inFilteredList filtered: [Snippet]) {
+        guard let sourceIndex = snippets.firstIndex(where: { $0.id == id }) else { return }
+        let item = snippets[sourceIndex]
+        
+        if offset < filtered.count {
+            let targetId = filtered[offset].id
+            snippets.remove(at: sourceIndex)
+            if let targetIndex = snippets.firstIndex(where: { $0.id == targetId }) {
+                snippets.insert(item, at: targetIndex)
+            } else {
+                snippets.append(item)
+            }
+        } else {
+            if let lastId = filtered.last?.id {
+                snippets.remove(at: sourceIndex)
+                if let lastIndex = snippets.firstIndex(where: { $0.id == lastId }) {
+                    snippets.insert(item, at: lastIndex + 1)
+                } else {
+                    snippets.append(item)
+                }
+            } else {
+                snippets.remove(at: sourceIndex)
+                snippets.append(item)
+            }
+        }
+    }
 }

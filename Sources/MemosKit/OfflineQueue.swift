@@ -4,8 +4,8 @@ public class OfflineQueue: @unchecked Sendable {
     public static let shared = OfflineQueue()
 
     public enum PendingAction: Codable, Sendable {
-        case create(content: String, visibility: MemoVisibility, archiveAfterCreate: Bool)
-        case update(memoName: String, content: String?, state: MemoState?, updateMask: [String])
+        case create(content: String, visibility: MemoVisibility, attachments: [Attachment]?, archiveAfterCreate: Bool)
+        case update(memoName: String, content: String?, state: MemoState?, attachments: [Attachment]?, updateMask: [String])
         case delete(memoName: String)
     }
 

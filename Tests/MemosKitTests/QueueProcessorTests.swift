@@ -22,7 +22,7 @@ final class QueueProcessorTests: XCTestCase {
         let url = makeTempURL()
         defer { try? FileManager.default.removeItem(at: url) }
         let queue = OfflineQueue(storageURL: url)
-        queue.enqueue(.create(content: "test", visibility: .private, archiveAfterCreate: false))
+        queue.enqueue(.create(content: "test", visibility: .private, attachments: nil, archiveAfterCreate: false))
 
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [MockURLProtocol.self]
@@ -48,7 +48,7 @@ final class QueueProcessorTests: XCTestCase {
         let url = makeTempURL()
         defer { try? FileManager.default.removeItem(at: url) }
         let queue = OfflineQueue(storageURL: url)
-        queue.enqueue(.create(content: "done task", visibility: .private, archiveAfterCreate: true))
+        queue.enqueue(.create(content: "done task", visibility: .private, attachments: nil, archiveAfterCreate: true))
 
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [MockURLProtocol.self]
@@ -86,7 +86,7 @@ final class QueueProcessorTests: XCTestCase {
         let url = makeTempURL()
         defer { try? FileManager.default.removeItem(at: url) }
         let queue = OfflineQueue(storageURL: url)
-        queue.enqueue(.create(content: "fail", visibility: .private, archiveAfterCreate: false))
+        queue.enqueue(.create(content: "fail", visibility: .private, attachments: nil, archiveAfterCreate: false))
 
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [MockURLProtocol.self]
@@ -112,7 +112,7 @@ final class QueueProcessorTests: XCTestCase {
         let url = makeTempURL()
         defer { try? FileManager.default.removeItem(at: url) }
         let queue = OfflineQueue(storageURL: url)
-        queue.enqueue(.create(content: "only once", visibility: .private, archiveAfterCreate: false))
+        queue.enqueue(.create(content: "only once", visibility: .private, attachments: nil, archiveAfterCreate: false))
         let client = try makeTestClient()
 
         let requestStarted = expectation(description: "first request started")

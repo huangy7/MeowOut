@@ -341,3 +341,5 @@
 "memos_error_content_permission" = "保存失败，请检查内容或权限";
 "memos_error_network" = "保存失败，请检查网络";
 "memos_error_generic" = "保存失败，请稍后重试";
+"memos_action_paste_image" = "粘贴剪贴板图片";
+"memos_error_upload_failed" = "上传图片失败: %@";

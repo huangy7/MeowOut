@@ -186,4 +186,85 @@ final class MemosClientTests: XCTestCase {
         XCTAssertEqual(stats.memoCreatedTimestamps.count, 1)
         XCTAssertEqual(stats.totalMemoCount, 1)
     }
+
+    func testUploadAttachment() async throws {
+        let client = try makeClient()
+        MockURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertTrue(request.url!.path.hasSuffix("/api/v1/attachments"))
+            let reqBody = try! JSONSerialization.jsonObject(with: request.httpBody!) as! [String: Any]
+            XCTAssertEqual(reqBody["filename"] as? String, "test.png")
+            XCTAssertEqual(reqBody["type"] as? String, "image/png")
+            XCTAssertEqual(reqBody["content"] as? String, "dGVzdA==") // base64 for "test"
+            
+            let responseBody = """
+            {"name":"attachments/123","filename":"test.png","type":"image/png","size":"4"}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, responseBody)
+        }
+        let attachment = try await client.uploadAttachment(data: "test".data(using: .utf8)!, filename: "test.png", mimeType: "image/png")
+        XCTAssertEqual(attachment.name, "attachments/123")
+        XCTAssertEqual(attachment.filename, "test.png")
+        XCTAssertEqual(attachment.size, 4)
+    }
+
+    func testCreateMemoWithAttachments() async throws {
+        let client = try makeClient()
+        let mockAttachment = try JSONDecoder().decode(Attachment.self, from: """
+        {"name":"attachments/123","filename":"test.png","type":"image/png","size":"4"}
+        """.data(using: .utf8)!)
+        
+        MockURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertTrue(request.url!.path.hasSuffix("/api/v1/memos"))
+            let reqBody = try! JSONSerialization.jsonObject(with: request.httpBody!) as! [String: Any]
+            XCTAssertEqual(reqBody["content"] as? String, "test message")
+            XCTAssertEqual(reqBody["visibility"] as? String, "PRIVATE")
+            
+            let attachmentsArray = reqBody["attachments"] as? [[String: Any]]
+            XCTAssertNotNil(attachmentsArray)
+            XCTAssertEqual(attachmentsArray?.count, 1)
+            XCTAssertEqual(attachmentsArray?[0]["name"] as? String, "attachments/123")
+            
+            let responseBody = """
+            {"name":"memos/99","creator":"users/1","createTime":"2026-05-24T10:00:00Z","updateTime":"2026-05-24T10:00:00Z","content":"test message","visibility":"PRIVATE","state":"NORMAL","tags":[],"pinned":false,"attachments":[{"name":"attachments/123","filename":"test.png","type":"image/png","size":"4"}]}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, responseBody)
+        }
+        let memo = try await client.createMemo(content: "test message", visibility: .private, attachments: [mockAttachment])
+        XCTAssertEqual(memo.id, "99")
+        XCTAssertNotNil(memo.attachments)
+        XCTAssertEqual(memo.attachments?.count, 1)
+        XCTAssertEqual(memo.attachments?[0].name, "attachments/123")
+    }
+
+    func testUpdateMemoWithAttachments() async throws {
+        let client = try makeClient()
+        let mockAttachment = try JSONDecoder().decode(Attachment.self, from: """
+        {"name":"attachments/123","filename":"test.png","type":"image/png","size":"4"}
+        """.data(using: .utf8)!)
+        
+        MockURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.httpMethod, "PATCH")
+            XCTAssertTrue(request.url!.path.hasSuffix("/api/v1/memos/42"))
+            let reqBody = try! JSONSerialization.jsonObject(with: request.httpBody!) as! [String: Any]
+            
+            let attachmentsArray = reqBody["attachments"] as? [[String: Any]]
+            XCTAssertNotNil(attachmentsArray)
+            XCTAssertEqual(attachmentsArray?.count, 1)
+            XCTAssertEqual(attachmentsArray?[0]["name"] as? String, "attachments/123")
+            
+            let responseBody = """
+            {"name":"memos/42","creator":"users/1","createTime":"2026-05-24T10:00:00Z","updateTime":"2026-05-24T11:00:00Z","content":"done","visibility":"PRIVATE","state":"NORMAL","tags":[],"pinned":false,"attachments":[{"name":"attachments/123","filename":"test.png","type":"image/png","size":"4"}]}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, responseBody)
+        }
+        let memo = try await client.updateMemo(
+            name: "memos/42",
+            attachments: [mockAttachment],
+            updateMask: ["attachments"]
+        )
+        XCTAssertNotNil(memo.attachments)
+        XCTAssertEqual(memo.attachments?.count, 1)
+    }
 }

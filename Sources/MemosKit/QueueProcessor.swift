@@ -59,13 +59,13 @@ public class QueueProcessor: @unchecked Sendable {
 
     private func processItem(_ item: OfflineQueue.QueueItem) async throws {
         switch item.action {
-        case .create(let content, let visibility, let archiveAfterCreate):
-            let memo = try await client.createMemo(content: content, visibility: visibility)
+        case .create(let content, let visibility, let attachments, let archiveAfterCreate):
+            let memo = try await client.createMemo(content: content, visibility: visibility, attachments: attachments)
             if archiveAfterCreate {
                 _ = try await client.updateMemo(name: memo.name, state: .archived, updateMask: ["state"])
             }
-        case .update(let name, let content, let state, let updateMask):
-            _ = try await client.updateMemo(name: name, content: content, state: state, updateMask: updateMask)
+        case .update(let name, let content, let state, let attachments, let updateMask):
+            _ = try await client.updateMemo(name: name, content: content, state: state, attachments: attachments, updateMask: updateMask)
         case .delete(let name):
             try await client.deleteMemo(name: name)
         }

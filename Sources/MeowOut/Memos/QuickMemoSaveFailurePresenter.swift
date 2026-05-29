@@ -15,6 +15,15 @@ struct QuickMemoStatusPresentation: Equatable {
             isError: false
         )
     }
+
+    static func error(_ message: String) -> QuickMemoStatusPresentation {
+        QuickMemoStatusPresentation(
+            message: message,
+            actionTitle: nil,
+            opensMemosSettings: false,
+            isError: true
+        )
+    }
 }
 
 enum QuickMemoSaveFailurePresenter {

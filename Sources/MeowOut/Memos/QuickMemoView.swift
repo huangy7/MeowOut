@@ -1,5 +1,6 @@
 import SwiftUI
 import MemosKit
+import UniformTypeIdentifiers
 
 struct QuickMemoView: View {
     @Environment(AppState.self) private var appState
@@ -11,15 +12,17 @@ struct QuickMemoView: View {
     @State private var isSaving = false
     @State private var suppressDraftPersistence = false
     @State private var createdAt = Date()
+    @State private var uploadedAttachments: [Attachment] = []
 
     private let draftStore = QuickMemoDraftStore.shared
+    @StateObject private var uploadManager = ImageUploadManager()
 
     private var trimmedText: String {
         text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private var canSave: Bool {
-        !trimmedText.isEmpty && !isSaving
+        !trimmedText.isEmpty && !isSaving && !uploadManager.isUploading
     }
 
     private var memoTitle: String {
@@ -30,10 +33,20 @@ struct QuickMemoView: View {
         VStack(spacing: 0) {
             editor
 
+            if !uploadedAttachments.isEmpty {
+                EditorAttachmentListView(attachments: uploadedAttachments, onRemove: { attachment in
+                    uploadedAttachments.removeAll { $0.name == attachment.name }
+                })
+                .padding(.bottom, 8)
+            }
+
             if let statusPresentation {
                 statusBanner(statusPresentation)
                 .transition(.opacity)
             }
+        }
+        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+            handleDroppedFiles(providers)
         }
         .frame(minWidth: 400, minHeight: 360)
         .background(Color(nsColor: .textBackgroundColor))
@@ -67,7 +80,9 @@ struct QuickMemoView: View {
             }
 
             ToolbarItem(placement: .primaryAction) {
-                toolbarIcon("paperclip", help: I18n.localized("memos_editor_insert_attachment", language: appState.language)) { insertMarkdown("![]()") }
+                toolbarIcon("paperclip", help: I18n.localized("memos_editor_insert_attachment", language: appState.language)) {
+                    selectImageAndUpload()
+                }
             }
 
             ToolbarItem(placement: .primaryAction) {
@@ -78,7 +93,7 @@ struct QuickMemoView: View {
                 Button {
                     save()
                 } label: {
-                    if isSaving {
+                    if isSaving || uploadManager.isUploading {
                         ProgressView().controlSize(.small).frame(width: 28)
                     } else {
                         Image(systemName: "paperplane")
@@ -118,6 +133,13 @@ struct QuickMemoView: View {
             } label: {
                 Label(I18n.localized("memos_editor_format_link", language: appState.language), systemImage: "link")
             }
+
+            Button {
+                pasteImageAndUpload()
+            } label: {
+                Label(I18n.localized("memos_action_paste_image", language: appState.language), systemImage: "doc.on.clipboard")
+            }
+            .keyboardShortcut("v", modifiers: [.command, .option])
 
             Menu {
                 if appState.memosTagHistory.isEmpty {
@@ -245,17 +267,23 @@ struct QuickMemoView: View {
             ZStack(alignment: .topLeading) {
                 if text.isEmpty && !isEditorFocused {
                     Text(I18n.localized("memos_editor_placeholder_alt", language: appState.language))
-                        .font(.system(size: 17))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 36)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, 49)
+                        .padding(.vertical, 12)
                 }
 
                 TextEditor(text: $text)
-                    .font(.system(size: 17))
+                    .font(.system(size: 17, weight: .semibold))
                     .lineSpacing(4)
                     .scrollContentBackground(.hidden)
-                    .contentMargins(.horizontal, 24, for: .scrollContent)
+                    .background(
+                        TextEditorConfigurator { scrollView in
+                            if let textView = scrollView.documentView as? NSTextView {
+                                textView.textContainerInset = NSSize(width: 44, height: 12)
+                            }
+                        }
+                    )
                     .focused($isEditorFocused)
                     .disabled(isSaving)
             }
@@ -297,6 +325,7 @@ struct QuickMemoView: View {
         suppressDraftPersistence = true
         text = ""
         visibility = .private
+        uploadedAttachments = []
         draftStore.clear()
 
         Task { @MainActor in
@@ -338,9 +367,11 @@ struct QuickMemoView: View {
         isSaving = true
         statusPresentation = nil
 
+        let finalAttachments = uploadedAttachments
+
         Task {
             do {
-                _ = try await MemosClient.shared.createMemo(content: content, visibility: submittedVisibility)
+                _ = try await MemosClient.shared.createMemo(content: content, visibility: submittedVisibility, attachments: finalAttachments)
                 NotificationCenter.default.post(name: .memosDidChange, object: nil)
 
                 await MainActor.run {
@@ -354,7 +385,7 @@ struct QuickMemoView: View {
 
                 if shouldEnqueue {
                     QueueProcessor.shared.enqueueAndProcess(
-                        .create(content: content, visibility: submittedVisibility, archiveAfterCreate: false)
+                        .create(content: content, visibility: submittedVisibility, attachments: finalAttachments, archiveAfterCreate: false)
                     )
                     NotificationCenter.default.post(name: .memosDidChange, object: nil)
                 }
@@ -394,5 +425,139 @@ struct QuickMemoView: View {
 
         appState.settingsNavigationTarget = .memos
         NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil)
+    }
+
+    @MainActor
+    private func handleDroppedFiles(_ providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first else { return false }
+        
+        _ = provider.loadObject(ofClass: URL.self) { url, error in
+            guard let fileURL = url, error == nil else { return }
+            
+            guard let utType = UTType(filenameExtension: fileURL.pathExtension),
+                  utType.conforms(to: .image) else { return }
+            
+            Task { @MainActor in
+                // Offload file I/O to background thread
+                guard let data = try? await Task.detached(priority: .userInitiated, operation: {
+                    try Data(contentsOf: fileURL)
+                }).value else { return }
+                
+                let filename = fileURL.lastPathComponent
+                let mimeType = utType.preferredMIMEType ?? "image/png"
+                
+                await performAttachmentUpload(data: data, filename: filename, mimeType: mimeType)
+            }
+        }
+        return true
+    }
+
+    @MainActor
+    private func selectImageAndUpload() {
+        let openPanel = NSOpenPanel()
+        openPanel.allowsMultipleSelection = false
+        openPanel.canChooseDirectories = false
+        openPanel.canCreateDirectories = false
+        openPanel.allowedContentTypes = [.image]
+        
+        openPanel.begin { response in
+            guard response == .OK, let fileURL = openPanel.url else { return }
+            let utType = UTType(filenameExtension: fileURL.pathExtension) ?? .image
+            
+            Task {
+                // Offload file I/O to background thread
+                guard let data = try? await Task.detached(priority: .userInitiated, operation: {
+                    try Data(contentsOf: fileURL)
+                }).value else { return }
+                
+                let filename = fileURL.lastPathComponent
+                let mimeType = utType.preferredMIMEType ?? "image/png"
+                
+                await performAttachmentUpload(data: data, filename: filename, mimeType: mimeType)
+            }
+        }
+    }
+
+    @MainActor
+    private func pasteImageAndUpload() {
+        Task {
+            if let (data, filename, mimeType) = await uploadManager.handlePasteboardImage() {
+                await performAttachmentUpload(data: data, filename: filename, mimeType: mimeType)
+            }
+        }
+    }
+
+    @MainActor
+    private func performAttachmentUpload(data: Data, filename: String, mimeType: String) async {
+        statusPresentation = nil
+        do {
+            let attachment = try await uploadManager.uploadImage(data: data, filename: filename, mimeType: mimeType)
+            uploadedAttachments.append(attachment)
+        } catch {
+            let format = I18n.localized("memos_error_upload_failed", language: appState.language)
+            statusPresentation = .error(String(format: format, error.localizedDescription))
+        }
+    }
+}
+
+// MARK: - TextEditorConfigurator
+struct TextEditorConfigurator: NSViewRepresentable {
+    var onConfigure: (NSScrollView) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            if let scrollView = findScrollView(for: view) {
+                onConfigure(scrollView)
+            }
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            if let scrollView = findScrollView(for: nsView) {
+                onConfigure(scrollView)
+            }
+        }
+    }
+
+    private func findScrollView(for view: NSView) -> NSScrollView? {
+        if let parent = view.superview {
+            if let scrollView = parent as? NSScrollView {
+                return scrollView
+            }
+            if let scrollView = findScrollView(in: parent, depth: 2, excluding: view) {
+                return scrollView
+            }
+            if let grandparent = parent.superview {
+                if let scrollView = grandparent as? NSScrollView {
+                    return scrollView
+                }
+                if let scrollView = findScrollView(in: grandparent, depth: 2, excluding: parent) {
+                    return scrollView
+                }
+            }
+        }
+        return nil
+    }
+
+    private func findScrollView(in view: NSView, depth: Int, excluding: NSView? = nil) -> NSScrollView? {
+        if let scrollView = view as? NSScrollView {
+            return scrollView
+        }
+        if depth <= 0 {
+            return nil
+        }
+        for subview in view.subviews {
+            if subview === excluding { continue }
+            if let scrollView = subview as? NSScrollView {
+                return scrollView
+            }
+            if let found = findScrollView(in: subview, depth: depth - 1) {
+                return found
+            }
+        }
+        return nil
     }
 }
