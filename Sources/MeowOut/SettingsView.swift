@@ -825,6 +825,9 @@ struct QuickActionsSettingsView: View {
                         Button(I18n.localized("menu_keep_awake", language: state.language)) { addBuiltIn(.keepAwake) }
                         Button(I18n.localized("menu_keyboard_cleaning", language: state.language)) { addBuiltIn(.keyboardCleaning) }
                         Button(I18n.localized("menu_screen_cleaning", language: state.language)) { addBuiltIn(.screenCleaning) }
+                        Button(I18n.localized("memos_settings_quick_capture_short", language: state.language)) { addBuiltIn(.memosQuickCapture) }
+                        Button(I18n.localized("memos_action_open_memos", language: state.language)) { addBuiltIn(.memosOpenBrowser) }
+                        Button(I18n.localized("menu_breathing", language: state.language)) { addBuiltIn(.breathing) }
                     }.padding()
                 }
             }

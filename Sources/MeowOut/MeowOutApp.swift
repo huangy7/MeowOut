@@ -312,16 +312,6 @@ struct MeowOutApp: App {
             // Card 3: Features
             VStack(spacing: 0) {
                 MenuRowButton(
-                    title: I18n.localized("menu_breathing", language: appState.language),
-                    icon: "🌬",
-                    iconColor: .teal
-                ) {
-                    NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil)
-                }
-                
-                Divider().background(Color.primary.opacity(0.05)).padding(.horizontal, 14)
-                
-                MenuRowButton(
                     title: I18n.localized("settings_tab_statistics", language: appState.language),
                     icon: "📊",
                     iconColor: .blue
@@ -413,6 +403,33 @@ struct MeowOutApp: App {
                     isActive: appState.isScreenCleaningActive,
                     action: { dismissMenu(); appState.toggleScreenCleaning() }
                 )
+            case .memosQuickCapture:
+                ControlTileButton(
+                    title: type.localizedName(language: appState.language),
+                    subtitleActive: I18n.localized("menu_shortcuts_launch", language: appState.language),
+                    subtitleInactive: I18n.localized("menu_shortcuts_launch", language: appState.language),
+                    iconEmoji: type.icon,
+                    isActive: false,
+                    action: { dismissMenu(); NotificationCenter.default.post(name: .toggleQuickMemoPanel, object: nil) }
+                )
+            case .memosOpenBrowser:
+                ControlTileButton(
+                    title: type.localizedName(language: appState.language),
+                    subtitleActive: I18n.localized("menu_shortcuts_launch", language: appState.language),
+                    subtitleInactive: I18n.localized("menu_shortcuts_launch", language: appState.language),
+                    iconEmoji: type.icon,
+                    isActive: false,
+                    action: { dismissMenu(); NotificationCenter.default.post(name: .toggleMemosBrowserWindow, object: nil) }
+                )
+            case .breathing:
+                ControlTileButton(
+                    title: type.localizedName(language: appState.language),
+                    subtitleActive: I18n.localized("menu_shortcuts_launch", language: appState.language),
+                    subtitleInactive: I18n.localized("menu_shortcuts_launch", language: appState.language),
+                    iconEmoji: type.icon,
+                    isActive: false,
+                    action: { dismissMenu(); NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil) }
+                )
             }
         case .appShortcut(_, let name, let path, let bookmark):
             ControlTileButton(
@@ -436,6 +453,9 @@ struct MeowOutApp: App {
                 case .keepAwake: appState.toggleKeepAwake()
                 case .keyboardCleaning: appState.toggleKeyboardCleaning()
                 case .screenCleaning: appState.toggleScreenCleaning()
+                case .memosQuickCapture: NotificationCenter.default.post(name: .toggleQuickMemoPanel, object: nil)
+                case .memosOpenBrowser: NotificationCenter.default.post(name: .toggleMemosBrowserWindow, object: nil)
+                case .breathing: NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil)
                 }
             case .appShortcut(_, _, let path, let bookmark):
                 launchApp(path: path, bookmark: bookmark)

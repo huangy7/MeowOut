@@ -18,4 +18,24 @@ final class QuickToolTests: XCTestCase {
             XCTAssertEqual(path, "/Applications/Safari.app")
         } else { XCTFail() }
     }
+
+    func testNewQuickToolsSerialization() throws {
+        let tools: [QuickTool] = [
+            .builtIn(.memosQuickCapture),
+            .builtIn(.memosOpenBrowser),
+            .builtIn(.breathing)
+        ]
+        let data = try JSONEncoder().encode(tools)
+        let decoded = try JSONDecoder().decode([QuickTool].self, from: data)
+        XCTAssertEqual(decoded.count, 3)
+        if case .builtIn(let type0) = decoded[0] {
+            XCTAssertEqual(type0, .memosQuickCapture)
+        } else { XCTFail() }
+        if case .builtIn(let type1) = decoded[1] {
+            XCTAssertEqual(type1, .memosOpenBrowser)
+        } else { XCTFail() }
+        if case .builtIn(let type2) = decoded[2] {
+            XCTAssertEqual(type2, .breathing)
+        } else { XCTFail() }
+    }
 }
