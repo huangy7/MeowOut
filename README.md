@@ -13,12 +13,16 @@
 </p>
 
 <p align="center">
-  <a href="https://huangy7.github.io/MeowOut/promo_mockup.html">
-    <img src="https://img.shields.io/badge/🎮_体验交互原型-点击预览全功能_Demo-ff7b00?style=for-the-badge&labelColor=1a0a00" alt="Interactive Demo">
+  <a href="https://meow.huangy.top/">
+    <img src="https://img.shields.io/badge/🌐_官方网站-meow.huangy.top-a855f7?style=for-the-badge&labelColor=1d003d" alt="Official Website">
+  </a>
+  &nbsp;
+  <a href="https://meow.huangy.top/#demo">
+    <img src="https://img.shields.io/badge/🎮_网页在线试用-点击预览全功能_Demo-ff7b00?style=for-the-badge&labelColor=1a0a00" alt="Interactive Demo">
   </a>
   &nbsp;
   <a href="https://github.com/huangy7/MeowOut/releases/latest">
-    <img src="https://img.shields.io/badge/📦_立即下载-MeowOut_v1.2.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
+    <img src="https://img.shields.io/badge/📦_立即下载-MeowOut_v1.3.1-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
   </a>
 </p>
 
