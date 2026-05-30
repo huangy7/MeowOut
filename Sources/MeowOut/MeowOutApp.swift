@@ -309,30 +309,7 @@ struct MeowOutApp: App {
                 }
             }
             
-            // Card 3: Features
-            VStack(spacing: 0) {
-                MenuRowButton(
-                    title: I18n.localized("settings_tab_statistics", language: appState.language),
-                    icon: "📊",
-                    iconColor: .blue
-                ) {
-                    NSApp.activate(ignoringOtherApps: true)
-                    appDelegate.tryStartEngine()
-                    NotificationCenter.default.post(name: NSNotification.Name("OpenStatisticsWindow"), object: nil)
-                }
-            }
-            .background(
-                colorScheme == .dark
-                    ? Color.black.opacity(0.25)
-                    : Color.white.opacity(0.85)
-            )
-            .cornerRadius(14)
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
-            )
-            .shadow(color: Color.black.opacity(0.04), radius: 5, x: 0, y: 1.5)
-            
+
             // Card 4: System Actions
             VStack(spacing: 0) {
                 MenuRowButton(
@@ -687,6 +664,25 @@ struct MenuDashboardCard: View {
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(.primary)
                             .lineLimit(1)
+                        
+                        Button(action: {
+                            NSApp.windows.forEach { window in
+                                if window.styleMask.contains(.nonactivatingPanel) && 
+                                   window.isVisible && 
+                                   abs(window.frame.width - 280) < 2 {
+                                    window.orderOut(nil)
+                                }
+                            }
+                            NSApp.activate(ignoringOtherApps: true)
+                            (NSApp.delegate as? AppDelegate)?.tryStartEngine()
+                            NotificationCenter.default.post(name: NSNotification.Name("OpenStatisticsWindow"), object: nil)
+                        }) {
+                            Image(systemName: "chart.bar.fill")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(.plain)
+                        .help(I18n.localized("settings_tab_statistics", language: appState.language))
                     }
 
                     let goalProgress = min(1.0, appState.totalWorkToday / (Double(appState.dailyWorkGoal) * 3600))
