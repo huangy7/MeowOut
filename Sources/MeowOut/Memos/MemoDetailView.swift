@@ -208,7 +208,7 @@ struct MemoDetailView: View {
     private func readingView(_ memo: Memo) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                Markdown(memo.content)
+                Markdown(MemoMarkdownPreprocessor.renderableMarkdown(from: memo.content))
                     .markdownTheme(.gitHub)
                     .textSelection(.enabled)
                     .networkImageLoader(MemosImageLoader.shared)
