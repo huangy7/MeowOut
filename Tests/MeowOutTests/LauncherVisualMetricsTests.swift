@@ -20,6 +20,12 @@ final class LauncherVisualMetricsTests: XCTestCase {
         XCTAssertLessThanOrEqual(LauncherVisualMetrics.outerRingStrokeOpacity, 0.04)
     }
 
+    func testLauncherRingUsesHoverOnlySectorBoundaries() {
+        XCTAssertFalse(LauncherVisualMetrics.showsDefaultSectorDividers)
+        XCTAssertEqual(LauncherVisualMetrics.defaultSectorStrokeOpacity, 0)
+        XCTAssertGreaterThan(LauncherVisualMetrics.hoveredSectorFillOpacity, 0)
+    }
+
     func testLauncherPanelDoesNotAddSystemShadowOutline() {
         XCTAssertFalse(LauncherVisualMetrics.usesSystemPanelShadow)
     }

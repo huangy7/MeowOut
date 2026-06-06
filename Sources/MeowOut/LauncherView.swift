@@ -7,6 +7,9 @@ enum LauncherVisualMetrics {
     static let centerSize: CGFloat = 104
     static let innerRadiusRatio: CGFloat = 0.44
     static let outerRingStrokeOpacity: CGFloat = 0.025
+    static let showsDefaultSectorDividers = false
+    static let defaultSectorStrokeOpacity: CGFloat = 0
+    static let hoveredSectorFillOpacity: CGFloat = 0.08
     static let usesSystemPanelShadow = false
     static let iconSize: CGFloat = 54
     static let iconRadius: CGFloat = 84
@@ -222,11 +225,11 @@ public struct LauncherView: View {
                             .fill(sectorFill(isHovered: hoveredSector == i))
                             .overlay(
                                 RingSector(startAngle: angles.start, endAngle: angles.end)
-                                    .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                                    .stroke(Color.primary.opacity(LauncherVisualMetrics.defaultSectorStrokeOpacity), lineWidth: 1)
                             )
                     }
                     
-                    if count > 1 {
+                    if LauncherVisualMetrics.showsDefaultSectorDividers && count > 1 {
                         ForEach(0..<count, id: \.self) { i in
                             let step = 360.0 / Double(count)
                             let angle = Angle.degrees(-90.0 + (step / 2.0) + Double(i) * step)
@@ -322,7 +325,7 @@ public struct LauncherView: View {
 
     private func sectorFill(isHovered: Bool) -> some ShapeStyle {
         if isHovered {
-            return AnyShapeStyle(Color.primary.opacity(0.08))
+            return AnyShapeStyle(Color.primary.opacity(LauncherVisualMetrics.hoveredSectorFillOpacity))
         }
         return AnyShapeStyle(Color.clear)
     }
