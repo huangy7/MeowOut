@@ -66,6 +66,18 @@ struct WindowOpener: View {
             .onReceive(NotificationCenter.default.publisher(for: .showMemosBrowserWindow)) { _ in
                 MemosBrowserWindowController.shared.show()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .launcherAccessibilityPermissionLost)) { _ in
+                let alert = NSAlert()
+                alert.messageText = I18n.localized("accessibility_lost_title")
+                alert.informativeText = I18n.localized("accessibility_lost_desc")
+                alert.addButton(withTitle: I18n.localized("accessibility_lost_open_btn"))
+                alert.addButton(withTitle: I18n.localized("accessibility_lost_cancel_btn"))
+                if alert.runModal() == .alertFirstButtonReturn {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+            }
     }
 }
 
@@ -350,134 +362,53 @@ struct MeowOutApp: App {
 
     @ViewBuilder
     private func renderToolTile(_ tool: QuickTool) -> some View {
-        switch tool {
-        case .builtIn(let type):
-            switch type {
-            case .keepAwake:
-                ControlTileButton(
-                    title: type.localizedName(language: appState.language),
-                    subtitleActive: I18n.localized("tile_active", language: appState.language),
-                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
-                    iconEmoji: type.icon,
-                    isActive: appState.isKeepingAwake,
-                    action: { appState.toggleKeepAwake() }
-                )
-            case .keyboardCleaning:
-                ControlTileButton(
-                    title: type.localizedName(language: appState.language),
-                    subtitleActive: I18n.localized("tile_active", language: appState.language),
-                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
-                    iconEmoji: type.icon,
-                    isActive: appState.isKeyboardCleaningActive,
-                    action: { dismissMenu(); appState.toggleKeyboardCleaning() }
-                )
-            case .screenCleaning:
-                ControlTileButton(
-                    title: type.localizedName(language: appState.language),
-                    subtitleActive: I18n.localized("tile_active", language: appState.language),
-                    subtitleInactive: I18n.localized("tile_inactive", language: appState.language),
-                    iconEmoji: type.icon,
-                    isActive: appState.isScreenCleaningActive,
-                    action: { dismissMenu(); appState.toggleScreenCleaning() }
-                )
-            case .memosQuickCapture:
-                ControlTileButton(
-                    title: type.localizedName(language: appState.language),
-                    subtitleActive: I18n.localized("menu_shortcuts_launch", language: appState.language),
-                    subtitleInactive: I18n.localized("menu_shortcuts_launch", language: appState.language),
-                    iconEmoji: type.icon,
-                    isActive: false,
-                    action: { dismissMenu(); NotificationCenter.default.post(name: .toggleQuickMemoPanel, object: nil) }
-                )
-            case .memosOpenBrowser:
-                ControlTileButton(
-                    title: type.localizedName(language: appState.language),
-                    subtitleActive: I18n.localized("menu_shortcuts_launch", language: appState.language),
-                    subtitleInactive: I18n.localized("menu_shortcuts_launch", language: appState.language),
-                    iconEmoji: type.icon,
-                    isActive: false,
-                    action: { dismissMenu(); NotificationCenter.default.post(name: .toggleMemosBrowserWindow, object: nil) }
-                )
-            case .breathing:
-                ControlTileButton(
-                    title: type.localizedName(language: appState.language),
-                    subtitleActive: I18n.localized("menu_shortcuts_launch", language: appState.language),
-                    subtitleInactive: I18n.localized("menu_shortcuts_launch", language: appState.language),
-                    iconEmoji: type.icon,
-                    isActive: false,
-                    action: { dismissMenu(); NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil) }
-                )
+        let descriptor = QuickToolActionResolver.descriptor(for: tool, appState: appState)
+        let launchSubtitle = I18n.localized("menu_shortcuts_launch", language: appState.language)
+
+        ControlTileButton(
+            title: descriptor.displayName,
+            subtitleActive: descriptor.state?.subtitle ?? launchSubtitle,
+            subtitleInactive: descriptor.state?.subtitle ?? launchSubtitle,
+            iconEmoji: descriptor.iconText ?? "🚀",
+            isActive: descriptor.state?.isActive ?? false,
+            action: {
+                if descriptor.behavior == .launch || descriptor.id != BuiltInToolType.keepAwake.rawValue {
+                    dismissMenu()
+                }
+                descriptor.execute()
             }
-        case .appShortcut(_, let name, let path, let bookmark):
-            ControlTileButton(
-                title: name,
-                subtitleActive: I18n.localized("menu_shortcuts_launch", language: appState.language),
-                subtitleInactive: I18n.localized("menu_shortcuts_launch", language: appState.language),
-                iconEmoji: "🚀",
-                isActive: false,
-                action: { dismissMenu(); launchApp(path: path, bookmark: bookmark) }
-            )
-        }
+        )
     }
 
     @ViewBuilder
     private func renderSmallToolTile(_ tool: QuickTool) -> some View {
+        let descriptor = QuickToolActionResolver.descriptor(for: tool, appState: appState)
+
         Button {
             dismissMenu()
-            switch tool {
-            case .builtIn(let type):
-                switch type {
-                case .keepAwake: appState.toggleKeepAwake()
-                case .keyboardCleaning: appState.toggleKeyboardCleaning()
-                case .screenCleaning: appState.toggleScreenCleaning()
-                case .memosQuickCapture: NotificationCenter.default.post(name: .toggleQuickMemoPanel, object: nil)
-                case .memosOpenBrowser: NotificationCenter.default.post(name: .toggleMemosBrowserWindow, object: nil)
-                case .breathing: NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil)
-                }
-            case .appShortcut(_, _, let path, let bookmark):
-                launchApp(path: path, bookmark: bookmark)
-            }
+            descriptor.execute()
         } label: {
             VStack {
-                if case .builtIn(let type) = tool {
-                    Text(type.icon).font(.title2)
-                } else if case .appShortcut(_, _, let path, _) = tool {
+                if let iconText = descriptor.iconText {
+                    Text(iconText).font(.title2)
+                } else if let path = descriptor.appPath {
                     AppIconView(path: path)
                 }
             }
             .frame(width: 44, height: 44)
             .background(Color.primary.opacity(0.06))
             .cornerRadius(8)
-        }
-        .buttonStyle(.plain)
-        .help(tool.displayName(language: appState.language))
-    }
-
-    private func launchApp(path: String, bookmark: Data?) {
-        var urlToLaunch = URL(fileURLWithPath: path)
-        var accessed = false
-        var resolvedUrl: URL?
-
-        if let bookmark = bookmark {
-            var isStale = false
-            if let resolved = try? URL(resolvingBookmarkData: bookmark, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale) {
-                accessed = resolved.startAccessingSecurityScopedResource()
-                urlToLaunch = resolved
-                resolvedUrl = resolved
-                if isStale {
-                    print("Bookmark for \(path) is stale")
+            .overlay(alignment: .topTrailing) {
+                if descriptor.state?.isActive == true {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                        .offset(x: -4, y: 4)
                 }
             }
         }
-        
-        NSWorkspace.shared.openApplication(at: urlToLaunch, configuration: NSWorkspace.OpenConfiguration()) { _, error in
-            if accessed {
-                resolvedUrl?.stopAccessingSecurityScopedResource()
-            }
-            if let error = error {
-                print("Failed to launch app: \(error.localizedDescription)")
-            }
-        }
+        .buttonStyle(.plain)
+        .help(descriptor.displayName)
     }
 
     private func dismissMenu() {

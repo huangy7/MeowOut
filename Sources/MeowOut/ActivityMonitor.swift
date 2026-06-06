@@ -33,6 +33,7 @@ final class ActivityMonitor {
                 appState.lastStatResetDate = now
                 appState.dailyLogs.removeAll()
                 appState.dailyLogs.append(SessionLog(startTime: now, phase: appState.currentState))
+                appState.todayEscapeCount = 0
             }
         } else {
             appState.lastStatResetDate = now
@@ -98,9 +99,7 @@ final class ActivityMonitor {
         if let sim = simulatedIdleTime {
             idle = sim
         } else {
-            let m = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .mouseMoved)
-            let k = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .keyDown)
-            idle = min(m, k)
+            idle = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: CGEventType(rawValue: UInt32.max)!)
         }
         
         if appState.currentState == .paused || appState.currentState == .breathing || appState.currentState == .overworking || appState.currentState == .resting {

@@ -1,5 +1,16 @@
 import SwiftUI
 
+enum BreathingVisualMetrics {
+    static let windowWidth: CGFloat = 320
+    static let windowHeight: CGFloat = 420
+    static let glowSize: CGFloat = 260
+    static let animationFrameSize: CGFloat = 240
+    static let breathingCircleSize: CGFloat = 164
+    static let horizontalPadding: CGFloat = 22
+    static let topPadding: CGFloat = 22
+    static let bottomPadding: CGFloat = 28
+}
+
 public struct BreathingView: View {
     @State private var state = BreathingState()
     @State private var controlsVisible: Bool = true
@@ -61,7 +72,7 @@ public struct BreathingView: View {
             // Ambient glow behind the circle
             Circle()
                 .fill(Color.orange.opacity(0.07))
-                .frame(width: 320, height: 320)
+                .frame(width: BreathingVisualMetrics.glowSize, height: BreathingVisualMetrics.glowSize)
                 .scaleEffect(circleScale * 1.5)
                 .animation(
                     state.isRunning ? .easeInOut(duration: animationDuration) : .default,
@@ -110,8 +121,8 @@ public struct BreathingView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 28)
-                .padding(.top, 24)
+                .padding(.horizontal, BreathingVisualMetrics.horizontalPadding)
+                .padding(.top, BreathingVisualMetrics.topPadding)
                 .opacity(controlsVisible ? 1 : 0)
                 .animation(.easeInOut(duration: 0.4), value: controlsVisible)
 
@@ -122,7 +133,7 @@ public struct BreathingView: View {
                     // Outer ring pulse
                     Circle()
                         .stroke(Color.orange.opacity(0.2), lineWidth: 1)
-                        .frame(width: 200, height: 200)
+                        .frame(width: BreathingVisualMetrics.breathingCircleSize, height: BreathingVisualMetrics.breathingCircleSize)
                         .scaleEffect(outerRingScale)
                         .opacity(outerRingOpacity)
                         .animation(
@@ -144,7 +155,7 @@ public struct BreathingView: View {
                             ),
                             lineWidth: 2
                         )
-                        .frame(width: 200, height: 200)
+                        .frame(width: BreathingVisualMetrics.breathingCircleSize, height: BreathingVisualMetrics.breathingCircleSize)
                         .scaleEffect(circleScale)
                         .animation(
                             state.isRunning ? .easeInOut(duration: animationDuration) : .default,
@@ -161,7 +172,7 @@ public struct BreathingView: View {
                                 endRadius: 100
                             )
                         )
-                        .frame(width: 200, height: 200)
+                        .frame(width: BreathingVisualMetrics.breathingCircleSize, height: BreathingVisualMetrics.breathingCircleSize)
                         .scaleEffect(circleScale)
                         .animation(
                             state.isRunning ? .easeInOut(duration: animationDuration) : .default,
@@ -183,7 +194,7 @@ public struct BreathingView: View {
                     }
                     .animation(.easeInOut(duration: 0.3), value: phaseLabel)
                 }
-                .frame(width: 300, height: 300)
+                .frame(width: BreathingVisualMetrics.animationFrameSize, height: BreathingVisualMetrics.animationFrameSize)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     // Tap to toggle controls visibility
@@ -212,12 +223,12 @@ public struct BreathingView: View {
                         .buttonStyle(BreathingButtonStyle(isProminent: true))
                     }
                 }
-                .padding(.bottom, 36)
+                .padding(.bottom, BreathingVisualMetrics.bottomPadding)
                 .opacity(controlsVisible ? 1 : 0)
                 .animation(.easeInOut(duration: 0.4), value: controlsVisible)
             }
         }
-        .frame(minWidth: 340, minHeight: 480)
+        .frame(width: BreathingVisualMetrics.windowWidth, height: BreathingVisualMetrics.windowHeight)
         .colorScheme(.dark)
         .background(
             WindowAccessor { window in
@@ -341,4 +352,3 @@ struct WindowAccessor: NSViewRepresentable {
         }
     }
 }
-

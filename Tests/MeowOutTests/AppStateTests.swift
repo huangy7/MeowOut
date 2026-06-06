@@ -120,4 +120,27 @@ final class AppStateTests: XCTestCase {
         state.isScreenCleaningActive = true
         XCTAssertTrue(state.isScreenCleaningActive)
     }
+
+    @MainActor
+    func testLauncherTriggerModeDefaultsToKeyboardShortcut() {
+        UserDefaults.standard.removeObject(forKey: "launcherTriggerMode")
+        let state = AppState()
+        XCTAssertEqual(state.launcherTriggerMode, .keyboardShortcut)
+    }
+
+    @MainActor
+    func testLauncherTriggerModePersists() {
+        UserDefaults.standard.removeObject(forKey: "launcherTriggerMode")
+        let state = AppState()
+
+        state.launcherEnabled = false
+        state.launcherTriggerMode = .advancedModifier
+
+        let restored = AppState()
+        XCTAssertEqual(restored.launcherTriggerMode, .advancedModifier)
+
+        LauncherTriggerService.shared.stop()
+        UserDefaults.standard.removeObject(forKey: "launcherEnabled")
+        UserDefaults.standard.removeObject(forKey: "launcherTriggerMode")
+    }
 }

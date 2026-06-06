@@ -42,6 +42,9 @@ public struct SessionLog: Identifiable, Equatable {
 
 @Observable
 public final class AppState {
+    @ObservationIgnored
+    private static var isLauncherShortcutHandlerRegistered = false
+
     public enum PetType: String, CaseIterable, Identifiable {
         case clawd = "Clawd"
         case robot = "Robot"
@@ -71,6 +74,39 @@ public final class AppState {
         case memosDefaultTags
         case memosDefaultVisibility
         case memosTagHistory
+        case launcherEnabled
+        case launcherTriggerMode
+        case launcherTriggerKey
+        case launcherDoubleClickToActivate
+        case launcherClickToLaunch
+        case launcherLongPressDelay
+        case launcherRingsData
+        case currentLauncherRingIndex
+        case todayEscapeCount
+    }
+
+    public enum LauncherTriggerMode: String, Codable, CaseIterable, Identifiable {
+        case keyboardShortcut
+        case advancedModifier
+
+        public var id: String { rawValue }
+    }
+
+    public enum LauncherTriggerModifier: Int, Codable, CaseIterable, Identifiable {
+        case option = 0
+        case command = 1
+        case shift = 2
+        case control = 3
+
+        public var id: Int { rawValue }
+        public var displayName: String {
+            switch self {
+            case .option: return "⌥ Option"
+            case .command: return "⌘ Command"
+            case .shift: return "⇧ Shift"
+            case .control: return "⌃ Control"
+            }
+        }
     }
 
     public enum AppLanguage: String, CaseIterable, Identifiable {
@@ -200,6 +236,7 @@ public final class AppState {
         }
     }
 
+    @MainActor
     public func initializeKeyboardShortcuts() {
         if keyDropEnabled {
             KeyboardShortcuts.onKeyDown(for: .togglePanel) {
@@ -214,6 +251,7 @@ public final class AppState {
         KeyboardShortcuts.onKeyDown(for: .toggleMemosBrowserWindow) {
             NotificationCenter.default.post(name: .toggleMemosBrowserWindow, object: nil)
         }
+        configureLauncherTriggerMode()
     }
 
     // MARK: - Memos
@@ -441,6 +479,151 @@ public final class AppState {
         }
     }
 
+    public var todayEscapeCount: Int {
+        get {
+            access(keyPath: \.todayEscapeCount)
+            return UserDefaults.standard.integer(forKey: Keys.todayEscapeCount.rawValue)
+        }
+        set {
+            withMutation(keyPath: \.todayEscapeCount) {
+                UserDefaults.standard.set(newValue, forKey: Keys.todayEscapeCount.rawValue)
+            }
+        }
+    }
+
+    @MainActor
+    public var launcherEnabled: Bool {
+        get {
+            access(keyPath: \.launcherEnabled)
+            return UserDefaults.standard.object(forKey: Keys.launcherEnabled.rawValue) as? Bool ?? true
+        }
+        set {
+            withMutation(keyPath: \.launcherEnabled) {
+                UserDefaults.standard.set(newValue, forKey: Keys.launcherEnabled.rawValue)
+                configureLauncherTriggerMode()
+            }
+        }
+    }
+
+    @MainActor
+    public var launcherTriggerMode: LauncherTriggerMode {
+        get {
+            access(keyPath: \.launcherTriggerMode)
+            let rawValue = UserDefaults.standard.string(forKey: Keys.launcherTriggerMode.rawValue)
+            return LauncherTriggerMode(rawValue: rawValue ?? "") ?? .keyboardShortcut
+        }
+        set {
+            withMutation(keyPath: \.launcherTriggerMode) {
+                UserDefaults.standard.set(newValue.rawValue, forKey: Keys.launcherTriggerMode.rawValue)
+                configureLauncherTriggerMode()
+            }
+        }
+    }
+
+    @MainActor
+    public func configureLauncherTriggerMode() {
+        LauncherTriggerService.shared.setAppState(self)
+
+        guard launcherEnabled else {
+            KeyboardShortcuts.disable(.toggleLauncher)
+            LauncherTriggerService.shared.stop()
+            return
+        }
+
+        switch launcherTriggerMode {
+        case .keyboardShortcut:
+            LauncherTriggerService.shared.stop()
+            if !Self.isLauncherShortcutHandlerRegistered {
+                KeyboardShortcuts.onKeyDown(for: .toggleLauncher) {
+                    Task { @MainActor in
+                        LauncherTriggerService.shared.toggleLauncher()
+                    }
+                }
+                Self.isLauncherShortcutHandlerRegistered = true
+            }
+            KeyboardShortcuts.enable(.toggleLauncher)
+        case .advancedModifier:
+            KeyboardShortcuts.disable(.toggleLauncher)
+            LauncherTriggerService.shared.start(appState: self)
+        }
+    }
+
+    public var launcherTriggerKey: LauncherTriggerModifier {
+        get {
+            access(keyPath: \.launcherTriggerKey)
+            let val = UserDefaults.standard.integer(forKey: Keys.launcherTriggerKey.rawValue)
+            return LauncherTriggerModifier(rawValue: val) ?? .option
+        }
+        set {
+            withMutation(keyPath: \.launcherTriggerKey) {
+                UserDefaults.standard.set(newValue.rawValue, forKey: Keys.launcherTriggerKey.rawValue)
+            }
+        }
+    }
+
+    public var launcherDoubleClickToActivate: Bool {
+        get {
+            access(keyPath: \.launcherDoubleClickToActivate)
+            return UserDefaults.standard.object(forKey: Keys.launcherDoubleClickToActivate.rawValue) as? Bool ?? false
+        }
+        set {
+            withMutation(keyPath: \.launcherDoubleClickToActivate) {
+                UserDefaults.standard.set(newValue, forKey: Keys.launcherDoubleClickToActivate.rawValue)
+            }
+        }
+    }
+
+    public var launcherClickToLaunch: Bool {
+        get {
+            access(keyPath: \.launcherClickToLaunch)
+            return UserDefaults.standard.object(forKey: Keys.launcherClickToLaunch.rawValue) as? Bool ?? true
+        }
+        set {
+            withMutation(keyPath: \.launcherClickToLaunch) {
+                UserDefaults.standard.set(newValue, forKey: Keys.launcherClickToLaunch.rawValue)
+            }
+        }
+    }
+
+    public var launcherLongPressDelay: Double {
+        get {
+            access(keyPath: \.launcherLongPressDelay)
+            let val = UserDefaults.standard.double(forKey: Keys.launcherLongPressDelay.rawValue)
+            return val != 0 ? val : 0.15
+        }
+        set {
+            withMutation(keyPath: \.launcherLongPressDelay) {
+                UserDefaults.standard.set(newValue, forKey: Keys.launcherLongPressDelay.rawValue)
+            }
+        }
+    }
+
+    public var currentLauncherRingIndex: Int {
+        get {
+            access(keyPath: \.currentLauncherRingIndex)
+            return UserDefaults.standard.integer(forKey: Keys.currentLauncherRingIndex.rawValue)
+        }
+        set {
+            withMutation(keyPath: \.currentLauncherRingIndex) {
+                UserDefaults.standard.set(newValue, forKey: Keys.currentLauncherRingIndex.rawValue)
+            }
+        }
+    }
+
+    @ObservationIgnored
+    private var launcherRingsData: Data {
+        get { UserDefaults.standard.data(forKey: Keys.launcherRingsData.rawValue) ?? Data() }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.launcherRingsData.rawValue) }
+    }
+
+    public var launcherRings: [LauncherRing] = [] {
+        didSet {
+            if let encoded = try? JSONEncoder().encode(launcherRings) {
+                launcherRingsData = encoded
+            }
+        }
+    }
+
     public var lastWaterResetDate: Date? {
         get { UserDefaults.standard.object(forKey: Keys.lastWaterResetDate.rawValue) as? Date }
         set { UserDefaults.standard.set(newValue, forKey: Keys.lastWaterResetDate.rawValue) }
@@ -529,6 +712,7 @@ public final class AppState {
     public init() {
         dailyLogs.append(SessionLog(phase: currentState))
         loadQuickTools()
+        loadLauncherRings()
     }
 
     @ObservationIgnored
@@ -550,6 +734,21 @@ public final class AppState {
             quickTools = decoded
         } else {
             quickTools = [.builtIn(.keepAwake), .builtIn(.keyboardCleaning), .builtIn(.screenCleaning)]
+        }
+    }
+
+    public func loadLauncherRings() {
+        if let decoded = try? JSONDecoder().decode([LauncherRing].self, from: launcherRingsData) {
+            launcherRings = decoded.map { ring in
+                LauncherRing(id: ring.id, name: ring.name, tools: ring.tools)
+            }
+        } else {
+            let defaultTools: [QuickTool] = [
+                .builtIn(.keepAwake),
+                .builtIn(.keyboardCleaning),
+                .builtIn(.screenCleaning)
+            ]
+            launcherRings = [LauncherRing(name: "Ring 1", tools: defaultTools)]
         }
     }
 

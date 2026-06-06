@@ -31,7 +31,7 @@ struct TodayReviewView: View {
     }
 
     private var totalRestDuration: TimeInterval {
-        processedLogs.filter { $0.phase == .resting }.reduce(0) { $0 + logDuration($1) }
+        processedLogs.filter { $0.phase == .resting || $0.phase == .breathing }.reduce(0) { $0 + logDuration($1) }
     }
 
     private var totalOverworkingDuration: TimeInterval {
@@ -84,8 +84,31 @@ struct TodayReviewView: View {
                         summaryRow(title: I18n.localized("log_duration_working", language: state.language), duration: totalWorkDuration, color: .blue)
                         summaryRow(title: I18n.localized("log_duration_overworking", language: state.language), duration: totalOverworkingDuration, color: .red)
                         summaryRow(title: I18n.localized("log_duration_resting", language: state.language), duration: totalRestDuration, color: .green)
-                        summaryRow(title: I18n.localized("log_duration_breathing", language: state.language), duration: totalBreathingDuration, color: .teal)
+                        
+                        if totalBreathingDuration > 0 {
+                            HStack {
+                                Text("↳ " + I18n.localized("log_duration_breathing", language: state.language))
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                                    .padding(.leading, 16)
+                                Spacer()
+                                Text(format(duration: totalBreathingDuration))
+                                    .font(.system(.body, design: .monospaced).bold())
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
                         summaryRow(title: I18n.localized("log_duration_idle", language: state.language), duration: totalIdleDuration, color: .gray)
+                        
+                        if state.todayEscapeCount > 0 {
+                            HStack {
+                                legendItem(color: .orange, text: I18n.localized("log_skipped_rests", language: state.language))
+                                    .font(.body)
+                                Spacer()
+                                Text("\(state.todayEscapeCount) \(I18n.localized("unit_times", language: state.language))")
+                                    .font(.system(.body, design: .monospaced).bold())
+                            }
+                        }
                     }
                     .padding()
                     .background(Color(NSColor.controlBackgroundColor))

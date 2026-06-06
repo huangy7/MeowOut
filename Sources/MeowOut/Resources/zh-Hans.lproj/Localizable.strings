@@ -186,6 +186,8 @@
 "log_no_records" = "暂无记录";
 "unit_hours_label" = "小时";
 "unit_minutes_label" = "分钟";
+"log_skipped_rests" = "跳过休息";
+"unit_times" = "次";
 
 /* KeyDrop Settings & Dialogue */
 "settings_tab_keydrop" = "常用语";
@@ -343,3 +345,32 @@
 "memos_error_generic" = "保存失败，请稍后重试";
 "memos_action_paste_image" = "粘贴剪贴板图片";
 "memos_error_upload_failed" = "上传图片失败: %@";
+
+/* Launcher Settings */
+"launcher_settings_title" = "快捷启动器设置";
+"launcher_trigger_enable" = "启用快捷启动器";
+"launcher_trigger_custom" = "使用自定义触发键";
+"launcher_trigger_advanced" = "高级修饰键触发 (单键/长按/双击)";
+"launcher_trigger_traditional" = "组合快捷键触发 (无须辅助权限)";
+"launcher_trigger_mode_shortcut" = "组合快捷键";
+"launcher_trigger_mode_advanced" = "高级修饰键";
+"launcher_ring_empty" = "当前圆环未配置操作";
+"launcher_trigger_key" = "触发键";
+"launcher_trigger_double_click" = "双击触发键激活";
+"launcher_trigger_double_click_desc" = "开启后，需先点按一次，再第二次按住到设定时长";
+"launcher_click_to_launch" = "点击启动";
+"launcher_click_to_launch_desc" = "开启后松开触发键圆环保留，关闭后松手执行悬停项";
+"launcher_long_press_delay" = "长按触发时长";
+"launcher_scroll_switch_tip" = "💡 触发后，可以使用鼠标滚轮在多个圆环之间进行无缝切换。";
+"launcher_ring_editor_title" = "圆环布局配置";
+"launcher_ring_actions_empty" = "当前圆环还没有动作";
+"launcher_ring_actions_limit" = "每个圆环最多支持 8 个动作。";
+"launcher_ring_add_action" = "添加动作";
+"launcher_delete_ring" = "🗑 删除此圆环";
+"launcher_rename_ring" = "重命名圆环";
+"launcher_rename_ring_placeholder" = "请输入新的圆环名称";
+"launcher_requires_accessibility_tip" = "在其他应用中全局唤起圆环需要开启辅助功能权限。";
+"accessibility_lost_title" = "辅助功能权限已丢失";
+"accessibility_lost_desc" = "快捷启动器的高级修饰键触发依赖辅助功能权限，权限丢失后全局触发将无法工作。请在系统设置中重新授权。";
+"accessibility_lost_open_btn" = "打开系统设置";
+"accessibility_lost_cancel_btn" = "取消";

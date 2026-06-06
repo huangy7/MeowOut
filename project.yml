@@ -29,6 +29,11 @@ targets:
       - package: KeyboardShortcuts
       - package: MarkdownUI
       - target: MemosKit
+    preBuildScripts:
+      - name: Generate GitCommit
+        script: |
+          COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+          echo "public let currentGitCommit = \"$COMMIT_HASH\"" > Sources/MeowOut/GitCommit.swift
     settings:
       LSUIElement: true
       GENERATE_INFOPLIST_FILE: NO

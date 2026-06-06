@@ -47,6 +47,7 @@ public final class EscapeHatch {
         // Only reset work timer when escaping from forced rest, not from alerting warning
         if appState.currentState == .resting || appState.currentState == .overworking {
             appState.workElapsed = 0
+            appState.todayEscapeCount += 1
         }
         appState.currentState = .working
         escPresses.removeAll()

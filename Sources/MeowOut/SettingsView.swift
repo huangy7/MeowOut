@@ -346,7 +346,7 @@ struct SettingsView: View {
                     icon: "info.circle",
                     iconColor: .secondary,
                     title: I18n.localizedFormat("settings_version", language: state.language, version),
-                    description: "v\(version)"
+                    description: "v\(version) (\(currentGitCommit))"
                 ) {
                     Text(I18n.localized("settings_about_description", language: state.language))
                         .font(.caption)
@@ -775,15 +775,50 @@ struct MarkdownReleaseNotesView: View {
 
 struct QuickActionsSettingsView: View {
     @Bindable var state: AppState
-    @State private var showingBuiltInOptions = false
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Card 1: Original Quick Actions Menu Settings
+            SettingsCard(
+                icon: "bolt.fill",
+                iconColor: .orange,
+                title: I18n.localized("menu_quick_actions", language: state.language),
+                description: I18n.localized("quick_actions_settings_desc", language: state.language)
+            ) {
+                QuickActionsListEditor(state: state)
+            }
+            
+            // Card 2: Launcher Trigger Settings
+            SettingsCard(
+                icon: "keyboard",
+                iconColor: .blue,
+                title: I18n.localized("launcher_settings_title", language: state.language),
+                description: nil
+            ) {
+                LauncherTriggerSettingsView(state: state)
+            }
+            
+            // Card 3: Launcher Rings Layout Config
+            if state.launcherEnabled {
+                SettingsCard(
+                    icon: "circle.circle",
+                    iconColor: .purple,
+                    title: I18n.localized("launcher_ring_editor_title", language: state.language),
+                    description: nil
+                ) {
+                    LauncherRingsEditorView(state: state)
+                }
+            }
+        }
+    }
+}
 
+struct QuickActionsListEditor: View {
+    @Bindable var state: AppState
+    @State private var showingBuiltInOptions = false
+    
     var body: some View {
         VStack(alignment: .leading) {
-            Text(I18n.localized("quick_actions_settings_desc", language: state.language))
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .padding(.bottom, 4)
-
             List {
                 ForEach(Array(state.quickTools.enumerated()), id: \.element.id) { index, tool in
                     HStack {
@@ -811,7 +846,7 @@ struct QuickActionsSettingsView: View {
                 .onDelete(perform: deleteTool)
             }
             .listStyle(.inset(alternatesRowBackgrounds: true))
-            .frame(minHeight: 200)
+            .frame(minHeight: 150)
 
             HStack {
                 Button(action: addExternalApp) {
@@ -831,9 +866,8 @@ struct QuickActionsSettingsView: View {
                     }.padding()
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, 4)
         }
-        .padding()
     }
 
     private func moveTool(from source: IndexSet, to destination: Int) {
@@ -866,6 +900,413 @@ struct QuickActionsSettingsView: View {
                 
                 let newTool = QuickTool.appShortcut(id: UUID(), name: name, path: path, bookmarkData: bookmarkData)
                 state.quickTools.append(newTool)
+            }
+        }
+    }
+}
+
+struct LauncherTriggerSettingsView: View {
+    @Bindable var state: AppState
+    @State private var isAccessibilityTrusted = AXIsProcessTrusted()
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle(I18n.localized("launcher_trigger_enable", language: state.language), isOn: $state.launcherEnabled)
+                .toggleStyle(.switch)
+            
+            if state.launcherEnabled {
+                
+                Divider().padding(.vertical, 4)
+                
+                Picker("", selection: $state.launcherTriggerMode) {
+                    Text(I18n.localized("launcher_trigger_mode_shortcut", language: state.language))
+                        .tag(AppState.LauncherTriggerMode.keyboardShortcut)
+                    Text(I18n.localized("launcher_trigger_mode_advanced", language: state.language))
+                        .tag(AppState.LauncherTriggerMode.advancedModifier)
+                }
+                .pickerStyle(.segmented)
+
+                if state.launcherTriggerMode == .advancedModifier {
+                    advancedModifierSettings
+                } else {
+                    HStack {
+                        Text(I18n.localized("launcher_trigger_key", language: state.language))
+                            .font(.system(size: 12))
+                        Spacer()
+                        KeyboardShortcuts.Recorder(for: .toggleLauncher)
+                    }
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willBecomeActiveNotification)) { _ in
+            isAccessibilityTrusted = AXIsProcessTrusted()
+        }
+    }
+
+    @ViewBuilder
+    private var advancedModifierSettings: some View {
+        if !isAccessibilityTrusted {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+                Text(I18n.localized("launcher_requires_accessibility_tip", language: state.language))
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                Spacer()
+                Button(action: {
+                    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+                    _ = AXIsProcessTrustedWithOptions(options)
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }) {
+                    Text(I18n.localized("accessibility_auth_btn", language: state.language))
+                        .font(.system(size: 11, weight: .semibold))
+                }
+            }
+            .padding(8)
+            .background(Color.orange.opacity(0.1))
+            .cornerRadius(6)
+        }
+
+        HStack {
+            Text(I18n.localized("launcher_trigger_key", language: state.language))
+                .font(.system(size: 12))
+            Spacer()
+            Picker("", selection: $state.launcherTriggerKey) {
+                ForEach(AppState.LauncherTriggerModifier.allCases) { modifier in
+                    Text(modifier.displayName).tag(modifier)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(width: 140)
+        }
+
+        Toggle(isOn: $state.launcherDoubleClickToActivate) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(I18n.localized("launcher_trigger_double_click", language: state.language))
+                    .font(.system(size: 12))
+                Text(I18n.localized("launcher_trigger_double_click_desc", language: state.language))
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .toggleStyle(.switch)
+
+        Toggle(isOn: $state.launcherClickToLaunch) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(I18n.localized("launcher_click_to_launch", language: state.language))
+                    .font(.system(size: 12))
+                Text(I18n.localized("launcher_click_to_launch_desc", language: state.language))
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .toggleStyle(.switch)
+
+        VStack(alignment: .trailing, spacing: 4) {
+            HStack {
+                Text(I18n.localized("launcher_long_press_delay", language: state.language))
+                    .font(.system(size: 12))
+                Spacer()
+                Text(String(format: "%.2fs", state.launcherLongPressDelay))
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundColor(.orange)
+            }
+            Slider(value: $state.launcherLongPressDelay, in: 0.05...2.00, step: 0.05)
+        }
+    }
+}
+
+struct LauncherRingsEditorView: View {
+    @Bindable var state: AppState
+    
+    @State private var selectedRingId: UUID? = nil
+    @State private var showingAddActionPopover = false
+    @State private var isEditingName = false
+    @State private var newRingName = ""
+    
+    private var currentSelectedRingId: UUID? {
+        selectedRingId ?? state.launcherRings.first?.id
+    }
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            Text(I18n.localized("launcher_scroll_switch_tip", language: state.language))
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // Ring Tab List
+            HStack {
+                ForEach(state.launcherRings) { ring in
+                    Button(action: {
+                        selectedRingId = ring.id
+                    }) {
+                        Text(ring.name)
+                            .font(.system(size: 11, weight: .medium))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(currentSelectedRingId == ring.id ? Color.accentColor.opacity(0.15) : Color.primary.opacity(0.05))
+                            .cornerRadius(6)
+                            .foregroundColor(currentSelectedRingId == ring.id ? .accentColor : .primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                
+                Button(action: {
+                    addNewRing()
+                }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 11, weight: .bold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.primary.opacity(0.05))
+                        .cornerRadius(6)
+                        .foregroundColor(.accentColor)
+                }
+                .buttonStyle(.plain)
+                
+                Spacer()
+            }
+            .onAppear {
+                if selectedRingId == nil, let first = state.launcherRings.first {
+                    selectedRingId = first.id
+                }
+            }
+            
+            if let activeId = currentSelectedRingId,
+               let activeRing = state.launcherRings.first(where: { $0.id == activeId }) {
+                VStack(spacing: 12) {
+                    // Editable Name
+                    HStack(spacing: 8) {
+                        if isEditingName {
+                            TextField(I18n.localized("launcher_rename_ring_placeholder", language: state.language), text: $newRingName, onCommit: {
+                                if !newRingName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    renameRing(id: activeRing.id, to: newRingName)
+                                }
+                                isEditingName = false
+                            })
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 150)
+                            
+                            Button(I18n.localized("memos_action_save", language: state.language)) {
+                                if !newRingName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    renameRing(id: activeRing.id, to: newRingName)
+                                }
+                                isEditingName = false
+                            }
+                            .buttonStyle(.borderedProminent)
+                        } else {
+                            Text(activeRing.name)
+                                .font(.system(size: 13, weight: .bold))
+                            
+                            Button(action: {
+                                newRingName = activeRing.name
+                                isEditingName = true
+                            }) {
+                                Image(systemName: "pencil")
+                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 10))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.top, 4)
+                    
+                    VStack(alignment: .leading, spacing: 10) {
+                        if activeRing.tools.isEmpty {
+                            Text(I18n.localized("launcher_ring_actions_empty", language: state.language))
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 12)
+                        } else {
+                            List {
+                                ForEach(Array(activeRing.tools.enumerated()), id: \.offset) { index, tool in
+                                    HStack(spacing: 8) {
+                                        Text("\(index + 1)")
+                                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                            .foregroundColor(.secondary)
+                                            .frame(width: 18)
+                                        
+                                        if case .builtIn(let type) = tool {
+                                            Text(type.icon)
+                                            Text(type.localizedName(language: state.language))
+                                        } else if case .appShortcut(_, let name, let path, _) = tool {
+                                            AppIconView(path: path)
+                                            Text(name)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Button(action: {
+                                            removeTool(from: activeRing.id, at: index)
+                                        }) {
+                                            Image(systemName: "minus.circle.fill")
+                                                .foregroundColor(.red.opacity(0.8))
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                                .onMove { source, destination in
+                                    moveTool(in: activeRing.id, from: source, to: destination)
+                                }
+                            }
+                            .listStyle(.inset(alternatesRowBackgrounds: true))
+                            .frame(minHeight: 120)
+                        }
+                        
+                        HStack {
+                            Button(action: {
+                                showingAddActionPopover = true
+                            }) {
+                                Label(I18n.localized("launcher_ring_add_action", language: state.language), systemImage: "plus.circle")
+                            }
+                            .disabled(activeRing.tools.count >= LauncherRing.maxTools)
+                            .popover(isPresented: $showingAddActionPopover) {
+                                popoverToolList(for: activeRing.id)
+                            }
+                            
+                            if activeRing.tools.count >= LauncherRing.maxTools {
+                                Text(I18n.localized("launcher_ring_actions_limit", language: state.language))
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                        }
+                        
+                        if state.launcherRings.count > 1 {
+                            Button(action: {
+                                deleteRing(id: activeRing.id)
+                            }) {
+                                Text(I18n.localized("launcher_delete_ring", language: state.language))
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.red)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.red.opacity(0.1))
+                                    .cornerRadius(6)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func addNewRing() {
+        let newRing = LauncherRing(name: "Ring \(state.launcherRings.count + 1)")
+        state.launcherRings.append(newRing)
+        selectedRingId = newRing.id
+    }
+    
+    private func deleteRing(id: UUID) {
+        if let idx = state.launcherRings.firstIndex(where: { $0.id == id }) {
+            state.launcherRings.remove(at: idx)
+            if let first = state.launcherRings.first {
+                selectedRingId = first.id
+            }
+        }
+    }
+    
+    private func renameRing(id: UUID, to name: String) {
+        if let idx = state.launcherRings.firstIndex(where: { $0.id == id }) {
+            state.launcherRings[idx].name = name
+        }
+    }
+    
+    @ViewBuilder
+    private func popoverToolList(for ringId: UUID) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(I18n.localized("launcher_ring_add_action", language: state.language))
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 4)
+                
+                ForEach(state.quickTools) { tool in
+                    Button(action: {
+                        appendTool(tool, to: ringId)
+                    }) {
+                        HStack {
+                            if case .builtIn(let type) = tool {
+                                Text("\(type.icon) \(type.localizedName(language: state.language))")
+                            } else if case .appShortcut(_, let name, _, _) = tool {
+                                Text("🚀 \(name)")
+                            }
+                            Spacer()
+                        }
+                        .font(.system(size: 11))
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                }
+                
+                Divider()
+                
+                Button(action: {
+                    addExternalApp(to: ringId)
+                }) {
+                    HStack {
+                        Text("➕ \(I18n.localized("quick_actions_add_app", language: state.language))")
+                        Spacer()
+                    }
+                    .font(.system(size: 11))
+                    .foregroundColor(.accentColor)
+                    .padding(.vertical, 4)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(10)
+            .frame(width: 180)
+        }
+        .frame(maxHeight: 240)
+    }
+    
+    private func appendTool(_ tool: QuickTool, to ringId: UUID) {
+        guard let idx = state.launcherRings.firstIndex(where: { $0.id == ringId }) else { return }
+        guard state.launcherRings[idx].tools.count < LauncherRing.maxTools else { return }
+        state.launcherRings[idx].tools.append(tool)
+        showingAddActionPopover = false
+    }
+    
+    private func removeTool(from ringId: UUID, at index: Int) {
+        guard let idx = state.launcherRings.firstIndex(where: { $0.id == ringId }) else { return }
+        guard state.launcherRings[idx].tools.indices.contains(index) else { return }
+        state.launcherRings[idx].tools.remove(at: index)
+    }
+    
+    private func moveTool(in ringId: UUID, from source: IndexSet, to destination: Int) {
+        guard let idx = state.launcherRings.firstIndex(where: { $0.id == ringId }) else { return }
+        state.launcherRings[idx].tools.move(fromOffsets: source, toOffset: destination)
+    }
+    
+    private func addExternalApp(to ringId: UUID) {
+        showingAddActionPopover = false
+        
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowedContentTypes = [.application]
+        panel.allowsMultipleSelection = false
+        
+        panel.begin { response in
+            if response == .OK, let url = panel.url {
+                let name = url.deletingPathExtension().lastPathComponent
+                let path = url.path
+                let bookmarkData = try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+                
+                let newTool = QuickTool.appShortcut(id: UUID(), name: name, path: path, bookmarkData: bookmarkData)
+                
+                Task { @MainActor in
+                    appendTool(newTool, to: ringId)
+                }
             }
         }
     }

@@ -185,6 +185,8 @@
 "log_no_records" = "No records yet";
 "unit_hours_label" = "hours";
 "unit_minutes_label" = "minutes";
+"log_skipped_rests" = "Skipped Rests";
+"unit_times" = "times";
 
 /* KeyDrop Settings & Dialogue */
 "settings_tab_keydrop" = "Snippets";
@@ -342,3 +344,32 @@
 "memos_error_generic" = "Save failed, please try again later";
 "memos_action_paste_image" = "Paste Clipboard Image";
 "memos_error_upload_failed" = "Failed to upload image: %@";
+
+/* Launcher Settings */
+"launcher_settings_title" = "Launcher Settings";
+"launcher_trigger_enable" = "Enable Launcher";
+"launcher_trigger_custom" = "Use Custom Trigger Key";
+"launcher_trigger_advanced" = "Use Advanced Modifier Trigger";
+"launcher_trigger_traditional" = "Use Traditional Global Shortcut";
+"launcher_trigger_mode_shortcut" = "Shortcut";
+"launcher_trigger_mode_advanced" = "Advanced";
+"launcher_ring_empty" = "No actions configured";
+"launcher_trigger_key" = "Trigger Key";
+"launcher_trigger_double_click" = "Double Click to Activate";
+"launcher_trigger_double_click_desc" = "Tap once, then hold the second press for the configured duration";
+"launcher_click_to_launch" = "Click to Launch";
+"launcher_click_to_launch_desc" = "On: keep ring open after release. Off: release launches hovered item.";
+"launcher_long_press_delay" = "Long Press Duration";
+"launcher_scroll_switch_tip" = "💡 After triggering, you can use the mouse scroll wheel to seamlessly switch between multiple rings.";
+"launcher_ring_editor_title" = "Ring Layout Configuration";
+"launcher_ring_actions_empty" = "No actions in this ring";
+"launcher_ring_actions_limit" = "Each ring supports up to 8 actions.";
+"launcher_ring_add_action" = "Add Action";
+"launcher_delete_ring" = "🗑 Delete This Ring";
+"launcher_rename_ring" = "Rename Ring";
+"launcher_rename_ring_placeholder" = "Please enter a new name";
+"launcher_requires_accessibility_tip" = "Global trigger requires Accessibility permission.";
+"accessibility_lost_title" = "Accessibility Permission Lost";
+"accessibility_lost_desc" = "The quick launcher's advanced modifier trigger requires Accessibility permission. Please re-enable it in System Settings.";
+"accessibility_lost_open_btn" = "Open System Settings";
+"accessibility_lost_cancel_btn" = "Cancel";
