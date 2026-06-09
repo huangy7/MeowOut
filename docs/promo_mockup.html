@@ -181,6 +181,33 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
 .kp-txt { position: absolute; font-family: 'Fira Code', monospace; font-size: 22px; font-weight: 700; animation: floatKey 0.9s ease-out forwards; pointer-events: none; }
 @keyframes floatKey { 0% { opacity: 1; transform: scale(0.8) translateY(0); } 100% { opacity: 0; transform: scale(1.4) translateY(-90px); } }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+.util-mini-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; padding: 0 4px; }
+.util-mini-btn { background: rgba(0,0,0,0.06); border-radius: 10px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: background 0.14s; }
+.util-mini-btn:hover { background: rgba(0,0,0,0.1); }
+.collapse-btn { text-align: center; font-size: 10px; font-weight: 600; color: #1d1d1f; cursor: pointer; padding: 6px 0; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.win-2fa { width: 340px; height: 500px; left: 100px; top: 120px; background: linear-gradient(135deg, #eaf4fc 0%, #f7eafc 100%); border: 0.5px solid rgba(0,0,0,0.1); display: none; }
+.win-2fa.show { display: flex; }
+.win-2fa .titlebar { background: transparent; border: none; padding-top: 8px; }
+.tfa-header { padding: 4px 18px 12px; display: flex; justify-content: space-between; align-items: center; }
+.tfa-title { font-size: 20px; font-weight: 800; color: #1d1d1f; }
+.tfa-actions { display: flex; gap: 8px; }
+.tfa-btn { width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: background 0.15s; }
+.tfa-btn:hover { background: rgba(0,0,0,0.1); }
+.tfa-search-wrap { padding: 0 18px 16px; }
+.tfa-search { background: rgba(0,0,0,0.04); border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; color: #86868b; }
+.tfa-search input { border: none; background: transparent; font-size: 13px; font-family: 'Outfit', sans-serif; outline: none; width: 100%; color: #1d1d1f; }
+.tfa-list { flex: 1; overflow-y: auto; padding: 0 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+.tfa-card { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.15s, background 0.15s; }
+.tfa-card:hover { transform: translateY(-1px); background: rgba(255,255,255,0.85); }
+.tfa-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0; }
+.tfa-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.tfa-issuer { font-size: 11px; font-weight: 600; color: #86868b; }
+.tfa-code { font-size: 22px; font-weight: 700; font-family: 'Fira Code', monospace; color: #4b4b4b; letter-spacing: 1px; }
+.tfa-timer { width: 22px; height: 22px; flex-shrink: 0; position: relative; }
+.tfa-timer svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.tfa-timer circle { fill: none; stroke-width: 3.5; }
+.tfa-timer .bg { stroke: rgba(0,0,0,0.08); }
+.tfa-timer .fg { stroke: #0071e3; stroke-dasharray: 53.4; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
 </style>
 </head>
 <body>
@@ -248,18 +275,24 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
           <span class="util-name">防休眠</span>
           <span class="util-status" id="status-caffeine">关闭</span>
         </div>
-        <div class="util-card" id="card-clean">
-          <span class="util-icon">&#x2328;</span>
-          <span class="util-name">键盘清洁</span>
-          <span class="util-status">关闭</span>
+        <div class="util-card" id="card-2fa">
+          <span class="util-icon">&#x1F511;</span>
+          <span class="util-name">两步验证</span>
+          <span class="util-status">点击启动</span>
         </div>
       </div>
-      <div class="pop-divider"></div>
-      <div class="pop-list-item" id="pop-breath"><span class="left">&#x1F9D8; &nbsp;正念练习</span><span class="chevron">&#x203A;</span></div>
-      <div class="pop-list-item" id="pop-stats"><span class="left">&#x1F4CA; &nbsp;统计</span><span class="chevron">&#x203A;</span></div>
+      <div class="collapse-btn" id="btn-collapse"><span>&#x2303;</span> 收起</div>
+      <div class="util-mini-grid" id="mini-grid">
+        <div class="util-mini-btn" id="card-clean">&#x2328;</div>
+        <div class="util-mini-btn">&#x2728;</div>
+        <div class="util-mini-btn">&#x1F4C8;</div>
+        <div class="util-mini-btn" style="background:#1d1d1f; color:#ffcc00; font-family:monospace; font-size:10px; font-weight:bold;">>_</div>
+        <div class="util-mini-btn">&#x1F522;</div>
+      </div>
+      <div class="pop-divider" style="margin-top:10px;"></div>
       <div class="pop-list-item" id="pop-settings"><span class="left">&#x2699; &nbsp;设置...</span><span class="chevron">&#x203A;</span></div>
       <div class="pop-divider"></div>
-      <div class="pop-list-item exit" onclick="quitApp()"><span class="left">&#x1F6D1; &nbsp;退出</span></div>
+      <div class="pop-list-item exit" onclick="quitApp()"><span class="left">&#x23FB; &nbsp;退出</span></div>
     </div>
 
     <!-- CODE EDITOR WINDOW -->
@@ -297,6 +330,8 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
           <div class="sitem" data-tab="tab-water"><span class="sicon">&#x1F4A7;</span> 喝水提醒</div>
           <div class="sitem" data-tab="tab-pet"><span class="sicon">&#x1F408;</span> 宠物行为</div>
           <div class="sitem" data-tab="tab-kd"><span class="sicon">&#x2328;</span> 常用语</div>
+          <div class="sitem" data-tab="tab-quick-actions"><span class="sicon">&#x26A1;</span> 快捷操作</div>
+          <div class="sitem" data-tab="tab-memos"><span class="sicon">&#x1F4DD;</span> Memos</div>
           <div class="sitem" data-tab="tab-perm"><span class="sicon">&#x1F6E1;</span> 安全与权限</div>
           <div class="sitem" data-tab="tab-sys"><span class="sicon">&#x2699;</span> 系统<span class="sbadge hidden" id="sys-badge"></span></div>
         </div>
@@ -387,7 +422,7 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
                   <div class="pet-item" data-pet="robot"><canvas id="pv-robot" width="56" height="40"></canvas><span>Robot</span></div>
                   <div class="pet-item" data-pet="cloud"><canvas id="pv-cloud" width="56" height="40"></canvas><span>Cloud</span></div>
                   <div class="pet-item" data-pet="horse"><canvas id="pv-horse" width="56" height="40"></canvas><span>Horse</span></div>
-                  <div class="pet-item" id="fomo-item" data-pet="fomo"><canvas id="pv-fomo" width="56" height="40"></canvas><span id="fomo-lbl">Fomo (未解锁)</span></div>
+                  <div class="pet-item" data-pet="fomo"><canvas id="pv-fomo" width="56" height="40"></canvas><span>Fomo</span></div>
                 </div>
               </div>
             </div>
@@ -412,6 +447,11 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
             <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x2328;</div><div class="card-texts"><div class="card-title">启用 KeyDrop 常用语</div><div class="card-desc">按下全局快捷键，快速注入常用短语。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
             <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">键盘快捷键</div><div class="card-desc">默认：Cmd + L</div></div></div></div>
           </div>
+          <!-- QUICK ACTIONS TAB -->
+          <div class="tab-content" id="tab-quick-actions">
+            <div class="pill-wrap"><div style="height:20px;"></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,149,0,0.1);">&#x26A1;</div><div class="card-texts"><div class="card-title">快捷操作</div><div class="card-desc">排在前 2 位的将显示为大磁贴，其余的在折叠面板中显示</div></div></div></div>
+          </div>
           <!-- PERMISSIONS TAB -->
           <div class="tab-content" id="tab-perm">
             <div class="pill-wrap"><div style="height:20px;"></div></div>
@@ -420,6 +460,13 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
               <div style="display:flex;align-items:center;gap:8px;margin-top:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#34c759;"></div><span style="font-size:12px;color:#34c759;font-weight:700;">已授权</span></div>
             </div>
           </div>
+          <!-- MEMOS TAB -->
+          <div class="tab-content" id="tab-memos">
+            <div class="pill-wrap"><div style="height:20px;"></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F4DD;</div><div class="card-texts"><div class="card-title">启用 Memos 闪念胶囊</div><div class="card-desc">在全局支持快捷键呼出 Markdown 备忘录。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">全局快捷键</div><div class="card-desc">默认：Cmd + Shift + M</div></div></div></div>
+          </div>
+          <!-- 2FA TAB (Removed to match app state) -->
           <!-- SYSTEM TAB -->
           <div class="tab-content" id="tab-sys">
             <div class="pill-wrap">
@@ -439,7 +486,7 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
               <div class="scard" style="text-align:center;padding:16px;">
                 <div style="font-size:26px;margin-bottom:8px;">&#x1F43E;</div>
                 <div style="font-size:17px;font-weight:700;margin-bottom:4px;">MeowOut</div>
-                <div style="font-size:11px;color:#86868b;margin-bottom:4px;">版本 1.2.0 (Stable)</div>
+                <div style="font-size:11px;color:#86868b;margin-bottom:4px;">版本 1.3.3 (Stable)</div>
                 <div style="font-size:11px;color:#86868b;">原生像素伴侣，呵护您的健康编码。</div>
               </div>
               <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F504;</div><div class="card-texts"><div class="card-title">检查更新</div><div class="card-desc" id="upd-desc">上次检查：今天 11:20</div></div><button class="mac-btn btn-secondary" id="btn-check-upd">检查</button></div></div>
@@ -478,6 +525,68 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
       </div>
     </div>
 
+    <!-- 2FA WINDOW -->
+    <div class="win win-2fa" id="win-2fa">
+      <div class="titlebar">
+        <div class="dots"><span class="dot dot-r" onclick="close2FA()"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      </div>
+      <div class="tfa-header">
+        <div class="tfa-title">Meow2FA</div>
+        <div class="tfa-actions">
+          <div class="tfa-btn">+</div>
+          <div class="tfa-btn">&#x2699;</div>
+        </div>
+      </div>
+      <div class="tfa-search-wrap">
+        <div class="tfa-search">
+          <span>&#x1F50D;</span>
+          <input type="text" placeholder="搜索账号..." />
+        </div>
+      </div>
+      <div class="tfa-list">
+        <div class="tfa-card">
+          <div class="tfa-icon" style="background:#d6eaff; color:#0071e3;">G</div>
+          <div class="tfa-info">
+            <span class="tfa-issuer">Google</span>
+            <span class="tfa-code">207 791</span>
+          </div>
+          <div class="tfa-timer"><svg><circle class="bg" cx="11" cy="11" r="8.5"/><circle class="fg" cx="11" cy="11" r="8.5"/></svg></div>
+        </div>
+        <div class="tfa-card">
+          <div class="tfa-icon" style="background:#d6eaff; color:#0071e3;">G</div>
+          <div class="tfa-info">
+            <span class="tfa-issuer">GitHub</span>
+            <span class="tfa-code">638 224</span>
+          </div>
+          <div class="tfa-timer"><svg><circle class="bg" cx="11" cy="11" r="8.5"/><circle class="fg" cx="11" cy="11" r="8.5"/></svg></div>
+        </div>
+        <div class="tfa-card">
+          <div class="tfa-icon" style="background:#d6eaff; color:#0071e3;">A</div>
+          <div class="tfa-info">
+            <span class="tfa-issuer">AWS Sandbox</span>
+            <span class="tfa-code">235 487</span>
+          </div>
+          <div class="tfa-timer"><svg><circle class="bg" cx="11" cy="11" r="8.5"/><circle class="fg" cx="11" cy="11" r="8.5"/></svg></div>
+        </div>
+        <div class="tfa-card">
+          <div class="tfa-icon" style="background:#d6eaff; color:#0071e3;">D</div>
+          <div class="tfa-info">
+            <span class="tfa-issuer">Discord</span>
+            <span class="tfa-code">941 023</span>
+          </div>
+          <div class="tfa-timer"><svg><circle class="bg" cx="11" cy="11" r="8.5"/><circle class="fg" cx="11" cy="11" r="8.5"/></svg></div>
+        </div>
+        <div class="tfa-card">
+          <div class="tfa-icon" style="background:#d6eaff; color:#0071e3;">A</div>
+          <div class="tfa-info">
+            <span class="tfa-issuer">Apple ID</span>
+            <span class="tfa-code">159 874</span>
+          </div>
+          <div class="tfa-timer"><svg><circle class="bg" cx="11" cy="11" r="8.5"/><circle class="fg" cx="11" cy="11" r="8.5"/></svg></div>
+        </div>
+      </div>
+    </div>
+
     <!-- COMPANION PET -->
     <div class="companion" id="companion">
       <div class="speech" id="speech">记得多喝水哦~</div>
@@ -497,9 +606,9 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
 
     <!-- UPDATE POPUP -->
     <div class="update-popup" id="update-popup">
-      <div class="upd-avatar">&#x1F98A;</div>
-      <div class="upd-title">发现进化补丁 v1.3.0！</div>
-      <div class="upd-desc">像素宠物带回了「傲娇狐狸 Fomo」精灵！点击更新立即部署。</div>
+      <div class="upd-avatar">&#x2728;</div>
+      <div class="upd-title">发现进化补丁 v1.3.3！</div>
+      <div class="upd-desc">像素宠物为你带来了全新的「Memos 闪念胶囊」与「2FA 验证器」模块！点击更新立即部署。</div>
       <div class="upd-btns">
         <button class="upd-btn upd-cancel" onclick="document.getElementById('update-popup').classList.remove('show')">稍后</button>
         <button class="upd-btn upd-confirm" onclick="applyUpdate()">立即重启</button>
@@ -719,6 +828,37 @@ document.getElementById('card-clean').addEventListener('click', () => {
   enterClean();
 });
 
+document.getElementById('card-2fa').addEventListener('click', () => {
+  click(); trayPop.classList.remove('show'); trayBtn.classList.remove('open');
+  const w = document.getElementById('win-2fa'); w.classList.add('show'); w.style.display=''; focusWin(w);
+  start2FATimer();
+});
+function close2FA() { document.getElementById('win-2fa').style.display = 'none'; clearInterval(tfaTimerInterval); }
+let tfaTimerInterval = null;
+function start2FATimer() {
+  clearInterval(tfaTimerInterval);
+  const circles = document.querySelectorAll('.tfa-timer .fg');
+  const update = () => {
+    const sec = new Date().getSeconds() % 30;
+    const pct = 1 - (sec / 30);
+    circles.forEach(c => c.style.strokeDashoffset = 53.4 * (1 - pct));
+  };
+  update();
+  tfaTimerInterval = setInterval(update, 1000);
+}
+
+const btnCollapse = document.getElementById('btn-collapse');
+const miniGrid = document.getElementById('mini-grid');
+let gridExpanded = true;
+btnCollapse.addEventListener('click', (e) => {
+  e.stopPropagation();
+  click();
+  gridExpanded = !gridExpanded;
+  miniGrid.style.display = gridExpanded ? 'grid' : 'none';
+  btnCollapse.innerHTML = gridExpanded ? '<span>&#x2303;</span> 收起' : '<span>&#x2304;</span> 展开';
+});
+
+
 // ─── KEYBOARD CLEAN MODE ──────────────────────────────────────────────────────
 function enterClean() {
   cleanMode = true;
@@ -748,18 +888,18 @@ function handleCleanKey(e) {
 function handleCleanKeyUp(e) { if (e.key==='Escape') { clearTimeout(escHoldTimer); escHoldTimer=null; } }
 
 // ─── POPOVER MENU NAV ─────────────────────────────────────────────────────────
-document.getElementById('pop-breath').addEventListener('click', () => {
-  click(); trayPop.classList.remove('show'); trayBtn.classList.remove('open');
-  const w = document.getElementById('win-breath'); w.classList.add('show'); w.style.display=''; focusWin(w);
-});
+// document.getElementById('pop-breath').addEventListener('click', () => {
+//   click(); trayPop.classList.remove('show'); trayBtn.classList.remove('open');
+//   const w = document.getElementById('win-breath'); w.classList.add('show'); w.style.display=''; focusWin(w);
+// });
 document.getElementById('pop-settings').addEventListener('click', () => {
   click(); trayPop.classList.remove('show'); trayBtn.classList.remove('open');
   const w = document.getElementById('win-settings'); w.style.display=''; focusWin(w);
 });
-document.getElementById('pop-stats').addEventListener('click', () => {
-  click(); trayPop.classList.remove('show');
-  alert(`今日统计\n📝 工作：${(S.timeWorked/60).toFixed(1)} 小时\n💧 饮水：${S.drinkCount} 次\n🧘 正念次数：1 次\n\n小猫点评：状态卓越，继续加油！`);
-});
+// document.getElementById('pop-stats').addEventListener('click', () => {
+//   click(); trayPop.classList.remove('show');
+//   alert(`今日统计\n📝 工作：${(S.timeWorked/60).toFixed(1)} 小时\n💧 饮水：${S.drinkCount} 次\n🧘 正念次数：1 次\n\n小猫点评：状态卓越，继续加油！`);
+// });
 
 // ─── PERSONALITY ──────────────────────────────────────────────────────────────
 document.querySelectorAll('#pers-seg .seg-btn').forEach(btn => {
