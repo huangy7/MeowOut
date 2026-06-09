@@ -28,8 +28,8 @@ public class MemosAuth: @unchecked Sendable {
     }
 
     public func configure(baseURL: URL, pat: String) throws {
-        UserDefaults.standard.set(baseURL.absoluteString, forKey: baseURLKey)
         try writeKeychain(pat)
+        UserDefaults.standard.set(baseURL.absoluteString, forKey: baseURLKey)
     }
 
     public func clear() {
@@ -40,37 +40,18 @@ public class MemosAuth: @unchecked Sendable {
     // MARK: - Keychain
 
     private func readKeychain() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    private func writeKeychain(_ value: String) throws {
-        deleteKeychain()
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecValueData as String: value.data(using: .utf8)!
-        ]
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw MemosError.networkError(
-                NSError(domain: NSOSStatusErrorDomain, code: Int(status)))
+        do {
+            return try KeychainService.loadString(service: service)
+        } catch {
+            return nil
         }
     }
 
+    private func writeKeychain(_ value: String) throws {
+        try KeychainService.save(string: value, service: service)
+    }
+
     private func deleteKeychain() {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service
-        ]
-        SecItemDelete(query as CFDictionary)
+        try? KeychainService.delete(service: service)
     }
 }

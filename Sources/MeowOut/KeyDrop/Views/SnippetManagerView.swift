@@ -5,7 +5,7 @@ struct SnippetManagerView: View {
     @Environment(AppState.self) private var appState
     @ObservedObject var store = SnippetStore.shared
     
-    @State private var selectedCategory: String = "全部"
+    @State private var selectedCategory: String = String(localized: "category_all", defaultValue: "全部")
     @State private var selectedSnippetId: UUID? = nil
     @State private var searchText: String = ""
     @State private var draggedSnippet: Snippet? = nil
@@ -31,12 +31,12 @@ struct SnippetManagerView: View {
         if list.contains("未分类") {
             unique.append("未分类")
         }
-        return ["全部"] + unique
+        return [String(localized: "category_all", defaultValue: "全部")] + unique
     }
     
     private var filteredSnippets: [Snippet] {
         let all = store.snippets
-        let categoryFiltered = selectedCategory == "全部" ? all : all.filter { $0.category == selectedCategory }
+        let categoryFiltered = selectedCategory == String(localized: "category_all", defaultValue: "全部") ? all : all.filter { $0.category == selectedCategory }
         if searchText.isEmpty {
             return categoryFiltered
         }
@@ -359,7 +359,7 @@ struct SnippetManagerView: View {
                                 .foregroundColor(.secondary)
                         }
                         
-                        let selectables = categories.filter { $0 != "全部" }
+                        let selectables = categories.filter { $0 != String(localized: "category_all", defaultValue: "全部") }
                         
                         Picker("", selection: $editCategory) {
                             ForEach(selectables, id: \.self) { cat in
@@ -434,7 +434,7 @@ struct SnippetManagerView: View {
     }
     
     private func addSnippet() {
-        let cat = selectedCategory == "全部" ? "未分类" : selectedCategory
+        let cat = selectedCategory == String(localized: "category_all", defaultValue: "全部") ? "未分类" : selectedCategory
         let newSnippet = Snippet(
             title: I18n.localized("keydrop_default_title", language: appState.language),
             content: I18n.localized("keydrop_default_content", language: appState.language),
@@ -473,7 +473,7 @@ struct SnippetManagerView: View {
 
     
     private func countForCategory(_ category: String) -> Int {
-        if category == "全部" {
+        if category == String(localized: "category_all", defaultValue: "全部") {
             return store.snippets.count
         } else {
             return store.snippets.filter { $0.category == category }.count
@@ -482,14 +482,14 @@ struct SnippetManagerView: View {
     
     private func iconName(for category: String) -> String {
         switch category {
-        case "全部": return "square.grid.2x2.fill"
+        case String(localized: "category_all", defaultValue: "全部"): return "square.grid.2x2.fill"
         case "未分类": return "tray.fill"
         default: return "folder.fill"
         }
     }
     
     private func displayName(for category: String) -> String {
-        if category == "全部" {
+        if category == String(localized: "category_all", defaultValue: "全部") {
             return I18n.localized("keydrop_category_all", language: appState.language)
         } else if category == "未分类" {
             return I18n.localized("keydrop_uncategorized", language: appState.language)

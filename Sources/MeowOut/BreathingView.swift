@@ -42,7 +42,7 @@ public struct BreathingView: View {
 
     private var phaseLabel: String {
         if !state.isRunning { return "准备好了" }
-        return state.currentPhase.rawValue.trimmingCharacters(in: .whitespaces)
+        return state.currentPhase.displayName
     }
 
     private var phaseSubLabel: String {
@@ -109,7 +109,7 @@ public struct BreathingView: View {
 
                     Button {
                         state.stop()
-                        if let window = NSApp.windows.first(where: { $0.title == "正念练习" }) {
+                        if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "breathing" }) {
                             window.close()
                         }
                     } label: {

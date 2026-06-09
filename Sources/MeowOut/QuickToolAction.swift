@@ -91,6 +91,10 @@ public enum QuickToolActionResolver {
             return launchDescriptor(type: type, language: language) {
                 NotificationCenter.default.post(name: NSNotification.Name("OpenBreathingWindow"), object: nil)
             }
+        case .toolbox2FA:
+            return launchDescriptor(type: type, language: language) {
+                NotificationCenter.default.post(name: NSNotification.Name("OpenMeow2FAWindow"), object: nil)
+            }
         }
     }
 

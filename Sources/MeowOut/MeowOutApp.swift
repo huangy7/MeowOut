@@ -50,6 +50,10 @@ struct WindowOpener: View {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "breathing")
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenMeow2FAWindow"))) { _ in
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: "meow2fa")
+            }
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenSnippetManagerWindow"))) { _ in
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "snippet-manager")
@@ -249,6 +253,14 @@ struct MeowOutApp: App {
 
         Window(I18n.localized("menu_breathing", language: appState.language), id: "breathing") {
             BreathingView()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .environment(appState)
+
+        Window(I18n.localized("menu_toolbox_2fa", language: appState.language), id: "meow2fa") {
+            Meow2FAMainView()
+                .background(Color.clear)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)

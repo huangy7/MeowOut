@@ -108,7 +108,7 @@ public class MemosClient: @unchecked Sendable {
                 ]
             )
             return response.attachments ?? []
-        } catch {
+        } catch MemosError.serverError(let statusCode, _) where statusCode == 404 {
             let memosResponse = try await listMemos(state: .normal, pageSize: 100)
             let archivedResponse = try? await listMemos(state: .archived, pageSize: 100)
             
@@ -140,9 +140,14 @@ public class MemosClient: @unchecked Sendable {
         guard let baseURL = auth.baseURL, let pat = auth.pat else {
             throw MemosError.notConfigured
         }
-        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else {
+            throw MemosError.networkError(NSError(domain: "MemosClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"]))
+        }
         if let queryItems, !queryItems.isEmpty { components.queryItems = queryItems }
-        var request = URLRequest(url: components.url!)
+        guard let finalURL = components.url else {
+            throw MemosError.networkError(NSError(domain: "MemosClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL components"]))
+        }
+        var request = URLRequest(url: finalURL)
         request.httpMethod = method
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("Bearer \(pat)", forHTTPHeaderField: "Authorization")

@@ -3,7 +3,7 @@ import Foundation
 public class MemoCache: @unchecked Sendable {
     public static let shared = MemoCache()
 
-    private struct CacheData: Codable {
+    private struct CacheData: Codable, Sendable {
         var memos: [Memo]
         var lastRefreshTime: Date?
     }
@@ -69,7 +69,6 @@ public class MemoCache: @unchecked Sendable {
         lock.lock()
         let snapshot = data
         lock.unlock()
-        guard let raw = try? encoder.encode(snapshot) else { return }
-        try? raw.write(to: storageURL, options: .atomic)
+        JSONStorage.save(snapshot, to: storageURL) { MemosDateCoding.makeEncoder() }
     }
 }

@@ -224,9 +224,9 @@ public final class AppState {
             withMutation(keyPath: \.keyDropEnabled) {
                 UserDefaults.standard.set(newValue, forKey: Keys.keyDropEnabled.rawValue)
                 if newValue {
-                    KeyboardShortcuts.onKeyDown(for: .togglePanel) {
+                    KeyboardShortcuts.onKeyDown(for: .togglePanel) { [weak self] in
                         Task { @MainActor in
-                            self.handleKeyDropToggleShortcut()
+                            self?.handleKeyDropToggleShortcut()
                         }
                     }
                 } else {
@@ -239,9 +239,9 @@ public final class AppState {
     @MainActor
     public func initializeKeyboardShortcuts() {
         if keyDropEnabled {
-            KeyboardShortcuts.onKeyDown(for: .togglePanel) {
+            KeyboardShortcuts.onKeyDown(for: .togglePanel) { [weak self] in
                 Task { @MainActor in
-                    self.handleKeyDropToggleShortcut()
+                    self?.handleKeyDropToggleShortcut()
                 }
             }
         }
@@ -359,6 +359,10 @@ public final class AppState {
         set { changeState(to: newValue) }
     }
 
+    public func setPhaseForPreview(_ newPhase: AppPhase) {
+        _currentState = newPhase
+    }
+
     public func changeState(to newPhase: AppPhase, at date: Date = Date()) {
         guard _currentState != newPhase else { return }
         let oldPhase = _currentState
@@ -377,15 +381,19 @@ public final class AppState {
                                   (oldPhase == .working && (newPhase == .resting || newPhase == .overworking))
                 
                 if isMergeable {
-                    dailyLogs.removeLast()
-                    dailyLogs.append(SessionLog(startTime: last.startTime, phase: newPhase))
+                    var logs = dailyLogs
+                    logs.removeLast()
+                    logs.append(SessionLog(startTime: last.startTime, phase: newPhase))
+                    dailyLogs = logs
                     return
                 }
             }
         }
         
         if !dailyLogs.isEmpty {
-            dailyLogs[dailyLogs.count - 1].endTime = date
+            var logs = dailyLogs
+            logs[logs.count - 1].endTime = date
+            dailyLogs = logs
         }
         dailyLogs.append(SessionLog(startTime: date, phase: newPhase))
     }
@@ -635,10 +643,12 @@ public final class AppState {
         guard let last = dailyLogs.last, last.phase == .breathing else { return }
         let duration = Date().timeIntervalSince(last.startTime)
         if duration < 30 {
-            dailyLogs.removeLast()
-            if !dailyLogs.isEmpty {
-                dailyLogs[dailyLogs.count - 1].endTime = nil
+            var logs = dailyLogs
+            logs.removeLast()
+            if !logs.isEmpty {
+                logs[logs.count - 1].endTime = nil
             }
+            dailyLogs = logs
         }
     }
 

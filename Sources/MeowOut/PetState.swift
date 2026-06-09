@@ -32,6 +32,10 @@ public final class PetState {
 
     public var updateInteraction: UpdateInteraction?
 
+    public var hasInteractiveButtons: Bool {
+        return showBreathingButton || showWaterButton || updateInteraction != nil
+    }
+
     private var lockTask: Task<Void, Never>?
 
     public init() {}

@@ -15,12 +15,14 @@ final class MemoCacheTests: XCTestCase {
              tags: [], pinned: false, snippet: "test", property: nil)
     }
 
-    func testSaveAndLoad() {
+    func testSaveAndLoad() async throws {
         let url = makeTempURL()
         defer { try? FileManager.default.removeItem(at: url) }
 
         let cache1 = MemoCache(storageURL: url)
         cache1.save(memos: [sampleMemo(id: "1"), sampleMemo(id: "2")])
+
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         let cache2 = MemoCache(storageURL: url)
         XCTAssertEqual(cache2.memos.count, 2)

@@ -128,7 +128,7 @@ final class SnippetTests: XCTestCase {
         ]
         
         let viewModel = PanelViewModel()
-        XCTAssertEqual(viewModel.categories, ["全部", "111", "未分类"])
+        XCTAssertEqual(viewModel.categories, [String(localized: "category_all", defaultValue: "全部"), "111", "未分类"])
         
         viewModel.selectedCategory = "111"
         let filtered = viewModel.filteredSnippets

@@ -28,6 +28,8 @@ public struct Attachment: Codable, Equatable, Sendable {
             self.size = sizeInt
         } else if let sizeStr = try? container.decode(String.self, forKey: .size), let sizeInt = Int64(sizeStr) {
             self.size = sizeInt
+        } else if let sizeDouble = try? container.decode(Double.self, forKey: .size) {
+            self.size = Int64(sizeDouble)
         } else {
             throw DecodingError.dataCorruptedError(forKey: .size, in: container, debugDescription: "Invalid size format")
         }

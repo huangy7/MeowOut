@@ -89,7 +89,9 @@ public class OfflineQueue: @unchecked Sendable {
     }
 
     private func persist() {
-        guard let data = try? JSONEncoder().encode(pendingItems) else { return }
-        try? data.write(to: storageURL, options: .atomic)
+        lock.lock()
+        let snapshot = items
+        lock.unlock()
+        JSONStorage.save(snapshot, to: storageURL)
     }
 }

@@ -863,6 +863,7 @@ struct QuickActionsListEditor: View {
                         Button(I18n.localized("memos_settings_quick_capture_short", language: state.language)) { addBuiltIn(.memosQuickCapture) }
                         Button(I18n.localized("memos_action_open_memos", language: state.language)) { addBuiltIn(.memosOpenBrowser) }
                         Button(I18n.localized("menu_breathing", language: state.language)) { addBuiltIn(.breathing) }
+                        Button(I18n.localized("menu_toolbox_2fa", language: state.language)) { addBuiltIn(.toolbox2FA) }
                     }.padding()
                 }
             }

@@ -99,7 +99,12 @@ final class ActivityMonitor {
         if let sim = simulatedIdleTime {
             idle = sim
         } else {
-            idle = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: CGEventType(rawValue: UInt32.max)!)
+            let mouseMoved = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .mouseMoved)
+            let leftMouseDown = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .leftMouseDown)
+            let rightMouseDown = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .rightMouseDown)
+            let scrollWheel = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .scrollWheel)
+            let keyDown = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .keyDown)
+            idle = min(mouseMoved, leftMouseDown, rightMouseDown, scrollWheel, keyDown)
         }
         
         if appState.currentState == .paused || appState.currentState == .breathing || appState.currentState == .overworking || appState.currentState == .resting {
@@ -123,12 +128,12 @@ final class ActivityMonitor {
                     }
                 } else {
                     // Smart transition between Overworking and Resting
-                    if idle < 30 && appState.currentState == .resting {
+                    if idle < 25 && appState.currentState == .resting {
                         appState.changeState(to: .overworking)
-                    } else if idle >= 30 && appState.currentState == .overworking {
+                    } else if idle >= 35 && appState.currentState == .overworking {
                         let restingStartDate = max(
                             appState.dailyLogs.last?.startTime ?? Date(),
-                            Date().addingTimeInterval(-30)
+                            Date().addingTimeInterval(-35)
                         )
                         appState.changeState(to: .resting, at: restingStartDate)
                     }

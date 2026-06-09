@@ -25,12 +25,14 @@ final class OfflineQueueTests: XCTestCase {
         } else { XCTFail("Expected create action") }
     }
 
-    func testPersistenceAcrossInstances() {
+    func testPersistenceAcrossInstances() async throws {
         let url = makeTempURL()
         defer { try? FileManager.default.removeItem(at: url) }
 
         let queue1 = OfflineQueue(storageURL: url)
         queue1.enqueue(.create(content: "persist me", visibility: .private, attachments: nil, archiveAfterCreate: false))
+
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         let queue2 = OfflineQueue(storageURL: url)
         XCTAssertEqual(queue2.pendingCount, 1)

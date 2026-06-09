@@ -3,10 +3,18 @@ import Observation
 import SwiftUI
 
 public enum BreathingPhase: String {
-    case inhale = "吸气"
-    case holdAfterInhale = "屏气"
-    case exhale = "呼气"
-    case holdAfterExhale = "屏气 " // space to differentiate slightly, visually same
+    case inhale
+    case holdAfterInhale
+    case exhale
+    case holdAfterExhale
+    
+    public var displayName: String {
+        switch self {
+        case .inhale: return "吸气"
+        case .holdAfterInhale, .holdAfterExhale: return "屏气"
+        case .exhale: return "呼气"
+        }
+    }
 }
 
 public struct BreathingPattern: Identifiable, Hashable {
@@ -46,11 +54,11 @@ public final class BreathingState {
         secondsRemaining = currentPattern.inhaleDuration
         sessionSecondsRemaining = totalSessionSeconds
         
-        timerTask = Task {
+        timerTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 if Task.isCancelled { break }
-                tick()
+                self?.tick()
             }
         }
     }

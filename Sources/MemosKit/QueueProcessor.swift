@@ -22,13 +22,16 @@ public class QueueProcessor: @unchecked Sendable {
     }
 
     public func stop() {
+        lock.lock()
         pathMonitor?.cancel()
         pathMonitor = nil
-        lock.lock()
-        let task = retryTask
+        let retry = retryTask
         retryTask = nil
+        let processing = processingTask
+        processingTask = nil
         lock.unlock()
-        task?.cancel()
+        retry?.cancel()
+        processing?.cancel()
     }
 
     public func processAll() async {
@@ -43,6 +46,8 @@ public class QueueProcessor: @unchecked Sendable {
     private func processPendingItems() async {
         let items = queue.pendingItems
         for item in items {
+            try? Task.checkCancellation()
+            if Task.isCancelled { break }
             do {
                 try await processItem(item)
                 queue.removeItem(item.id)
@@ -62,7 +67,13 @@ public class QueueProcessor: @unchecked Sendable {
         case .create(let content, let visibility, let attachments, let archiveAfterCreate):
             let memo = try await client.createMemo(content: content, visibility: visibility, attachments: attachments)
             if archiveAfterCreate {
-                _ = try await client.updateMemo(name: memo.name, state: .archived, updateMask: ["state"])
+                do {
+                    _ = try await client.updateMemo(name: memo.name, state: .archived, updateMask: ["state"])
+                } catch {
+                    // Update the queue item to avoid duplicate creation on retry
+                    queue.updateItem(item.id, action: .update(memoName: memo.name, content: nil, state: .archived, attachments: nil, updateMask: ["state"]))
+                    throw error
+                }
             }
         case .update(let name, let content, let state, let attachments, let updateMask):
             _ = try await client.updateMemo(name: name, content: content, state: state, attachments: attachments, updateMask: updateMask)
@@ -127,6 +138,7 @@ public class QueueProcessor: @unchecked Sendable {
     }
 
     private func startNetworkMonitor() {
+        lock.lock()
         pathMonitor?.cancel()
         let monitor = NWPathMonitor()
         monitor.pathUpdateHandler = { [weak self] path in
@@ -136,5 +148,6 @@ public class QueueProcessor: @unchecked Sendable {
         }
         monitor.start(queue: DispatchQueue(label: "com.meowout.memos.network"))
         pathMonitor = monitor
+        lock.unlock()
     }
 }

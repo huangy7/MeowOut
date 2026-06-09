@@ -390,7 +390,7 @@ public final class CatOverlayController {
 
         // --- Breathing Anchor: keep cat at bottom-center of breathing window ---
         if state.isBreathingActive {
-            if let breathingWindow = NSApp.windows.first(where: { $0.title == "正念练习" && $0.isVisible }),
+            if let breathingWindow = NSApp.windows.first(where: { $0.identifier?.rawValue == "breathing" && $0.isVisible }),
                let petWindow = self.petWindow,
                let bubbleWindow = self.bubbleWindow {
                 
@@ -571,8 +571,8 @@ public final class CatOverlayController {
         )
         bw.setFrame(bubbleFrame, display: true)
         
-        // Ensure bubble window doesn't block clicks when invisible
-        bw.ignoresMouseEvents = !petState.bubbleVisible
+        // Ensure bubble window doesn't block clicks when invisible or purely decorative
+        bw.ignoresMouseEvents = !petState.bubbleVisible || !petState.hasInteractiveButtons
     }
 
     private func updateBubbleWindowSize(_ measuredSize: CGSize) {

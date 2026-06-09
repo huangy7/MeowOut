@@ -9,6 +9,9 @@ packages:
   MarkdownUI:
     url: https://github.com/gonzalezreal/swift-markdown-ui
     from: 2.4.0
+  SwiftOTP:
+    url: https://github.com/lachlanbell/SwiftOTP.git
+    from: 3.0.0
 targets:
   MemosKit:
     type: framework
@@ -28,6 +31,7 @@ targets:
     dependencies:
       - package: KeyboardShortcuts
       - package: MarkdownUI
+      - package: SwiftOTP
       - target: MemosKit
     preBuildScripts:
       - name: Generate GitCommit
