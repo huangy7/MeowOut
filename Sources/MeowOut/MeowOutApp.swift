@@ -88,6 +88,7 @@ struct WindowOpener: View {
 /// 独立的图标视图，最小化重绘范围
 struct TrayIconView: View {
     @Bindable var appState: AppState
+    @Environment(\.colorScheme) private var colorScheme
     let animationTimer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
     
 
@@ -109,6 +110,9 @@ struct TrayIconView: View {
     @State private var staticCache: NSImage?
     @State private var lastCachedState: AppPhase?
     @State private var lastCachedColor: NSColor?
+    @State private var lastCachedPet: AppState.PetType?
+    @State private var lastCachedColorScheme: ColorScheme?
+    @State private var lastCachedUseClassic: Bool?
 
     var body: some View {
         Group {
@@ -118,7 +122,7 @@ struct TrayIconView: View {
                 Image(systemName: trayIconConfig.0)
             }
         }
-        .frame(width: 24, height: 18)
+        .frame(height: 18)
         .onReceive(animationTimer) { _ in
             if appState.isWalking {
                 appState.currentFrameIndex = (appState.currentFrameIndex + 1) % 5
@@ -128,6 +132,9 @@ struct TrayIconView: View {
             prepareCache()
         }
         .onChange(of: appState.currentState) { _, _ in prepareCache() }
+        .onChange(of: appState.selectedPet) { _, _ in prepareCache() }
+        .onChange(of: colorScheme) { _, _ in prepareCache() }
+        .onChange(of: appState.useClassicTrayIcon) { _, _ in prepareCache() }
     }
     
     private var currentImage: NSImage? {
@@ -138,17 +145,64 @@ struct TrayIconView: View {
         }
     }
     
+    private var robotLedColor: Color {
+        switch appState.currentState {
+        case .working, .idle: return Color(red: 91/255, green: 212/255, blue: 230/255)
+        case .breathing: return .teal
+        case .alerting: return .orange
+        case .resting, .overworking: return .red
+        case .paused: return .gray
+        }
+    }
+
+    @MainActor
     private func prepareCache() {
         let color = trayIconConfig.1
         let state = appState.currentState
+        let pet = appState.selectedPet
+        let useClassic = appState.useClassicTrayIcon
         
-        // 只有当颜色或状态发生关键变化时才重新生成缓存
-        guard lastCachedState != state || lastCachedColor != color || frameCache.isEmpty else { return }
+        // 只有当颜色、状态、宠物或深浅色主题发生变化时才重新生成缓存
+        guard lastCachedState != state || lastCachedColor != color || lastCachedPet != pet || lastCachedColorScheme != colorScheme || lastCachedUseClassic != useClassic || frameCache.isEmpty else { return }
         
-        // 1. 预加载 5 帧奔跑动画
+        frameCache.removeAll()
+        
+        let isW = (state == .working || state == .alerting || state == .overworking)
+        let bodyC = colorScheme == .dark ? Color(red: 60.0/255, green: 100.0/255, blue: 180.0/255) : nil
+        let stateColor = robotLedColor
+        
         for i in 0..<5 {
-            if let img = loadAndPrepareImage(name: "\(i)", color: color, isTemplate: (state == .working || state == .idle)) {
-                frameCache[i] = img
+            if useClassic {
+                if let img = loadAndPrepareImage(name: "\(i)", color: color, isTemplate: (state == .working || state == .idle)) {
+                    frameCache[i] = img
+                }
+            } else {
+                let now = TimeInterval(i) * 0.2
+                let canvas: AnyView = {
+                    switch pet {
+                    case .robot: return AnyView(TerminalCanvasView(pose: .rest, height: 18, isWalking: isW, now: now, ledColorOverride: stateColor, flameOuterColorOverride: stateColor, bodyColorOverride: bodyC))
+                    case .clawd: return AnyView(ClawdCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
+                    case .cloud: return AnyView(CloudCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
+                    case .horse: return AnyView(HorseCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
+                    case .fomo:  return AnyView(FomoCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
+                    }
+                }()
+                
+                // 使用小圆点指示状态（对所有宠物生效，包括 Robot）
+                let indicator = Circle().fill(stateColor).frame(width: 4, height: 4)
+                let composed = HStack(spacing: 2) {
+                    canvas
+                    indicator
+                }
+                let renderer = ImageRenderer(content: AnyView(composed))
+                
+                renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+                if let cgImage = renderer.cgImage {
+                    let logicalWidth = CGFloat(cgImage.width) / renderer.scale
+                    let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: logicalWidth, height: 18))
+                    nsImage.isTemplate = false // 全彩像素
+                    frameCache[i] = nsImage
+                }
             }
         }
         
@@ -157,7 +211,10 @@ struct TrayIconView: View {
         
         lastCachedState = state
         lastCachedColor = color
-        print("💾 Tray icon cache refreshed for state: \(state)")
+        lastCachedPet = pet
+        lastCachedColorScheme = colorScheme
+        lastCachedUseClassic = useClassic
+        print("💾 Tray icon cache refreshed for state: \(state) pet: \(pet.rawValue) classic: \(useClassic)")
     }
 
     private func loadAndPrepareImage(name: String, color: NSColor, isTemplate: Bool) -> NSImage? {
@@ -838,6 +895,8 @@ struct AppIconView: View {
             if let icon = icon {
                 Image(nsImage: icon)
                     .resizable()
+                    .scaledToFit()
+                    .frame(width: 44, height: 44)
             } else {
                 Image(systemName: "app.dashed")
                     .resizable()

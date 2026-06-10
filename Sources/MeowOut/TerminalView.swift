@@ -3,13 +3,17 @@ import SwiftUI
 // Portions derived from HermesPet (https://github.com/basionwang-bot/HermesPet)
 // Licensed under Apache 2.0 — see LICENSE.HermesPet
 // Modifications: hardcoded colors, simplified animation, removed palette parameter
-/// 钢铁侠风格小方块机器人 —— viewBox 14×10
-public struct TerminalView: View, PetSpriteView {
+
+/// 提取出的独立绘制视图，支持通过外部传入 now（时间）和颜色覆盖（用于 Menu Bar 等场景）
+public struct TerminalCanvasView: View {
     public let pose: ClawdPose
     public let height: CGFloat
-    /// 是否"走路"中 —— 实际是飞行加速：火焰拉长 + 浮动幅度加大
     public var isWalking: Bool = false
-    /// 工作中 —— LED 心跳加快、眨眼频率提高
+    public var now: TimeInterval
+    public var ledColorOverride: Color?
+    public var flameOuterColorOverride: Color?
+    public var bodyColorOverride: Color?
+    
     private let isWorking: Bool = false
 
     // 不参与调色的默认色（保留 Codex 视觉特征）
@@ -19,27 +23,30 @@ public struct TerminalView: View, PetSpriteView {
     private static let screenColor     = Color(red: 10.0/255,  green: 15.0/255,  blue: 31.0/255)   // #0A0F1F 头部黑屏
     private static let eyeWhiteColor   = Color(red: 240.0/255, green: 248.0/255, blue: 255.0/255)  // #F0F8FF 冷白眼
     private static let mouthColor      = Color(red: 168.0/255, green: 224.0/255, blue: 122.0/255)  // #A8E07A lime 嘴
-    private static let ledColor        = Color(red: 91.0/255,  green: 212.0/255, blue: 230.0/255)  // #5BD4E6 Codex cyan LED
-    private static let flameInnerColor = Color(white: 1.0)                                          // 内焰纯白
-    private static let flameMidColor   = Color(red: 91.0/255,  green: 212.0/255, blue: 230.0/255)  // cyan 中焰
-    private static let flameOuterColor = Color(red: 255.0/255, green: 180.0/255, blue: 107.0/255)  // #FFB46B 外焰暖橙
+    
+    private static let defaultLedColor        = Color(red: 91.0/255,  green: 212.0/255, blue: 230.0/255)  // #5BD4E6 Codex cyan LED
+    private static let defaultFlameInnerColor = Color(white: 1.0)                                          // 内焰纯白
+    private static let defaultFlameMidColor   = Color(red: 91.0/255,  green: 212.0/255, blue: 230.0/255)  // cyan 中焰
+    private static let defaultFlameOuterColor = Color(red: 255.0/255, green: 180.0/255, blue: 107.0/255)  // #FFB46B 外焰暖橙
 
-    private static let viewBoxW: CGFloat = 14
-    private static let viewBoxH: CGFloat = 10
+    public static let viewBoxW: CGFloat = 14
+    public static let viewBoxH: CGFloat = 10
     private static let centerX: CGFloat = 7
     private static let centerY: CGFloat = 5
 
-    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval, ledColorOverride: Color? = nil, flameOuterColorOverride: Color? = nil, bodyColorOverride: Color? = nil) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
+        self.now = now
+        self.ledColorOverride = ledColorOverride
+        self.flameOuterColorOverride = flameOuterColorOverride
+        self.bodyColorOverride = bodyColorOverride
     }
 
     public var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0/60.0)) { timeline in
-            Canvas(rendersAsynchronously: false) { ctx, size in
-                draw(ctx: ctx, size: size, now: timeline.date.timeIntervalSinceReferenceDate)
-            }
+        Canvas(rendersAsynchronously: false) { ctx, size in
+            draw(ctx: ctx, size: size, now: now)
         }
         .frame(width: height * Self.viewBoxW / Self.viewBoxH, height: height)
     }
@@ -47,19 +54,24 @@ public struct TerminalView: View, PetSpriteView {
     private func draw(ctx: GraphicsContext, size: CGSize, now: TimeInterval) {
         let unit = min(size.width / Self.viewBoxW, size.height / Self.viewBoxH)
         
-        let bodyFill        = GraphicsContext.Shading.color(Self.bodyColor)
+        let bodyFill        = GraphicsContext.Shading.color(bodyColorOverride ?? Self.bodyColor)
         let bodyTopFill     = GraphicsContext.Shading.color(Self.bodyTopColor)
         let bodyBottomFill  = GraphicsContext.Shading.color(Self.bodyBottomColor)
         let screenFill      = GraphicsContext.Shading.color(Self.screenColor)
         let eyeWhiteFill    = GraphicsContext.Shading.color(Self.eyeWhiteColor)
         let pupilFill       = GraphicsContext.Shading.color(Self.screenColor)
         let mouthFill       = GraphicsContext.Shading.color(Self.mouthColor)
-        let flameInnerFill  = GraphicsContext.Shading.color(Self.flameInnerColor)
-        let flameMidFill    = GraphicsContext.Shading.color(Self.flameMidColor)
-        let flameOuterFill  = GraphicsContext.Shading.color(Self.flameOuterColor)
+        
+        let flameOuterC = flameOuterColorOverride ?? Self.defaultFlameOuterColor
+        let ledC = ledColorOverride ?? Self.defaultLedColor
+        let flameMidC = ledColorOverride ?? Self.defaultFlameMidColor
+
+        let flameInnerFill  = GraphicsContext.Shading.color(Self.defaultFlameInnerColor)
+        let flameMidFill    = GraphicsContext.Shading.color(flameMidC)
+        let flameOuterFill  = GraphicsContext.Shading.color(flameOuterC)
         let highlightFill   = GraphicsContext.Shading.color(.white.opacity(0.9))
         let shadowFill      = GraphicsContext.Shading.color(.black.opacity(0.35))
-        let cyanLineFill    = GraphicsContext.Shading.color(Self.ledColor)
+        let cyanLineFill    = GraphicsContext.Shading.color(ledC)
 
         // 呼吸 3.2s ±1.5%
         let breatheT = sin(now * 2 * .pi / 3.2)
@@ -101,7 +113,7 @@ public struct TerminalView: View, PetSpriteView {
         let ledFreq = isWorking ? now * 4.0 : now * 0.8
         let ledPulse: Double = (sin(ledFreq * 2 * .pi) + 1) * 0.5
         let ledOpacity = 0.55 + ledPulse * 0.45
-        let ledFill = GraphicsContext.Shading.color(Self.ledColor.opacity(ledOpacity))
+        let ledFill = GraphicsContext.Shading.color(ledC.opacity(ledOpacity))
 
         // 阴影
         let shadowW: CGFloat = isWalking ? 8.5 : 7
@@ -259,5 +271,25 @@ public struct TerminalView: View, PetSpriteView {
         let screenW = w * sx * unit
         let screenH = h * sy * unit
         ctx.fill(Path(CGRect(x: screenX, y: screenY, width: screenW, height: screenH)), with: fill)
+    }
+}
+
+/// 钢铁侠风格小方块机器人 —— viewBox 14×10
+public struct TerminalView: View, PetSpriteView {
+    public let pose: ClawdPose
+    public let height: CGFloat
+    /// 是否"走路"中 —— 实际是飞行加速：火焰拉长 + 浮动幅度加大
+    public var isWalking: Bool = false
+
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+        self.pose = pose
+        self.height = height
+        self.isWalking = isWalking
+    }
+
+    public var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0/60.0)) { timeline in
+            TerminalCanvasView(pose: pose, height: height, isWalking: isWalking, now: timeline.date.timeIntervalSinceReferenceDate)
+        }
     }
 }

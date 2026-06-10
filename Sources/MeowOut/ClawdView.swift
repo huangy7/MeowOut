@@ -17,17 +17,19 @@ struct ClawdRect {
 // Portions derived from HermesPet (https://github.com/basionwang-bot/HermesPet)
 // Licensed under Apache 2.0 — see LICENSE.HermesPet
 // Modifications: hardcoded colors, simplified animation parameters
-public struct ClawdView: View, PetSpriteView {
+
+public struct ClawdCanvasView: View {
     public let pose: ClawdPose
     public let height: CGFloat
     public var isWalking: Bool = false
+    public var now: TimeInterval
     private let followMouse: Bool = true
 
     private static let bodyColor = Color(red: 222.0/255, green: 136.0/255, blue: 109.0/255)
     private static let bodyTopColor = Color(red: 240.0/255, green: 161.0/255, blue: 135.0/255)
     private static let bodyBottomColor = Color(red: 192.0/255, green: 110.0/255, blue: 86.0/255)
-    private static let viewBoxW: CGFloat = 15
-    private static let viewBoxH: CGFloat = 10
+    public static let viewBoxW: CGFloat = 15
+    public static let viewBoxH: CGFloat = 10
     private static let centerX: CGFloat = 7.5
     private static let centerY: CGFloat = 5.0
 
@@ -44,18 +46,16 @@ public struct ClawdView: View, PetSpriteView {
     private static let rightEye = ClawdRect(x: 10, y: 2, w: 1, h: 2)
     private static let shadow   = ClawdRect(x: 3,  y: 9, w: 9, h: 1)
 
-    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
+        self.now = now
     }
 
     public var body: some View {
-        // 🔥 性能平衡：从 15 FPS 提升到 30 FPS。30 帧是视觉丝滑的黄金分割点，比 60 帧省电一半。
-        TimelineView(.animation(minimumInterval: 1.0/30.0)) { timeline in
-            Canvas(rendersAsynchronously: false) { ctx, size in
-                draw(ctx: ctx, size: size, now: timeline.date.timeIntervalSinceReferenceDate)
-            }
+        Canvas(rendersAsynchronously: false) { ctx, size in
+            draw(ctx: ctx, size: size, now: now)
         }
         .frame(width: height * Self.viewBoxW / Self.viewBoxH, height: height)
     }
@@ -69,9 +69,9 @@ public struct ClawdView: View, PetSpriteView {
         let highlightFill = GraphicsContext.Shading.color(.white)
         let shadowFill = GraphicsContext.Shading.color(.black.opacity(0.5))
 
-        let breatheT = sin(now * 2 * .pi / 3.2)
-        let breatheSX: CGFloat = 1 + CGFloat(breatheT) * 0.02
-        let breatheSY: CGFloat = 1 - CGFloat(breatheT) * 0.02
+        let breatheT = sin(now * 2 * .pi / 2.5)
+        let breatheSX: CGFloat = 1 + CGFloat(breatheT) * 0.03
+        let breatheSY: CGFloat = 1 - CGFloat(breatheT) * 0.05
 
         let walkPhase = isWalking ? now.truncatingRemainder(dividingBy: 1.0) : 0
         let blinkCycle = 4.5
@@ -109,9 +109,11 @@ public struct ClawdView: View, PetSpriteView {
             : 0
         let armWaveR: CGFloat = -armWaveL
 
+        let idleBobY: CGFloat = isWalking ? 0 : CGFloat(breatheT) * 0.35
+
         let totalSX = breatheSX * stretchSX
         let totalSY = breatheSY * stretchSY
-        let totalDY = bodyBobY + stretchDY
+        let totalDY = bodyBobY + stretchDY + idleBobY
         let totalDX = walkSwayX
 
         drawRect(Self.shadow, in: ctx, unit: unit, offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1, fill: shadowFill)
@@ -188,5 +190,24 @@ public struct ClawdView: View, PetSpriteView {
         let screenW = r.w * scaleX * unit
         let screenH = r.h * scaleY * unit
         ctx.fill(Path(CGRect(x: screenX, y: screenY, width: screenW, height: screenH)), with: fill)
+    }
+}
+
+public struct ClawdView: View, PetSpriteView {
+    public let pose: ClawdPose
+    public let height: CGFloat
+    public var isWalking: Bool = false
+
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+        self.pose = pose
+        self.height = height
+        self.isWalking = isWalking
+    }
+
+    public var body: some View {
+        // 🔥 性能平衡：从 15 FPS 提升到 30 FPS。30 帧是视觉丝滑的黄金分割点，比 60 帧省电一半。
+        TimelineView(.animation(minimumInterval: 1.0/30.0)) { timeline in
+            ClawdCanvasView(pose: pose, height: height, isWalking: isWalking, now: timeline.date.timeIntervalSinceReferenceDate)
+        }
     }
 }

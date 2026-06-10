@@ -400,3 +400,5 @@
 "meow2fa_export_failed" = "Export failed";
 "meow2fa_export_warning_title" = "Security Warning";
 "meow2fa_export_warning_desc" = "Exporting will save your 2FA accounts and secret keys in plain text JSON format. Anyone with access to this file will be able to generate your 2FA codes. Please store it securely.";
+"settings_classic_tray_icon" = "Classic Monochromatic Tray Icon";
+"settings_classic_tray_icon_desc" = "When enabled, the tray always shows the original monochromatic kitten (adapts to light/dark mode automatically). When disabled, shows full-color dynamic pets.";

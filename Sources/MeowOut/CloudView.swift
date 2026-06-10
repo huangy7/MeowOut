@@ -3,33 +3,30 @@ import SwiftUI
 // Portions derived from HermesPet (https://github.com/basionwang-bot/HermesPet)
 // Licensed under Apache 2.0 — see LICENSE.HermesPet
 // Modifications: hardcoded colors, removed glasses feature, simplified draw
-/// 云朵精灵像素渲染器 —— viewBox 14×10 的 indigo 小云，带两只眼睛。
-/// 动画：呼吸（上下浮动 ±1pt）+ 眨眼 + 走路时左右摇摆
-public struct CloudView: View, PetSpriteView {
+
+public struct CloudCanvasView: View {
     public let pose: ClawdPose
     public let height: CGFloat
     public var isWalking: Bool = false
+    public var now: TimeInterval
 
     private static let bodyColor       = Color(red: 75.0/255, green: 0.0/255,   blue: 130.0/255) // Indigo
     private static let bodyTopColor    = Color(red: 100.0/255, green: 50.0/255,  blue: 180.0/255)
     private static let bodyBottomColor = Color(red: 50.0/255,  green: 0.0/255,   blue: 80.0/255)
     
-    private static let viewBoxW: CGFloat = 14
-    private static let viewBoxH: CGFloat = 10
-    private static let centerX: CGFloat = 7
-    private static let centerY: CGFloat = 5
+    public static let viewBoxW: CGFloat = 14
+    public static let viewBoxH: CGFloat = 10
 
-    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
+        self.now = now
     }
 
     public var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0/30.0)) { timeline in
-            Canvas(rendersAsynchronously: false) { ctx, size in
-                draw(ctx: ctx, size: size, now: timeline.date.timeIntervalSinceReferenceDate)
-            }
+        Canvas(rendersAsynchronously: false) { ctx, size in
+            draw(ctx: ctx, size: size, now: now)
         }
         .frame(width: height * Self.viewBoxW / Self.viewBoxH, height: height)
     }
@@ -119,5 +116,25 @@ public struct CloudView: View, PetSpriteView {
                           ctx: GraphicsContext, unit: CGFloat,
                           fill: GraphicsContext.Shading) {
         ctx.fill(Path(CGRect(x: x * unit, y: y * unit, width: w * unit, height: h * unit)), with: fill)
+    }
+}
+
+/// 云朵精灵像素渲染器 —— viewBox 14×10 的 indigo 小云，带两只眼睛。
+/// 动画：呼吸（上下浮动 ±1pt）+ 眨眼 + 走路时左右摇摆
+public struct CloudView: View, PetSpriteView {
+    public let pose: ClawdPose
+    public let height: CGFloat
+    public var isWalking: Bool = false
+
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+        self.pose = pose
+        self.height = height
+        self.isWalking = isWalking
+    }
+
+    public var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0/30.0)) { timeline in
+            CloudCanvasView(pose: pose, height: height, isWalking: isWalking, now: timeline.date.timeIntervalSinceReferenceDate)
+        }
     }
 }

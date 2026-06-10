@@ -83,6 +83,7 @@ public final class AppState {
         case launcherRingsData
         case currentLauncherRingIndex
         case todayEscapeCount
+        case useClassicTrayIcon
     }
 
     public enum LauncherTriggerMode: String, Codable, CaseIterable, Identifiable {
@@ -147,6 +148,18 @@ public final class AppState {
         set {
             withMutation(keyPath: \.selectedPet) {
                 UserDefaults.standard.set(newValue.rawValue, forKey: Keys.selectedPet.rawValue)
+            }
+        }
+    }
+
+    public var useClassicTrayIcon: Bool {
+        get {
+            access(keyPath: \.useClassicTrayIcon)
+            return UserDefaults.standard.object(forKey: Keys.useClassicTrayIcon.rawValue) as? Bool ?? false
+        }
+        set {
+            withMutation(keyPath: \.useClassicTrayIcon) {
+                UserDefaults.standard.set(newValue, forKey: Keys.useClassicTrayIcon.rawValue)
             }
         }
     }

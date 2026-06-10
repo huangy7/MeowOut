@@ -338,6 +338,18 @@ struct SettingsView: View {
                     }
                     .toggleStyle(.switch)
                 }
+
+                SettingsCard(
+                    icon: "cat",
+                    iconColor: .gray,
+                    title: I18n.localized("settings_classic_tray_icon", language: state.language),
+                    description: I18n.localized("settings_classic_tray_icon_desc", language: state.language)
+                ) {
+                    Toggle(isOn: $state.useClassicTrayIcon) {
+                        Text(I18n.localized("settings_classic_tray_icon", language: state.language))
+                    }
+                    .toggleStyle(.switch)
+                }
             }
         } else if selectedSystemSubTab == "about" {
             VStack(spacing: 16) {

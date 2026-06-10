@@ -3,16 +3,13 @@ import SwiftUI
 // Portions derived from HermesPet (https://github.com/basionwang-bot/HermesPet)
 // Licensed under Apache 2.0 — see LICENSE.HermesPet
 // Modifications: hardcoded colors, simplified animation, removed palette parameter
-/// 金黄像素小马渲染器 —— viewBox 14×10
-/// 动画：呼吸 (±2%) + 眨眼 + 走路 trot 步态 + 鬃毛/尾巴飘动 + 翅膀扑扇
-public struct HorseView: View, PetSpriteView {
-    public let pose: ClawdPose
-    /// 精灵高度。最终 frame 宽 = height × 1.4（viewBox 14:10）
-    public let height: CGFloat
-    /// 是否在走路 —— 控制 trot 步态 + 鬃毛/尾巴飘动幅度
-    public var isWalking: Bool = false
 
-    // 默认色（不参与调色保留视觉特征）
+public struct HorseCanvasView: View {
+    public let pose: ClawdPose
+    public let height: CGFloat
+    public var isWalking: Bool = false
+    public var now: TimeInterval
+
     private static let bodyColor       = Color(red: 255.0/255, green: 204.0/255, blue: 0.0/255)    // 金黄
     private static let bodyTopColor    = Color(red: 255.0/255, green: 220.0/255, blue: 50.0/255)
     private static let bodyBottomColor = Color(red: 220.0/255, green: 170.0/255, blue: 0.0/255)
@@ -21,22 +18,21 @@ public struct HorseView: View, PetSpriteView {
     private static let wingColor       = Color(red: 255.0/255, green: 250.0/255, blue: 229.0/255)  // #FFFAE5 奶油白
     private static let wingShadowColor = Color(red: 230.0/255, green: 215.0/255, blue: 170.0/255)  // #E6D7AA 翼根阴影 / 羽缝
 
-    private static let viewBoxW: CGFloat = 14
-    private static let viewBoxH: CGFloat = 10
+    public static let viewBoxW: CGFloat = 14
+    public static let viewBoxH: CGFloat = 10
     private static let centerX: CGFloat = 7
     private static let centerY: CGFloat = 5
 
-    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
+        self.now = now
     }
 
     public var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0/60.0)) { timeline in
-            Canvas(rendersAsynchronously: false) { ctx, size in
-                draw(ctx: ctx, size: size, now: timeline.date.timeIntervalSinceReferenceDate)
-            }
+        Canvas(rendersAsynchronously: false) { ctx, size in
+            draw(ctx: ctx, size: size, now: now)
         }
         .frame(width: height * Self.viewBoxW / Self.viewBoxH, height: height)
     }
@@ -56,9 +52,9 @@ public struct HorseView: View, PetSpriteView {
         let shadowFill     = GraphicsContext.Shading.color(.black.opacity(0.4))
 
         // 呼吸
-        let breatheT = sin(now * 2 * .pi / 3.2)
-        let sx: CGFloat = 1 + CGFloat(breatheT) * 0.02
-        let sy: CGFloat = 1 - CGFloat(breatheT) * 0.02
+        let breatheT = sin(now * 2 * .pi / 2.5)
+        let sx: CGFloat = 1 + CGFloat(breatheT) * 0.03
+        let sy: CGFloat = 1 - CGFloat(breatheT) * 0.05
 
         // 走路 phase 0~1
         let walkPhase = isWalking ? (now / 0.8).truncatingRemainder(dividingBy: 1.0) : 0
@@ -90,7 +86,8 @@ public struct HorseView: View, PetSpriteView {
         let tailWaveY: CGFloat = CGFloat(cos(maneFreq * 0.8)) * (isWalking ? 0.35 : 0.18)
         let wingFlap: CGFloat = CGFloat(sin(maneFreq * 1.4)) * (isWalking ? 0.5 : 0.18)
 
-        let dy = bodyBob
+        let idleBobY: CGFloat = isWalking ? 0 : CGFloat(breatheT) * 0.35
+        let dy = bodyBob + idleBobY
 
         // 阴影
         let shadowRect = CGRect(
@@ -182,5 +179,27 @@ public struct HorseView: View, PetSpriteView {
         let screenW = w * sx * unit
         let screenH = h * sy * unit
         ctx.fill(Path(CGRect(x: screenX, y: screenY, width: screenW, height: screenH)), with: fill)
+    }
+}
+
+/// 金黄像素小马渲染器 —— viewBox 14×10
+/// 动画：呼吸 (±2%) + 眨眼 + 走路 trot 步态 + 鬃毛/尾巴飘动 + 翅膀扑扇
+public struct HorseView: View, PetSpriteView {
+    public let pose: ClawdPose
+    /// 精灵高度。最终 frame 宽 = height × 1.4（viewBox 14:10）
+    public let height: CGFloat
+    /// 是否在走路 —— 控制 trot 步态 + 鬃毛/尾巴飘动幅度
+    public var isWalking: Bool = false
+
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+        self.pose = pose
+        self.height = height
+        self.isWalking = isWalking
+    }
+
+    public var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0/60.0)) { timeline in
+            HorseCanvasView(pose: pose, height: height, isWalking: isWalking, now: timeline.date.timeIntervalSinceReferenceDate)
+        }
     }
 }

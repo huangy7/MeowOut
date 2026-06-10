@@ -3,13 +3,15 @@ import SwiftUI
 // Portions derived from HermesPet (https://github.com/basionwang-bot/HermesPet)
 // Licensed under Apache 2.0 — see LICENSE.HermesPet
 // Modifications: hardcoded colors, simplified to fit MeowOut 30fps TimelineView
-public struct FomoView: View, PetSpriteView {
+
+public struct FomoCanvasView: View {
     public let pose: ClawdPose
     public let height: CGFloat
     public var isWalking: Bool = false
+    public var now: TimeInterval
 
-    private static let viewBoxW: CGFloat = 14
-    private static let viewBoxH: CGFloat = 10
+    public static let viewBoxW: CGFloat = 14
+    public static let viewBoxH: CGFloat = 10
 
     private static let bodyColor       = Color(red: 0.97, green: 0.98, blue: 1.0)
     private static let bodyShadowColor = Color(red: 180.0/255, green: 197.0/255, blue: 232.0/255)
@@ -32,17 +34,16 @@ public struct FomoView: View, PetSpriteView {
     ]
     private static let shadow   = FomoRect(x: 3,   y: 9.7, w: 8,   h: 0.3)
 
-    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
+        self.now = now
     }
 
     public var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0/30.0)) { timeline in
-            Canvas(rendersAsynchronously: false) { ctx, size in
-                draw(ctx: ctx, size: size, now: timeline.date.timeIntervalSinceReferenceDate)
-            }
+        Canvas(rendersAsynchronously: false) { ctx, size in
+            draw(ctx: ctx, size: size, now: now)
         }
         .frame(width: height * Self.viewBoxW / Self.viewBoxH, height: height)
     }
@@ -59,8 +60,8 @@ public struct FomoView: View, PetSpriteView {
         let ground     = GraphicsContext.Shading.color(.black.opacity(0.18))
 
         // 呼吸
-        let breatheT = sin(now * 2 * .pi / 3.2)
-        let breatheSY: CGFloat = 1 - CGFloat(breatheT) * 0.02
+        let breatheT = sin(now * 2 * .pi / 2.5)
+        let breatheSY: CGFloat = 1 - CGFloat(breatheT) * 0.05
 
         // 走路
         let walkPhase = isWalking ? now.truncatingRemainder(dividingBy: 0.9) / 0.9 : 0
@@ -103,7 +104,8 @@ public struct FomoView: View, PetSpriteView {
         c.scaleBy(x: -1.0, y: 1.0)
         let cx = Self.viewBoxW / 2 * unit
         let cy = Self.viewBoxH / 2 * unit
-        c.translateBy(x: cx, y: cy + bobY * unit)
+        let idleBobY: CGFloat = isWalking ? 0 : CGFloat(breatheT) * 0.35
+        c.translateBy(x: cx, y: cy + (bobY + idleBobY) * unit)
         c.scaleBy(x: 1.0, y: breatheSY)
         c.translateBy(x: -cx, y: -cy)
 
@@ -176,6 +178,24 @@ public struct FomoView: View, PetSpriteView {
 
         // 8. 鼻子
         paint(Self.nose, pinkFill)
+    }
+}
+
+public struct FomoView: View, PetSpriteView {
+    public let pose: ClawdPose
+    public let height: CGFloat
+    public var isWalking: Bool = false
+
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
+        self.pose = pose
+        self.height = height
+        self.isWalking = isWalking
+    }
+
+    public var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0/30.0)) { timeline in
+            FomoCanvasView(pose: pose, height: height, isWalking: isWalking, now: timeline.date.timeIntervalSinceReferenceDate)
+        }
     }
 }
 
