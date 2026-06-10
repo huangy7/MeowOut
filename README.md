@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/assets/app_icon.png" alt="MeowOut Icon" width="128">
+</p>
+
 # MeowOut
 
 <p align="center">
@@ -109,8 +113,6 @@ Sources/MeowOut/
 ## ⚖️ 开源协议
 
 本项目代码基于 [MIT](LICENSE) 协议。
-
-像素精灵渲染组件（`ClawdView`, `CloudView`, `TerminalView`, `HorseView`, `FomoView`）的代码逻辑参考或派生自 [HermesPet](https://github.com/basionwang-bot/HermesPet)，遵循 [Apache 2.0](LICENSE.HermesPet) 协议，归属声明详见 [NOTICE.HermesPet](NOTICE.HermesPet)。
 
 ---
 

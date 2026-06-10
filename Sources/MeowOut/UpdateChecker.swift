@@ -99,7 +99,7 @@ private struct AvailableUpdate {
 }
 
 /// GitHub Release API 自动更新检查器。
-/// 结合了 HermesPet 的轻量安装脚本与 AppUpdater 的稳健进度追踪逻辑。
+/// 结合了轻量安装脚本与稳健的进度追踪逻辑。
 @MainActor
 @Observable
 final class UpdateChecker {

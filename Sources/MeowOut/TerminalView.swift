@@ -12,7 +12,10 @@ public struct TerminalCanvasView: View {
     public var now: TimeInterval
     public var ledColorOverride: Color?
     public var flameOuterColorOverride: Color?
+    public var flameMidColorOverride: Color?
     public var bodyColorOverride: Color?
+    public var bodyTopColorOverride: Color?
+    public var bodyBottomColorOverride: Color?
     
     private let isWorking: Bool = false
 
@@ -34,14 +37,17 @@ public struct TerminalCanvasView: View {
     private static let centerX: CGFloat = 7
     private static let centerY: CGFloat = 5
 
-    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval, ledColorOverride: Color? = nil, flameOuterColorOverride: Color? = nil, bodyColorOverride: Color? = nil) {
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval, ledColorOverride: Color? = nil, flameOuterColorOverride: Color? = nil, flameMidColorOverride: Color? = nil, bodyColorOverride: Color? = nil, bodyTopColorOverride: Color? = nil, bodyBottomColorOverride: Color? = nil) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
         self.now = now
         self.ledColorOverride = ledColorOverride
         self.flameOuterColorOverride = flameOuterColorOverride
+        self.flameMidColorOverride = flameMidColorOverride
         self.bodyColorOverride = bodyColorOverride
+        self.bodyTopColorOverride = bodyTopColorOverride
+        self.bodyBottomColorOverride = bodyBottomColorOverride
     }
 
     public var body: some View {
@@ -55,8 +61,8 @@ public struct TerminalCanvasView: View {
         let unit = min(size.width / Self.viewBoxW, size.height / Self.viewBoxH)
         
         let bodyFill        = GraphicsContext.Shading.color(bodyColorOverride ?? Self.bodyColor)
-        let bodyTopFill     = GraphicsContext.Shading.color(Self.bodyTopColor)
-        let bodyBottomFill  = GraphicsContext.Shading.color(Self.bodyBottomColor)
+        let bodyTopFill     = GraphicsContext.Shading.color(bodyTopColorOverride ?? Self.bodyTopColor)
+        let bodyBottomFill  = GraphicsContext.Shading.color(bodyBottomColorOverride ?? Self.bodyBottomColor)
         let screenFill      = GraphicsContext.Shading.color(Self.screenColor)
         let eyeWhiteFill    = GraphicsContext.Shading.color(Self.eyeWhiteColor)
         let pupilFill       = GraphicsContext.Shading.color(Self.screenColor)
@@ -64,7 +70,7 @@ public struct TerminalCanvasView: View {
         
         let flameOuterC = flameOuterColorOverride ?? Self.defaultFlameOuterColor
         let ledC = ledColorOverride ?? Self.defaultLedColor
-        let flameMidC = ledColorOverride ?? Self.defaultFlameMidColor
+        let flameMidC = flameMidColorOverride ?? Self.defaultFlameMidColor
 
         let flameInnerFill  = GraphicsContext.Shading.color(Self.defaultFlameInnerColor)
         let flameMidFill    = GraphicsContext.Shading.color(flameMidC)

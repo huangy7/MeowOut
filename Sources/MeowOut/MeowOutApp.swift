@@ -122,7 +122,7 @@ struct TrayIconView: View {
                 Image(systemName: trayIconConfig.0)
             }
         }
-        .frame(height: 18)
+        .frame(width: 32, height: 18)
         .onReceive(animationTimer) { _ in
             if appState.isWalking {
                 appState.currentFrameIndex = (appState.currentFrameIndex + 1) % 5
@@ -214,7 +214,9 @@ struct TrayIconView: View {
         lastCachedPet = pet
         lastCachedColorScheme = colorScheme
         lastCachedUseClassic = useClassic
+        #if DEBUG
         print("💾 Tray icon cache refreshed for state: \(state) pet: \(pet.rawValue) classic: \(useClassic)")
+        #endif
     }
 
     private func loadAndPrepareImage(name: String, color: NSColor, isTemplate: Bool) -> NSImage? {
@@ -896,7 +898,7 @@ struct AppIconView: View {
                 Image(nsImage: icon)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 44, height: 44)
+                    .frame(width: 24, height: 24)
             } else {
                 Image(systemName: "app.dashed")
                     .resizable()

@@ -183,7 +183,7 @@ public struct HorseCanvasView: View {
 }
 
 /// 金黄像素小马渲染器 —— viewBox 14×10
-/// 动画：呼吸 (±2%) + 眨眼 + 走路 trot 步态 + 鬃毛/尾巴飘动 + 翅膀扑扇
+/// 动画：呼吸 (±3% x / ±5% y) + 眨眼 + 走路 trot 步态 + 鬃毛/尾巴飘动 + 翅膀扑扇
 public struct HorseView: View, PetSpriteView {
     public let pose: ClawdPose
     /// 精灵高度。最终 frame 宽 = height × 1.4（viewBox 14:10）
