@@ -418,11 +418,8 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
               <div class="scard">
                 <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F43E;</div><div class="card-texts"><div class="card-title">选择宠物</div><div class="card-desc">挑选您喜爱的像素精灵伴侣。</div></div></div>
                 <div class="pet-grid">
-                  <div class="pet-item sel" data-pet="clawd"><canvas id="pv-clawd" width="56" height="40"></canvas><span>Clawd</span></div>
-                  <div class="pet-item" data-pet="robot"><canvas id="pv-robot" width="56" height="40"></canvas><span>Robot</span></div>
-                  <div class="pet-item" data-pet="cloud"><canvas id="pv-cloud" width="56" height="40"></canvas><span>Cloud</span></div>
-                  <div class="pet-item" data-pet="horse"><canvas id="pv-horse" width="56" height="40"></canvas><span>Horse</span></div>
-                  <div class="pet-item" data-pet="fomo"><canvas id="pv-fomo" width="56" height="40"></canvas><span>Fomo</span></div>
+                  <div class="pet-item sel" data-pet="clawd"><canvas id="pv-clawd" width="56" height="40"></canvas><span>Toby</span></div>
+                  <div class="pet-item" data-pet="panda"><canvas id="pv-panda" width="56" height="40"></canvas><span>Oreo</span></div>
                 </div>
               </div>
             </div>
@@ -1166,18 +1163,124 @@ const compCanvas = document.getElementById('companion-canvas');
 const compCtx = compCanvas.getContext('2d');
 
 // Pet preview canvases
-const PV = { clawd:null, robot:null, cloud:null, horse:null, fomo:null };
-['clawd','robot','cloud','horse','fomo'].forEach(name => {
+const PV = { clawd:null, panda:null };
+['clawd','panda'].forEach(name => {
   PV[name] = { el: document.getElementById('pv-'+name), ctx: null };
   PV[name].ctx = PV[name].el.getContext('2d');
 });
+
+
+function drawPanda(ctx, w, h, t, walk, pose, dir, unit) {
+  ctx.save();
+  ctx.translate(w/2, h/2);
+  let breatheT = Math.sin(t * 2 * Math.PI / 3.2);
+  let walkPhase = walk ? (t % 1.0) : 0;
+  let bobY = 0; // Disable vertical jumping to prevent dizzy effect
+  
+  // center 16x16 viewbox at (0,0), so map [0,16] to [-8*unit, -8*unit]
+  ctx.scale(unit * (1.0 + breatheT * 0.01), unit * (1.0 - breatheT * 0.02));
+  ctx.translate(-8, -8 + bobY);
+  
+  const blackColor = '#28282d';
+  const whiteColor = '#ffffff';
+  const greenColor = '#78aa6e';
+  const redColor = '#dc323c';
+  
+  function rRect(x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, width, height, radius);
+      ctx.fill();
+  }
+  
+  // Legs
+  ctx.fillStyle = blackColor;
+  rRect(4.5, 12, 2.5, 2.5, 1);
+  rRect(9.0, 12, 2.5, 2.5, 1);
+  
+  // Vest
+  rRect(3.5, 5.5, 9, 8, 4);
+  
+  // Belly
+  ctx.fillStyle = whiteColor;
+  rRect(4, 7.5, 8, 6, 3.5);
+  ctx.strokeStyle = 'rgba(0,0,0,0.05)'; ctx.lineWidth = 0.5;
+  ctx.stroke();
+  
+  // Arms
+  ctx.fillStyle = blackColor;
+  rRect(2.5, 7.5, 2.5, 4.5, 1.2);
+  rRect(11.0, 7.5, 2.5, 4.5, 1.2);
+  
+  // Ears
+  ctx.beginPath(); ctx.ellipse(2 + 1.8, 1 + 1.8, 1.8, 1.8, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(10.4 + 1.8, 1 + 1.8, 1.8, 1.8, 0, 0, Math.PI*2); ctx.fill();
+  
+  // Head
+  ctx.fillStyle = whiteColor;
+  rRect(3, 2, 10, 7.5, 3.5);
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)'; ctx.lineWidth = 0.5;
+  ctx.stroke();
+  
+  // Eye Patches
+  ctx.fillStyle = blackColor;
+  let patchW = 2.8, patchH = 3.4;
+  ctx.save();
+  ctx.translate(4.2 + patchW/2, 4.5 + patchH/2);
+  ctx.rotate(15 * Math.PI / 180);
+  ctx.beginPath(); ctx.ellipse(0, 0, patchW/2, patchH/2, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  
+  ctx.save();
+  ctx.translate(9.0 + patchW/2, 4.5 + patchH/2);
+  ctx.rotate(-15 * Math.PI / 180);
+  ctx.beginPath(); ctx.ellipse(0, 0, patchW/2, patchH/2, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  
+  // Pupils
+  ctx.fillStyle = whiteColor;
+  ctx.beginPath(); ctx.ellipse(5.2 + 0.5, 5.5 + 0.5, 0.5, 0.5, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(9.8 + 0.5, 5.5 + 0.5, 0.5, 0.5, 0, 0, Math.PI*2); ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = blackColor;
+  ctx.beginPath(); ctx.ellipse(7.4 + 0.6, 7.2 + 0.4, 0.6, 0.4, 0, 0, Math.PI*2); ctx.fill();
+  
+  // Bamboo
+  ctx.save();
+  ctx.translate(12.5, 8.5);
+  ctx.rotate(-25 * Math.PI / 180);
+  ctx.translate(-12.5, -8.5);
+  
+  ctx.fillStyle = greenColor;
+  rRect(12.0, 4.5, 0.8, 6.0, 0.4);
+  
+  // Leaf 1
+  ctx.save();
+  ctx.translate(12.5, 5.0); ctx.rotate(-40 * Math.PI / 180);
+  ctx.beginPath(); ctx.ellipse(0, 0, 1.25, 0.5, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  
+  // Leaf 2
+  ctx.save();
+  ctx.translate(12.5, 7.0); ctx.rotate(20 * Math.PI / 180);
+  ctx.beginPath(); ctx.ellipse(-1.25, -0.5, 1.25, 0.5, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  
+  // Red Knot
+  ctx.fillStyle = redColor;
+  rRect(11.9, 9.5, 1.0, 1.0, 0.2);
+  ctx.fillRect(12.2, 10.5, 0.4, 1.2);
+  
+  ctx.restore();
+  ctx.restore();
+}
 
 function drawClawd(ctx, w, h, t, walk, pose, dir, unit) {
   const u = unit || 5;
   const breatheT = Math.sin(t*2*Math.PI/3.2);
   const sy = 1-breatheT*0.02;
   const phase = walk ? (t%1.0) : 0;
-  const bob = walk ? ((phase<0.25||(phase>=0.5&&phase<0.75))?0.7:0) : 0;
+  const bob = 0; // Disable vertical jumping to prevent dizzy effect
   
   let eyeX=0, eyeY=0;
   if (S.chaseEnabled && pose==='rest') {
@@ -1476,7 +1579,7 @@ function drawFomo(ctx, w, h, t, walk, pose, dir, unit) {
   ctx.restore();
 }
 
-const petDrawFns = { clawd:drawClawd, robot:drawRobot, cloud:drawCloud, horse:drawHorse, fomo:drawFomo };
+const petDrawFns = { clawd:drawClawd, panda:drawPanda };
 
 // ─── MAIN RENDER LOOP ─────────────────────────────────────────────────────────
 function render() {
@@ -1491,7 +1594,7 @@ function render() {
   drawFn(compCtx, 112, 80, renderT, S.compWalk, poseState, S.compDir, 5);
   
   // Preview canvases in settings grid
-  ['clawd','robot','cloud','horse','fomo'].forEach(name => {
+  ['clawd','panda'].forEach(name => {
     const pv = PV[name];
     pv.ctx.clearRect(0,0,56,40);
     petDrawFns[name](pv.ctx, 56, 40, renderT, false, 'rest', 1, 3);

@@ -404,3 +404,7 @@
 "meow2fa_export_warning_desc" = "导出操作会将您的所有两步验证账号和密钥以明文 JSON 格式保存。任何获取此文件的人都可以生成您的验证码。请务必妥善保管该文件。";
 "settings_classic_tray_icon" = "经典单色托盘图标";
 "settings_classic_tray_icon_desc" = "打开后，托盘固定显示原版的单色小猫（支持随系统深色模式自动反色）。关闭则显示全彩动态宠物。";
+
+"pet_name_clawd" = "托比";
+"pet_name_panda" = "奥利奥";
+

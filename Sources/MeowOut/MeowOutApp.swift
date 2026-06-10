@@ -179,12 +179,9 @@ struct TrayIconView: View {
             } else {
                 let now = TimeInterval(i) * 0.2
                 let canvas: AnyView = {
-                    switch pet {
-                    case .robot: return AnyView(TerminalCanvasView(pose: .rest, height: 18, isWalking: isW, now: now, ledColorOverride: stateColor, flameOuterColorOverride: stateColor, bodyColorOverride: bodyC))
+                    switch appState.selectedPet {
                     case .clawd: return AnyView(ClawdCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
-                    case .cloud: return AnyView(CloudCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
-                    case .horse: return AnyView(HorseCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
-                    case .fomo:  return AnyView(FomoCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
+                    case .panda: return AnyView(PandaCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
                     }
                 }()
                 

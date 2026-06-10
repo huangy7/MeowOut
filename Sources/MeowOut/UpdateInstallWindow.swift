@@ -90,10 +90,7 @@ struct UpdateInstallView: View {
                     Group {
                         switch appState.selectedPet {
                         case .clawd: ClawdView(pose: .rest, height: 36)
-                        case .robot: TerminalView(pose: .rest, height: 36)
-                        case .cloud: CloudView(pose: .rest, height: 36)
-                        case .horse: HorseView(pose: .rest, height: 36)
-                        case .fomo: FomoView(pose: .rest, height: 36)
+                        case .panda: PandaView(pose: .rest, height: 36)
                         }
                     }
                     .offset(y: isFloating ? -3 : 3)

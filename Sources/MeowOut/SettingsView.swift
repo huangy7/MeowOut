@@ -251,14 +251,15 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var waterCards: some View {
-        if selectedWaterSubTab == "general" {
+        switch selectedWaterSubTab {
+        case "general":
             SettingsCard(icon: "drop.fill", iconColor: .blue, title: I18n.localized("water_settings_enabled", language: state.language), description: nil) {
                 Toggle(isOn: $state.waterReminderEnabled) {
                     Text(I18n.localized("water_settings_enabled", language: state.language))
                 }
                 .toggleStyle(.switch)
             }
-        } else if selectedWaterSubTab == "schedule" {
+        case "schedule":
             VStack(spacing: 16) {
                 SettingsCard(icon: "clock.fill", iconColor: .cyan, title: I18n.localized("water_settings_mode", language: state.language), description: nil) {
                     Picker("", selection: $state.waterReminderMode) {
@@ -274,20 +275,23 @@ struct SettingsView: View {
                     }
                 }
             }
-        } else if selectedWaterSubTab == "goal" {
+        case "goal":
             SettingsCard(icon: "target", iconColor: .orange, title: I18n.localized("water_settings_goal", language: state.language), description: nil) {
                 settingSlider(value: Binding(get: { Double(state.dailyWaterGoal) }, set: { state.dailyWaterGoal = Int($0) }), in: 4...20, step: 1, unit: "unit_cups")
             }
+        default:
+            EmptyView()
         }
     }
 
     @ViewBuilder
     private var behaviorCards: some View {
-        if selectedBehaviorSubTab == "pet" {
+        switch selectedBehaviorSubTab {
+        case "pet":
             SettingsCard(icon: "pawprint.fill", iconColor: .orange, title: I18n.localized("settings_pet_selection", language: state.language), description: nil) {
                 petSelectionGrid
             }
-        } else if selectedBehaviorSubTab == "personality" {
+        case "personality":
             SettingsCard(icon: "person.text.rectangle", iconColor: .purple, title: I18n.localized("settings_personality", language: state.language), description: I18n.localized("settings_personality_desc", language: state.language)) {
                 Picker("", selection: $state.selectedPersonality) {
                     Text(I18n.localized("settings_personality_gentle", language: state.language)).tag(PetPersonality.gentle)
@@ -296,7 +300,7 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
             }
-        } else if selectedBehaviorSubTab == "interactions" {
+        case "interactions":
             VStack(spacing: 16) {
                 SettingsCard(icon: "hand.tap", iconColor: .blue, title: I18n.localized("settings_cursor_chasing", language: state.language), description: I18n.localized("settings_cursor_chasing_desc", language: state.language)) {
                     Toggle(isOn: $state.enableCursorChasing) {
@@ -313,12 +317,15 @@ struct SettingsView: View {
                     previewButtons
                 }
             }
+        default:
+            EmptyView()
         }
     }
 
     @ViewBuilder
     private var systemCards: some View {
-        if selectedSystemSubTab == "general" {
+        switch selectedSystemSubTab {
+        case "general":
             VStack(spacing: 16) {
                 SettingsCard(icon: "character.bubble", iconColor: .blue, title: I18n.localized("settings_language", language: state.language), description: nil) {
                     Picker("", selection: $state.language) {
@@ -351,7 +358,7 @@ struct SettingsView: View {
                     .toggleStyle(.switch)
                 }
             }
-        } else if selectedSystemSubTab == "about" {
+        case "about":
             VStack(spacing: 16) {
                 let version = Bundle.main.appVersion
                 SettingsCard(
@@ -367,6 +374,8 @@ struct SettingsView: View {
 
                 updateCard
             }
+        default:
+            EmptyView()
         }
     }
 
@@ -517,16 +526,13 @@ struct SettingsView: View {
                         Group {
                             switch pet {
                             case .clawd: ClawdView(pose: .rest, height: 36)
-                            case .robot: TerminalView(pose: .rest, height: 36)
-                            case .cloud: CloudView(pose: .rest, height: 36)
-                            case .horse: HorseView(pose: .rest, height: 36)
-                            case .fomo: FomoView(pose: .rest, height: 36)
+                            case .panda: PandaView(pose: .rest, height: 36)
                             }
                         }
                         .padding(.top, 12)
                     }
 
-                    Text(pet.rawValue)
+                    Text(I18n.localized(pet.localizationKey, language: state.language))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(state.selectedPet == pet ? .primary : .secondary)
                 }

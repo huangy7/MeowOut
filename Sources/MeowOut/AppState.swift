@@ -47,11 +47,15 @@ public final class AppState {
 
     public enum PetType: String, CaseIterable, Identifiable {
         case clawd = "Clawd"
-        case robot = "Robot"
-        case cloud = "Cloud"
-        case horse = "Horse"
-        case fomo = "Fomo"
+        case panda = "Panda"
         public var id: String { rawValue }
+        
+        public var localizationKey: String {
+            switch self {
+            case .clawd: return "pet_name_clawd"
+            case .panda: return "pet_name_panda"
+            }
+        }
     }
 
     private enum Keys: String {
@@ -878,10 +882,7 @@ extension AppState.PetType {
     public func makeView(pose: ClawdPose, height: CGFloat, isWalking: Bool) -> some View {
         switch self {
         case .clawd: ClawdView(pose: pose, height: height, isWalking: isWalking)
-        case .robot: TerminalView(pose: pose, height: height, isWalking: isWalking)
-        case .cloud: CloudView(pose: pose, height: height, isWalking: isWalking)
-        case .horse: HorseView(pose: pose, height: height, isWalking: isWalking)
-        case .fomo: FomoView(pose: pose, height: height, isWalking: isWalking)
+        case .panda: PandaView(pose: pose, height: height, isWalking: isWalking)
         }
     }
 }
