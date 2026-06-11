@@ -30,6 +30,6 @@ public struct Meow2FAMainView: View {
                     }
             }
         }
-        .frame(minWidth: 380, minHeight: 500)
+        .frame(minWidth: 380, idealWidth: 380, maxWidth: 450, minHeight: 500, idealHeight: 600)
     }
 }

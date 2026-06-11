@@ -321,6 +321,7 @@ struct MeowOutApp: App {
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
+        .defaultSize(width: 380, height: 600)
         .environment(appState)
 
         Window(I18n.localized("keydrop_manager_title", language: appState.language), id: "snippet-manager") {
