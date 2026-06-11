@@ -182,6 +182,7 @@ struct TrayIconView: View {
                     switch appState.selectedPet {
                     case .clawd: return AnyView(ClawdCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
                     case .panda: return AnyView(PandaCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
+                    case .pika: return AnyView(PikaCanvasView(pose: .rest, height: 18, isWalking: isW, now: now))
                     }
                 }()
                 

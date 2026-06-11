@@ -48,12 +48,14 @@ public final class AppState {
     public enum PetType: String, CaseIterable, Identifiable {
         case clawd = "Clawd"
         case panda = "Panda"
+        case pika = "Pika"
         public var id: String { rawValue }
         
         public var localizationKey: String {
             switch self {
             case .clawd: return "pet_name_clawd"
             case .panda: return "pet_name_panda"
+            case .pika: return "pet_name_pika"
             }
         }
     }
@@ -883,6 +885,7 @@ extension AppState.PetType {
         switch self {
         case .clawd: ClawdView(pose: pose, height: height, isWalking: isWalking)
         case .panda: PandaView(pose: pose, height: height, isWalking: isWalking)
+        case .pika: PikaView(pose: pose, height: height, isWalking: isWalking)
         }
     }
 }

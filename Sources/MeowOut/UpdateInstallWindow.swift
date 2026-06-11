@@ -91,6 +91,7 @@ struct UpdateInstallView: View {
                         switch appState.selectedPet {
                         case .clawd: ClawdView(pose: .rest, height: 36)
                         case .panda: PandaView(pose: .rest, height: 36)
+                        case .pika: PikaView(pose: .rest, height: 36)
                         }
                     }
                     .offset(y: isFloating ? -3 : 3)

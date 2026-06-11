@@ -527,6 +527,7 @@ struct SettingsView: View {
                             switch pet {
                             case .clawd: ClawdView(pose: .rest, height: 36)
                             case .panda: PandaView(pose: .rest, height: 36)
+                            case .pika: PikaView(pose: .rest, height: 36)
                             }
                         }
                         .padding(.top, 12)
