@@ -40,9 +40,14 @@ public enum QuickToolActionResolver {
         case .builtIn(let type):
             return builtInDescriptor(for: type, appState: appState)
         case .appShortcut(let id, let name, let path, let bookmark):
+            var finalName = name
+            if let components = FileManager.default.componentsToDisplay(forPath: path), let localizedName = components.last {
+                finalName = localizedName
+            }
+            
             return QuickToolActionDescriptor(
                 id: id.uuidString,
-                displayName: name,
+                displayName: finalName,
                 iconText: nil,
                 appPath: path,
                 behavior: .launch,

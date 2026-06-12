@@ -339,7 +339,7 @@ struct MeowOutApp: App {
             MenuDashboardCard(appState: appState)
             
             // Card 2: Tools & Shortcuts
-            VStack(spacing: 0) {
+            VStack(spacing: 12) {
                 HStack(spacing: 8) {
                     let topTools = Array(appState.quickTools.prefix(2))
                     if topTools.isEmpty {
@@ -351,34 +351,13 @@ struct MeowOutApp: App {
                         ForEach(topTools) { tool in
                             renderToolTile(tool)
                         }
-                        // Fill empty space if less than 2 tools exist
                         if topTools.count < 2 {
                             Spacer()
                         }
                     }
                 }
-                .frame(minHeight: 76)
                 
                 if appState.quickTools.count > 2 {
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            isQuickToolsExpanded.toggle()
-                        }
-                    } label: {
-                        HStack {
-                            Spacer()
-                            Text(isQuickToolsExpanded ? I18n.localized("menu_shortcuts_collapse", language: appState.language) : I18n.localized("menu_shortcuts_expand", language: appState.language))
-                                .font(.system(size: 10))
-                                .foregroundColor(.secondary)
-                            Spacer()
-                        }
-                        .padding(.vertical, 6)
-                        .background(Color.primary.opacity(isHoveredToggle ? 0.05 : 0))
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .onHover { h in isHoveredToggle = h }
-                    
                     if isQuickToolsExpanded {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
                             let remainingTools = Array(appState.quickTools.dropFirst(2))
@@ -386,10 +365,41 @@ struct MeowOutApp: App {
                                 renderSmallToolTile(tool)
                             }
                         }
-                        .padding(.top, 4)
                     }
+                    
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            isQuickToolsExpanded.toggle()
+                        }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text(isQuickToolsExpanded ? "^ 收起" : "v 展开快捷应用")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.primary.opacity(0.6))
+                            Spacer()
+                        }
+                        .padding(.vertical, 6)
+                        .background(Color.primary.opacity(isHoveredToggle ? 0.08 : 0.04))
+                        .cornerRadius(6)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { h in isHoveredToggle = h }
                 }
             }
+            .padding(12)
+            .background(
+                colorScheme == .dark
+                    ? Color.black.opacity(0.25)
+                    : Color.white.opacity(0.85)
+            )
+            .cornerRadius(14)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+            )
+            .shadow(color: Color.black.opacity(0.04), radius: 5, x: 0, y: 1.5)
             
 
             // Card 4: System Actions
@@ -458,16 +468,21 @@ struct MeowOutApp: App {
             dismissMenu()
             descriptor.execute()
         } label: {
-            VStack {
+            VStack(spacing: 4) {
                 if let iconText = descriptor.iconText {
-                    Text(iconText).font(.title2)
+                    Text(iconText).font(.system(size: 18))
                 } else if let path = descriptor.appPath {
                     AppIconView(path: path)
                 }
+                Text(descriptor.displayName)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.primary.opacity(0.8))
+                    .lineLimit(1)
             }
-            .frame(width: 44, height: 44)
-            .background(Color.primary.opacity(0.06))
-            .cornerRadius(8)
+            .frame(maxWidth: .infinity)
+            .frame(height: 64)
+            .background(Color.primary.opacity(0.04))
+            .cornerRadius(10)
             .overlay(alignment: .topTrailing) {
                 if descriptor.state?.isActive == true {
                     Circle()
@@ -543,25 +558,20 @@ struct ControlTileButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .center, spacing: 4) {
+            VStack(alignment: .center, spacing: 6) {
                 Text(iconEmoji)
-                    .font(.system(size: 22))
-                    .frame(height: 24)
+                    .font(.system(size: 24))
+                    .frame(height: 26)
                 
                 Text(title)
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(isActive ? .white : .primary)
-                    .lineLimit(1)
-                
-                Text(isActive ? subtitleActive : subtitleInactive)
-                    .font(.system(size: 9))
-                    .foregroundStyle(isActive ? Color.white.opacity(0.8) : .secondary)
                     .lineLimit(1)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .center)
-            .frame(height: 76)
+            .frame(height: 72)
             .background {
                 if isActive {
                     LinearGradient(
@@ -570,9 +580,7 @@ struct ControlTileButton: View {
                         endPoint: .bottomTrailing
                     )
                 } else {
-                    colorScheme == .dark
-                        ? Color.black.opacity(isHovered ? 0.35 : 0.25)
-                        : Color.white.opacity(isHovered ? 0.95 : 0.85)
+                    Color.primary.opacity(isHovered ? 0.08 : 0.04)
                 }
             }
             .cornerRadius(14)
