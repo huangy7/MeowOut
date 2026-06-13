@@ -359,19 +359,33 @@ struct SettingsView: View {
                 }
             }
         case "about":
-            VStack(spacing: 16) {
+            VStack(spacing: 24) {
                 let version = Bundle.main.appVersion
-                SettingsCard(
-                    icon: "info.circle",
-                    iconColor: .secondary,
-                    title: I18n.localizedFormat("settings_version", language: state.language, version),
-                    description: "v\(version) (\(currentGitCommit))"
-                ) {
+                
+                VStack(spacing: 8) {
+                    if let appIcon = NSImage(named: "AppIcon") {
+                        Image(nsImage: appIcon)
+                            .resizable()
+                            .frame(width: 80, height: 80)
+                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    }
+                    
+                    Text("MeowOut")
+                        .font(.title2)
+                        .bold()
+                    
+                    Text("\(I18n.localizedFormat("settings_version", language: state.language, version)) (\(currentGitCommit))")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    
                     Text(I18n.localized("settings_about_description", language: state.language))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 4)
                 }
-
+                .padding(.top, 16)
+                
                 updateCard
             }
         default:

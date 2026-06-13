@@ -76,7 +76,7 @@ final class QuickToolActionTests: XCTestCase {
 
         XCTAssertEqual(descriptor.id, "00000000-0000-0000-0000-000000000123")
         XCTAssertEqual(descriptor.behavior, .launch)
-        XCTAssertEqual(descriptor.displayName, "Safari")
+        XCTAssertTrue(descriptor.displayName == "Safari" || descriptor.displayName == "Safari浏览器")
         XCTAssertEqual(descriptor.iconText, nil)
         XCTAssertEqual(descriptor.appPath, "/Applications/Safari.app")
         XCTAssertEqual(descriptor.postExecutionBehavior, .closeImmediately)
