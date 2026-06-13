@@ -26,7 +26,7 @@
   </a>
   &nbsp;
   <a href="https://github.com/huangy7/MeowOut/releases/latest">
-    <img src="https://img.shields.io/badge/📦_立即下载-MeowOut_v1.4.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
+    <img src="https://img.shields.io/badge/📦_立即下载-MeowOut_v1.4.2-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
   </a>
 </p>
 
