@@ -220,7 +220,7 @@ struct MemoTimelineView: View {
             .cornerRadius(8)
 
             Menu {
-                Button(String(localized: "category_all", defaultValue: "全部")) { viewModel.selectedTag = nil; viewModel.refresh() }
+                Button(KeyDropConstants.categoryAll) { viewModel.selectedTag = nil; viewModel.refresh() }
                 Divider()
                 ForEach(allTags, id: \.self) { tag in
                     Button("#\(tag)") { viewModel.selectedTag = tag; viewModel.refresh() }

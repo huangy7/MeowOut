@@ -866,11 +866,11 @@ public final class AppState {
     @MainActor
     public func toggleScreenCleaning() {
         if isScreenCleaningActive {
-            ScreenCleaningService.shared.stop()
+            ScreenOverlayService.shared.stop()
             isScreenCleaningActive = false
         } else {
             isScreenCleaningActive = true
-            ScreenCleaningService.shared.start(appState: self)
+            ScreenOverlayService.shared.start(mode: .screenCleaning, appState: self)
         }
     }
 }

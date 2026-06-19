@@ -1,6 +1,11 @@
 import Foundation
 import KeyboardShortcuts
 
+public struct KeyDropConstants {
+    public static let categoryAll = String(localized: "category_all", defaultValue: "全部")
+    public static let categoryUncategorized = String(localized: "category_uncategorized", defaultValue: "未分类")
+}
+
 extension KeyboardShortcuts.Name {
     public static let togglePanel = Self("keyDropTogglePanel", default: .init(.semicolon, modifiers: [.command, .shift]))
     public static let toggleMemosQuickCapture = Self("toggleMemosQuickCapture", default: .init(.comma, modifiers: [.command, .shift]))

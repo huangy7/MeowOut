@@ -5,19 +5,24 @@ struct SnippetManagerView: View {
     @Environment(AppState.self) private var appState
     @ObservedObject var store = SnippetStore.shared
     
-    @State private var selectedCategory: String = String(localized: "category_all", defaultValue: "全部")
+    @State private var selectedCategory: String = KeyDropConstants.categoryAll
     @State private var selectedSnippetId: UUID? = nil
     @State private var searchText: String = ""
     @State private var draggedSnippet: Snippet? = nil
+    @State private var targetedCategory: String? = nil
     
     // Editor State
     @State private var editTitle: String = ""
     @State private var editContent: String = ""
-    @State private var editCategory: String = "未分类"
+    @State private var editCategory: String = KeyDropConstants.categoryUncategorized
     
     // Category Alert State
     @State private var showingAddCategoryAlert = false
     @State private var newCategoryNameInput = ""
+    @State private var showingRenameCategoryAlert = false
+    @State private var showingMergeWarningAlert = false
+    @State private var categoryToRename: String = ""
+    @State private var newCategoryNameForRename: String = ""
     
 
     
@@ -27,16 +32,16 @@ struct SnippetManagerView: View {
     
     private var categories: [String] {
         let list = store.snippets.map { $0.category }
-        var unique = Array(Set(list)).filter { !$0.isEmpty && $0 != "未分类" }.sorted()
-        if list.contains("未分类") {
-            unique.append("未分类")
+        var unique = Array(Set(list)).filter { !$0.isEmpty && $0 != KeyDropConstants.categoryUncategorized }.sorted()
+        if list.contains(KeyDropConstants.categoryUncategorized) {
+            unique.append(KeyDropConstants.categoryUncategorized)
         }
-        return [String(localized: "category_all", defaultValue: "全部")] + unique
+        return [KeyDropConstants.categoryAll] + unique
     }
     
     private var filteredSnippets: [Snippet] {
         let all = store.snippets
-        let categoryFiltered = selectedCategory == String(localized: "category_all", defaultValue: "全部") ? all : all.filter { $0.category == selectedCategory }
+        let categoryFiltered = selectedCategory == KeyDropConstants.categoryAll ? all : all.filter { $0.category == selectedCategory }
         if searchText.isEmpty {
             return categoryFiltered
         }
@@ -136,43 +141,7 @@ struct SnippetManagerView: View {
                 .padding(.top, 16)
                 .padding(.bottom, 8)
             
-            ScrollView {
-                VStack(spacing: 4) {
-                    ForEach(categories, id: \.self) { category in
-                        Button(action: {
-                            selectedCategory = category
-                        }) {
-                            HStack {
-                                Image(systemName: iconName(for: category))
-                                    .font(.system(size: 12))
-                                    .frame(width: 16)
-                                
-                                Text(displayName(for: category))
-                                    .font(.system(size: 13, weight: selectedCategory == category ? .semibold : .regular))
-                                    .lineLimit(1)
-                                
-                                Spacer()
-                                
-                                Text("\(countForCategory(category))")
-                                    .font(.system(size: 10, weight: .semibold, design: .rounded))
-                                    .foregroundColor(selectedCategory == category ? .white.opacity(0.9) : .secondary)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(selectedCategory == category ? Color.white.opacity(0.2) : Color.primary.opacity(0.06))
-                                    .cornerRadius(6)
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(selectedCategory == category ? Color.accentColor : Color.clear)
-                            .foregroundColor(selectedCategory == category ? .white : .primary)
-                            .contentShape(Rectangle())
-                            .cornerRadius(8)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 8)
-            }
+            categoriesListView
             
             Spacer()
             
@@ -207,6 +176,109 @@ struct SnippetManagerView: View {
         } message: {
             Text(I18n.localized("keydrop_add_category_prompt", language: appState.language))
         }
+    }
+    
+    private var categoriesListView: some View {
+        ScrollView {
+            VStack(spacing: 4) {
+                ForEach(categories, id: \.self) { category in
+                    categoryButton(for: category)
+                }
+            }
+            .padding(.horizontal, 8)
+        }
+        .alert(I18n.localized("keydrop_rename_category", language: appState.language), isPresented: $showingRenameCategoryAlert) {
+            TextField("", text: $newCategoryNameForRename)
+            Button(I18n.localized("keydrop_save_btn", language: appState.language)) {
+                let trimmed = newCategoryNameForRename.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty, trimmed != categoryToRename, trimmed != KeyDropConstants.categoryAll else { return }
+                
+                let allCategories = store.snippets.map { $0.category }
+                if allCategories.contains(trimmed) {
+                    // Category already exists, show merge warning
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        showingMergeWarningAlert = true
+                    }
+                } else {
+                    store.renameCategory(oldName: categoryToRename, newName: trimmed)
+                    if selectedCategory == categoryToRename {
+                        selectedCategory = trimmed
+                    }
+                }
+            }
+            Button(I18n.localized("keydrop_cancel_btn", language: appState.language), role: .cancel) {
+                newCategoryNameForRename = ""
+            }
+        } message: {
+            Text(I18n.localized("keydrop_rename_category_prompt", language: appState.language))
+        }
+        .alert(I18n.localized("keydrop_merge_warning_title", language: appState.language), isPresented: $showingMergeWarningAlert) {
+            Button(I18n.localized("keydrop_merge_btn", language: appState.language), role: .destructive) {
+                let trimmed = newCategoryNameForRename.trimmingCharacters(in: .whitespacesAndNewlines)
+                store.renameCategory(oldName: categoryToRename, newName: trimmed)
+                if selectedCategory == categoryToRename {
+                    selectedCategory = trimmed
+                }
+            }
+            Button(I18n.localized("keydrop_cancel_btn", language: appState.language), role: .cancel) {
+                newCategoryNameForRename = ""
+            }
+        } message: {
+            Text(I18n.localized("keydrop_merge_warning_message", language: appState.language))
+        }
+    }
+
+    private func categoryButton(for category: String) -> some View {
+        Button(action: {
+            selectedCategory = category
+        }) {
+            HStack {
+                Image(systemName: iconName(for: category))
+                    .font(.system(size: 12))
+                    .frame(width: 16)
+                
+                Text(displayName(for: category))
+                    .font(.system(size: 13, weight: selectedCategory == category ? .semibold : .regular))
+                    .lineLimit(1)
+                
+                Spacer()
+                
+                Text("\(countForCategory(category))")
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundColor(selectedCategory == category ? .white.opacity(0.9) : .secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(selectedCategory == category ? Color.white.opacity(0.2) : Color.primary.opacity(0.06))
+                    .cornerRadius(6)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                targetedCategory == category ? Color.accentColor.opacity(0.5) :
+                (selectedCategory == category ? Color.accentColor : Color.clear)
+            )
+            .foregroundColor(selectedCategory == category ? .white : .primary)
+            .contentShape(Rectangle())
+            .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            if category != KeyDropConstants.categoryAll {
+                Button(I18n.localized("keydrop_rename_category", language: appState.language)) {
+                    categoryToRename = category
+                    // If the category is the localized "Uncategorized", maybe we can pre-fill it or keep it empty. 
+                    // Keeping the actual name is fine.
+                    newCategoryNameForRename = category == KeyDropConstants.categoryUncategorized ? "" : category
+                    showingRenameCategoryAlert = true
+                }
+            }
+        }
+        .onDrop(of: [UTType.text], delegate: CategoryDropDelegate(
+            targetCategory: category,
+            draggedItem: $draggedSnippet,
+            targetedCategory: $targetedCategory,
+            store: store
+        ))
     }
     
     // MARK: - Middle List
@@ -359,7 +431,7 @@ struct SnippetManagerView: View {
                                 .foregroundColor(.secondary)
                         }
                         
-                        let selectables = categories.filter { $0 != String(localized: "category_all", defaultValue: "全部") }
+                        let selectables = categories.filter { $0 != KeyDropConstants.categoryAll }
                         
                         Picker("", selection: $editCategory) {
                             ForEach(selectables, id: \.self) { cat in
@@ -416,7 +488,7 @@ struct SnippetManagerView: View {
             selectedSnippetId = nil
             editTitle = ""
             editContent = ""
-            editCategory = "未分类"
+            editCategory = KeyDropConstants.categoryUncategorized
         }
     }
     
@@ -428,13 +500,13 @@ struct SnippetManagerView: View {
             var updated = original
             updated.title = editTitle
             updated.content = editContent
-            updated.category = editCategory.isEmpty ? "未分类" : editCategory
+            updated.category = editCategory.isEmpty ? KeyDropConstants.categoryUncategorized : editCategory
             store.update(snippet: updated)
         }
     }
     
     private func addSnippet() {
-        let cat = selectedCategory == String(localized: "category_all", defaultValue: "全部") ? "未分类" : selectedCategory
+        let cat = selectedCategory == KeyDropConstants.categoryAll ? KeyDropConstants.categoryUncategorized : selectedCategory
         let newSnippet = Snippet(
             title: I18n.localized("keydrop_default_title", language: appState.language),
             content: I18n.localized("keydrop_default_content", language: appState.language),
@@ -473,7 +545,7 @@ struct SnippetManagerView: View {
 
     
     private func countForCategory(_ category: String) -> Int {
-        if category == String(localized: "category_all", defaultValue: "全部") {
+        if category == KeyDropConstants.categoryAll {
             return store.snippets.count
         } else {
             return store.snippets.filter { $0.category == category }.count
@@ -482,16 +554,16 @@ struct SnippetManagerView: View {
     
     private func iconName(for category: String) -> String {
         switch category {
-        case String(localized: "category_all", defaultValue: "全部"): return "square.grid.2x2.fill"
-        case "未分类": return "tray.fill"
+        case KeyDropConstants.categoryAll: return "square.grid.2x2.fill"
+        case KeyDropConstants.categoryUncategorized: return "tray.fill"
         default: return "folder.fill"
         }
     }
     
     private func displayName(for category: String) -> String {
-        if category == String(localized: "category_all", defaultValue: "全部") {
+        if category == KeyDropConstants.categoryAll {
             return I18n.localized("keydrop_category_all", language: appState.language)
-        } else if category == "未分类" {
+        } else if category == KeyDropConstants.categoryUncategorized {
             return I18n.localized("keydrop_uncategorized", language: appState.language)
         }
         return category
@@ -516,38 +588,3 @@ struct CustomVisualEffectView: NSViewRepresentable {
         nsView.blendingMode = blendingMode
     }
 }
-
-// MARK: - Drop Delegate
-struct SnippetDropDelegate: DropDelegate {
-    let item: Snippet
-    let items: [Snippet]
-    @Binding var draggedItem: Snippet?
-    let searchText: String
-    let store: SnippetStore
-    
-    func dropEntered(info: DropInfo) {
-        // Only allow reordering when not searching
-        guard searchText.isEmpty else { return }
-        
-        guard let draggedItem = draggedItem,
-              draggedItem.id != item.id,
-              let from = items.firstIndex(where: { $0.id == draggedItem.id }),
-              let to = items.firstIndex(where: { $0.id == item.id }) else { return }
-        
-        if from != to {
-            withAnimation(.default) {
-                store.moveSnippet(id: draggedItem.id, toOffset: to > from ? to + 1 : to, inFilteredList: items)
-            }
-        }
-    }
-    
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        return DropProposal(operation: searchText.isEmpty ? .move : .forbidden)
-    }
-    
-    func performDrop(info: DropInfo) -> Bool {
-        draggedItem = nil
-        return true
-    }
-}
-

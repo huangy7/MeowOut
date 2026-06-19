@@ -1,1 +1,1 @@
-public let currentGitCommit = "370a44a"
+public let currentGitCommit = "c53910d"

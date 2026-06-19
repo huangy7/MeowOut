@@ -228,6 +228,12 @@
 "keydrop_category_all" = "All";
 "keydrop_search_placeholder" = "Search...";
 "keydrop_delete_snippet" = "Delete Snippet";
+"keydrop_rename_category" = "Rename Category";
+"keydrop_rename_category_prompt" = "Please enter the new category name.";
+"keydrop_merge_warning_title" = "Merge Category";
+"keydrop_merge_btn" = "Confirm Merge";
+"keydrop_merge_warning_message" = "The target category already exists. Continuing will merge all snippets from the original category into the target category. Are you sure?";
+
 
 "menu_keep_awake" = "Keep Awake";
 "menu_keyboard_cleaning" = "Keyboard Clean";

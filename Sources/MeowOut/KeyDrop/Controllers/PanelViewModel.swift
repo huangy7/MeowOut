@@ -6,7 +6,7 @@ public class PanelViewModel: ObservableObject {
     @Published public var searchText: String = ""
     @Published public var selectedIndex: Int = 0
     @Published public var shouldScroll: Bool = false
-    @Published public var selectedCategory: String = String(localized: "category_all", defaultValue: "全部")
+    @Published public var selectedCategory: String = KeyDropConstants.categoryAll
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -21,12 +21,12 @@ public class PanelViewModel: ObservableObject {
     public var categories: [String] {
         let list = SnippetStore.shared.snippets.map { $0.category }
         let unique = Array(Set(list)).sorted()
-        return [String(localized: "category_all", defaultValue: "全部")] + unique
+        return [KeyDropConstants.categoryAll] + unique
     }
     
     public var filteredSnippets: [Snippet] {
         let all = SnippetStore.shared.snippets
-        let categoryFiltered = selectedCategory == String(localized: "category_all", defaultValue: "全部") ? all : all.filter { $0.category == selectedCategory }
+        let categoryFiltered = selectedCategory == KeyDropConstants.categoryAll ? all : all.filter { $0.category == selectedCategory }
         if searchText.isEmpty {
             return categoryFiltered
         }
@@ -44,7 +44,7 @@ public class PanelViewModel: ObservableObject {
     
     public func reset() {
         searchText = ""
-        selectedCategory = String(localized: "category_all", defaultValue: "全部")
+        selectedCategory = KeyDropConstants.categoryAll
         selectIndex(0, scroll: true)
     }
     

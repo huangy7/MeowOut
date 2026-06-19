@@ -84,6 +84,37 @@ final class SnippetTests: XCTestCase {
         XCTAssertFalse(snippetsAfterDelete.contains(where: { $0.id == newSnippet.id }))
     }
     
+    func testRenameCategory() async throws {
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let tempFileURL = tempDirectory.appendingPathComponent("MeowOutTests-snippets-\(UUID().uuidString).json")
+        
+        if FileManager.default.fileExists(atPath: tempFileURL.path) {
+            try? FileManager.default.removeItem(at: tempFileURL)
+        }
+        
+        let store = await SnippetStore(storageURL: tempFileURL)
+        defer {
+            try? FileManager.default.removeItem(at: tempFileURL)
+        }
+        
+        // Clear initial defaults for easier testing
+        await MainActor.run {
+            store.snippets.removeAll()
+        }
+        
+        await store.add(snippet: Snippet(title: "Test 1", content: "1", category: "OldCat"))
+        await store.add(snippet: Snippet(title: "Test 2", content: "2", category: "OldCat"))
+        await store.add(snippet: Snippet(title: "Test 3", content: "3", category: "OtherCat"))
+        
+        await store.renameCategory(oldName: "OldCat", newName: "NewCat")
+        
+        let snippets = await store.snippets
+        XCTAssertEqual(snippets.filter { $0.category == "NewCat" }.count, 2)
+        XCTAssertEqual(snippets.filter { $0.category == "OldCat" }.count, 0)
+        XCTAssertEqual(snippets.filter { $0.category == "OtherCat" }.count, 1)
+    }
+    
+
     func testLocalizationsNoKeyDropParenthesis() {
         let textZh = I18n.localized("keydrop_enabled", language: .zhHans)
         let textEn = I18n.localized("keydrop_enabled", language: .en)

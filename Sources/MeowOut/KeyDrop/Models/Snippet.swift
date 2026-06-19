@@ -6,7 +6,7 @@ public struct Snippet: Codable, Identifiable, Hashable, Sendable {
     public var content: String
     public var category: String
     
-    public init(id: UUID = UUID(), title: String, content: String, category: String = "未分类") {
+    public init(id: UUID = UUID(), title: String, content: String, category: String = KeyDropConstants.categoryUncategorized) {
         self.id = id
         self.title = title
         self.content = content
@@ -22,6 +22,6 @@ public struct Snippet: Codable, Identifiable, Hashable, Sendable {
         self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         self.title = try container.decode(String.self, forKey: .title)
         self.content = try container.decode(String.self, forKey: .content)
-        self.category = try container.decodeIfPresent(String.self, forKey: .category) ?? "未分类"
+        self.category = try container.decodeIfPresent(String.self, forKey: .category) ?? KeyDropConstants.categoryUncategorized
     }
 }

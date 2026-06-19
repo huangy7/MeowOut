@@ -12,9 +12,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // 对于托盘应用，确保激活策略正确
         NSApp.setActivationPolicy(.accessory)
         
+        // 确保上次异常退出时残留的屏幕遮盖/事件拦截被清除
+        ScreenOverlayService.shared.stop()
+        
         // 启动自动更新检查器
         UpdateChecker.shared.start()
-
     }
 
     func tryStartEngine() {
@@ -28,6 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         PowerAssertionService.shared.disable()
         KeyboardCleaningService.shared.stop()
+        ScreenOverlayService.shared.stop()
     }
 }
 

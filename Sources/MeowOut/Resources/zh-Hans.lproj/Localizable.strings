@@ -229,6 +229,12 @@
 "keydrop_category_all" = "全部";
 "keydrop_search_placeholder" = "搜索...";
 "keydrop_delete_snippet" = "删除词条";
+"keydrop_rename_category" = "重命名分类";
+"keydrop_rename_category_prompt" = "请输入新的分类名称。";
+"keydrop_merge_warning_title" = "合并分类";
+"keydrop_merge_btn" = "确认合并";
+"keydrop_merge_warning_message" = "目标分类名称已存在，继续操作将把原分类下的所有常用语合并到目标分类中，是否确认？";
+
 
 "menu_keep_awake" = "防休眠";
 "menu_keyboard_cleaning" = "键盘清洁";

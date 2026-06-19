@@ -47,8 +47,8 @@ struct SnippetEditorView: View {
             ScrollView(showsIndicators: false) {
                 let grouped = Dictionary(grouping: store.snippets, by: { $0.category })
                 let sortedCategories = grouped.keys.sorted { a, b in
-                    if a == "未分类" { return false }
-                    if b == "未分类" { return true }
+                    if a == KeyDropConstants.categoryUncategorized { return false }
+                    if b == KeyDropConstants.categoryUncategorized { return true }
                     return a < b
                 }
                 
@@ -113,8 +113,7 @@ struct SnippetEditorView: View {
                                                     Text(I18n.localized("keydrop_category_label", language: state.language))
                                                         .font(.system(size: 11))
                                                         .foregroundColor(.secondary)
-                                                    
-                                                    let existingCategories = Array(Set(store.snippets.map { $0.category } + ["未分类"])).filter { !$0.isEmpty }.sorted()
+                                                    let existingCategories = Array(Set(store.snippets.map { $0.category } + [KeyDropConstants.categoryUncategorized])).filter { !$0.isEmpty }.sorted()
                                                     
                                                     Picker("", selection: Binding(
                                                         get: { isNewCategory ? "NEW_CATEGORY" : editCategory },
@@ -251,9 +250,9 @@ struct SnippetEditorView: View {
         updated.content = editContent
         if isNewCategory {
             let trimmed = newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines)
-            updated.category = trimmed.isEmpty ? "未分类" : trimmed
+            updated.category = trimmed.isEmpty ? KeyDropConstants.categoryUncategorized : trimmed
         } else {
-            updated.category = editCategory.isEmpty ? "未分类" : editCategory
+            updated.category = editCategory.isEmpty ? KeyDropConstants.categoryUncategorized : editCategory
         }
         store.update(snippet: updated)
         editingSnippetId = nil
@@ -263,7 +262,7 @@ struct SnippetEditorView: View {
         let newSnippet = Snippet(
             title: I18n.localized("keydrop_default_title", language: state.language),
             content: I18n.localized("keydrop_default_content", language: state.language),
-            category: "未分类"
+            category: KeyDropConstants.categoryUncategorized
         )
         store.add(snippet: newSnippet)
         startEditing(newSnippet)

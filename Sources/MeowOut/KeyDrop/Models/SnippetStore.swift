@@ -98,6 +98,20 @@ public class SnippetStore: ObservableObject {
         snippets.removeAll(where: { $0.id == snippet.id })
     }
     
+    public func renameCategory(oldName: String, newName: String) {
+        var updatedSnippets = snippets
+        var didChange = false
+        for i in 0..<updatedSnippets.count {
+            if updatedSnippets[i].category == oldName {
+                updatedSnippets[i].category = newName
+                didChange = true
+            }
+        }
+        if didChange {
+            snippets = updatedSnippets // Triggers didSet and objectWillChange exactly once
+        }
+    }
+    
     public func moveSnippet(id: UUID, toOffset offset: Int, inFilteredList filtered: [Snippet]) {
         guard let sourceIndex = snippets.firstIndex(where: { $0.id == id }) else { return }
         let item = snippets[sourceIndex]

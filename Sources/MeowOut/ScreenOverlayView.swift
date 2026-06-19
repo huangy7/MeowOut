@@ -1,7 +1,8 @@
 import SwiftUI
 
-struct ScreenCleaningOverlayView: View {
+struct ScreenOverlayView: View {
     @Bindable var appState: AppState
+    let mode: ScreenOverlayMode
     let showInstructions: Bool
     
     @State private var progress: Double = 0
@@ -12,13 +13,15 @@ struct ScreenCleaningOverlayView: View {
             
             if showInstructions {
                 VStack(spacing: 20) {
-                    Text(I18n.localized("screen_cleaning_active", language: appState.language))
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(.white.opacity(0.6))
-                    
-                    Text(I18n.localized("screen_cleaning_exit_hint", language: appState.language))
-                        .font(.system(size: 14))
-                        .foregroundColor(.white.opacity(0.4))
+                    if mode == .screenCleaning {
+                        Text(I18n.localized("screen_cleaning_active", language: appState.language))
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.white.opacity(0.6))
+                        
+                        Text(I18n.localized("screen_cleaning_exit_hint", language: appState.language))
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.4))
+                    }
                     
                     ZStack {
                         Circle()
@@ -32,11 +35,11 @@ struct ScreenCleaningOverlayView: View {
                             .rotationEffect(.degrees(-90))
                     }
                     .padding(.top, 20)
-                    .opacity(progress > 0 ? 1 : 0)
+                    .opacity(mode == .screenCleaning || progress > 0 ? 1 : 0)
                 }
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .screenCleaningProgress)) { notification in
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("screenOverlayProgress"))) { notification in
             if let value = notification.object as? Double {
                 withAnimation(.linear(duration: 0.1)) {
                     progress = value
