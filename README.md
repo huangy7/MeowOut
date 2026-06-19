@@ -69,7 +69,17 @@ MeowOut 采用一套精密的活跃度判定逻辑，确保对你工作状态的
 
 ## 🚀 安装指南 (Installation)
 
-### 下载安装包 (推荐) ⭐️
+### 使用 Homebrew 安装 (推荐) 🍺
+
+如果你的 Mac 上已安装 Homebrew，可以通过我们的专属 Tap 一键安装和更新：
+
+```bash
+brew install huangy7/tap/meowout
+```
+
+---
+
+### 下载安装包
 
 1. **[下载最新的 MeowOut.dmg](https://github.com/huangy7/MeowOut/releases/latest)**
 2. **移除隔离属性** (未签名的应用需要执行此操作):

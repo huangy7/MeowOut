@@ -799,13 +799,23 @@
 
     <!-- INSTALLATION & DOWNLOAD SECTION -->
     <section id="install" class="install container">
+        <div class="install-box" style="margin-bottom: 24px;">
+            <h3>🍺 使用 Homebrew 安装 (推荐)</h3>
+            <p>如果你的 Mac 上已安装 Homebrew，可以通过我们的专属 Tap 一键安装和更新：</p>
+            
+            <div class="cli-container">
+                <div class="cli-code" id="cli-text-brew">brew install huangy7/tap/meowout</div>
+                <button class="cli-copy" onclick="copyCli('cli-text-brew', this)">复制命令</button>
+            </div>
+        </div>
+
         <div class="install-box">
             <h3>⚡️ 极速一键安装</h3>
             <p>打开终端，复制并粘贴运行以下一键脚本即可快速安装并打开 MeowOut：</p>
             
             <div class="cli-container">
                 <div class="cli-code" id="cli-text">curl -L https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg -o ~/Downloads/MeowOut.dmg &amp;&amp; xattr -cr ~/Downloads/MeowOut.dmg &amp;&amp; open ~/Downloads/MeowOut.dmg</div>
-                <button class="cli-copy" onclick="copyCli()">复制命令</button>
+                <button class="cli-copy" onclick="copyCli('cli-text', this)">复制命令</button>
             </div>
 
             <p style="margin-bottom: 16px; font-weight: 500;">或手动下载对应芯片的最新 Stable 安装包：</p>
@@ -856,15 +866,16 @@
         });
 
         // Copy CLI Command to Clipboard
-        function copyCli() {
-            const textToCopy = document.getElementById('cli-text').innerText;
+        function copyCli(elementId = 'cli-text', btnElement = null) {
+            const textToCopy = document.getElementById(elementId).innerText;
             navigator.clipboard.writeText(textToCopy).then(() => {
-                const btn = document.querySelector('.cli-copy');
+                const btn = btnElement || document.querySelector('.cli-copy');
+                const originalText = btn.innerText;
                 btn.innerText = '已复制！';
                 btn.classList.add('copied');
                 
                 setTimeout(() => {
-                    btn.innerText = '复制命令';
+                    btn.innerText = originalText;
                     btn.classList.remove('copied');
                 }, 2000);
             }).catch(err => {
