@@ -1,0 +1,71 @@
+name: Update Homebrew Cask
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-cask:
+    runs-on: macos-latest
+    steps:
+      - name: Extract version
+        id: get_version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download ${{ github.event.release.tag_name }} \
+            -p "*-arm64.dmg" -p "*-x86_64.dmg" \
+            -R ${{ github.repository }}
+
+      - name: Calculate SHA256 checksums
+        id: calc_sha
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          ARM_SHA=$(shasum -a 256 "MeowOut-${VERSION}-arm64.dmg" | awk '{print $1}')
+          INTEL_SHA=$(shasum -a 256 "MeowOut-${VERSION}-x86_64.dmg" | awk '{print $1}')
+          echo "arm_sha=$ARM_SHA" >> $GITHUB_OUTPUT
+          echo "intel_sha=$INTEL_SHA" >> $GITHUB_OUTPUT
+
+      - name: Checkout Homebrew Tap
+        uses: actions/checkout@v4
+        with:
+          repository: huangy7/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update Cask file
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          ARM_SHA="${{ steps.calc_sha.outputs.arm_sha }}"
+          INTEL_SHA="${{ steps.calc_sha.outputs.intel_sha }}"
+          CASK_FILE="homebrew-tap/Casks/meowout.rb"
+
+          awk -v v="$VERSION" -v intel="$INTEL_SHA" -v arm="$ARM_SHA" '
+          /version "/ { sub(/version ".+"/, "version \"" v "\"") }
+          /Hardware::CPU\.intel\?/ { in_intel = 1; in_arm = 0 }
+          /else/ { in_intel = 0; in_arm = 1 }
+          /end/ { in_intel = 0; in_arm = 0 }
+          /sha256 "/ {
+            if (in_intel) {
+              sub(/sha256 ".+"/, "sha256 \"" intel "\"")
+            } else if (in_arm) {
+              sub(/sha256 ".+"/, "sha256 \"" arm "\"")
+            }
+          }
+          { print }
+          ' $CASK_FILE > tmp.rb && mv tmp.rb $CASK_FILE
+
+      - name: Commit and push changes
+        run: |
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/meowout.rb
+          git commit -m "chore: update meowout cask to v${{ steps.get_version.outputs.version }}"
+          git push
