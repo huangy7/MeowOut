@@ -150,19 +150,19 @@ public struct ClawdCanvasView: View {
         // Eyes
         let eyeOffset = CGPoint(x: finalOffset.x + lookOffset.x, y: finalOffset.y + lookOffset.y)
         if isBlinking {
-            drawComponent(ctx, grid: "#", pos: CGPoint(x: 4, y: 2.85), unit: u, offset: eyeOffset, scale: CGSize(width: finalScale.width, height: finalScale.height * 0.3), color: .black)
-            drawComponent(ctx, grid: "#", pos: CGPoint(x: 10, y: 2.85), unit: u, offset: eyeOffset, scale: CGSize(width: finalScale.width, height: finalScale.height * 0.3), color: .black)
+            drawComponent(ctx, grid: "#", pos: CGPoint(x: 4, y: 2.85), unit: u, offset: eyeOffset, scale: finalScale, color: .black, pixelScale: CGSize(width: finalScale.width, height: finalScale.height * 0.3))
+            drawComponent(ctx, grid: "#", pos: CGPoint(x: 10, y: 2.85), unit: u, offset: eyeOffset, scale: finalScale, color: .black, pixelScale: CGSize(width: finalScale.width, height: finalScale.height * 0.3))
         } else {
             drawComponent(ctx, grid: Self.eyeGrid, pos: CGPoint(x: 4, y: 2), unit: u, offset: eyeOffset, scale: finalScale, color: .black)
             drawComponent(ctx, grid: Self.eyeGrid, pos: CGPoint(x: 10, y: 2), unit: u, offset: eyeOffset, scale: finalScale, color: .black)
             
             // Highlight
-            drawComponent(ctx, grid: "#", pos: CGPoint(x: 4.05, y: 2.1), unit: u, offset: eyeOffset, scale: CGSize(width: finalScale.width * 0.4, height: finalScale.height * 0.4), color: .white)
-            drawComponent(ctx, grid: "#", pos: CGPoint(x: 10.05, y: 2.1), unit: u, offset: eyeOffset, scale: CGSize(width: finalScale.width * 0.4, height: finalScale.height * 0.4), color: .white)
+            drawComponent(ctx, grid: "#", pos: CGPoint(x: 4.05, y: 2.1), unit: u, offset: eyeOffset, scale: finalScale, color: .white, pixelScale: CGSize(width: finalScale.width * 0.4, height: finalScale.height * 0.4))
+            drawComponent(ctx, grid: "#", pos: CGPoint(x: 10.05, y: 2.1), unit: u, offset: eyeOffset, scale: finalScale, color: .white, pixelScale: CGSize(width: finalScale.width * 0.4, height: finalScale.height * 0.4))
         }
     }
     
-    private func drawComponent(_ ctx: GraphicsContext, grid: String, pos: CGPoint, unit: CGFloat, offset: CGPoint, scale: CGSize, color: Color) {
+    private func drawComponent(_ ctx: GraphicsContext, grid: String, pos: CGPoint, unit: CGFloat, offset: CGPoint, scale: CGSize, color: Color, pixelScale: CGSize? = nil) {
         let absX = pos.x + offset.x
         let absY = pos.y + offset.y
         
@@ -172,7 +172,8 @@ public struct ClawdCanvasView: View {
         var transformCtx = ctx
         transformCtx.translateBy(x: screenX, y: screenY)
         
-        let path = AsciiSpriteEngine.rasterize(matrix: grid, unit: unit, scale: scale)
+        let pScale = pixelScale ?? scale
+        let path = AsciiSpriteEngine.rasterize(matrix: grid, unit: unit, scale: pScale)
         transformCtx.fill(path, with: .color(color))
     }
     
