@@ -73,7 +73,7 @@ public class SnippetStore: ObservableObject {
     }
     
     // Static helper to write data to disk safely from background thread
-    private static func saveToDisk(_ snippetsToSave: [Snippet], to url: URL) {
+    private nonisolated static func saveToDisk(_ snippetsToSave: [Snippet], to url: URL) {
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted

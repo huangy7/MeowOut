@@ -187,7 +187,6 @@ struct TrayIconView: View {
         frameCache.removeAll()
         
         let isW = (state == .working || state == .alerting || state == .overworking)
-        let bodyC = colorScheme == .dark ? Color(red: 60.0/255, green: 100.0/255, blue: 180.0/255) : nil
         let stateColor = robotLedColor
         
         for i in 0..<5 {

@@ -24,19 +24,25 @@ public final class ScreenOverlayService {
         // 系统即将休眠
         systemObservers.append(
             workspaceNC.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
-                self?.stop()
+                Task { @MainActor [weak self] in
+                    self?.stop()
+                }
             }
         )
         // 显示器休眠（独立于系统休眠）
         systemObservers.append(
             workspaceNC.addObserver(forName: NSWorkspace.screensDidSleepNotification, object: nil, queue: .main) { [weak self] _ in
-                self?.stop()
+                Task { @MainActor [weak self] in
+                    self?.stop()
+                }
             }
         )
         // 会话失活：包含系统自动锁屏、快速用户切换
         systemObservers.append(
             workspaceNC.addObserver(forName: NSWorkspace.sessionDidResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
-                self?.stop()
+                Task { @MainActor [weak self] in
+                    self?.stop()
+                }
             }
         )
     }
@@ -92,8 +98,10 @@ public final class ScreenOverlayService {
                 object: window,
                 queue: .main
             ) { [weak self] _ in
-                guard let self = self, self.currentMode != nil else { return }
-                self.stop()
+                Task { @MainActor [weak self] in
+                    guard let self = self, self.currentMode != nil else { return }
+                    self.stop()
+                }
             }
             windowObservers.append(observer)
         }
