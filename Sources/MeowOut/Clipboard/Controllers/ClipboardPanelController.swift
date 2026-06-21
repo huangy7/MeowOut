@@ -184,6 +184,16 @@ public final class ClipboardPanelController: NSPanel {
         let isShift = flags.contains(.shift)
         let isOption = flags.contains(.option)
 
+        if isEditingSearchField {
+            return handleEditingKeyDown(
+                event,
+                keyCode: keyCode,
+                isCommand: isCommand,
+                isShift: isShift,
+                isOption: isOption
+            )
+        }
+
         switch keyCode {
         case 53:
             hide()
@@ -222,6 +232,41 @@ public final class ClipboardPanelController: NSPanel {
         }
 
         return false
+    }
+
+    private func handleEditingKeyDown(
+        _ event: NSEvent,
+        keyCode: UInt16,
+        isCommand: Bool,
+        isShift: Bool,
+        isOption: Bool
+    ) -> Bool {
+        switch keyCode {
+        case 53:
+            hide()
+            return true
+        case 36, 76:
+            chooseSelected(
+                removeFormatting: isCommand && isShift,
+                pasteAutomaticallyOverride: isOption ? !ClipboardHistorySettings.shared.pasteAutomatically : nil
+            )
+            return true
+        case 35 where isCommand:
+            viewModel.togglePinnedSelected()
+            return true
+        case 117 where isCommand:
+            viewModel.deleteSelected()
+            return true
+        default:
+            if handleCommandNumber(event, isCommand: isCommand) {
+                return true
+            }
+            return false
+        }
+    }
+
+    private var isEditingSearchField: Bool {
+        firstResponder is NSTextView
     }
 
     private func handleCommandNumber(_ event: NSEvent, isCommand: Bool) -> Bool {

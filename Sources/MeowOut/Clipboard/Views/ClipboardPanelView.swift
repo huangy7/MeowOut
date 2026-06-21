@@ -6,6 +6,7 @@ public struct ClipboardPanelView: View {
     private let language: AppState.AppLanguage
     private let onChoose: (Int) -> Void
     @State private var showingClearUnpinnedConfirmation = false
+    @FocusState private var isSearchFocused: Bool
 
     public init(
         viewModel: ClipboardPanelViewModel,
@@ -35,6 +36,9 @@ public struct ClipboardPanelView: View {
         }
         .frame(width: 600, height: 620, alignment: .top)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.10))
+        .onAppear {
+            isSearchFocused = true
+        }
         .overlay {
             if showingClearUnpinnedConfirmation {
                 clearConfirmationOverlay
@@ -54,12 +58,17 @@ public struct ClipboardPanelView: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.secondary)
 
-                Text(viewModel.searchText.isEmpty ? localized("clipboard_panel_search_placeholder") : viewModel.searchText)
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundStyle(viewModel.searchText.isEmpty ? .secondary : .primary)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                TextField(
+                    "",
+                    text: $viewModel.searchText,
+                    prompt: Text(localized("clipboard_panel_search_placeholder"))
+                )
+                .font(.system(size: 14, weight: .regular))
+                .textFieldStyle(.plain)
+                .focused($isSearchFocused)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)
             .frame(height: 30)
             .background(
@@ -466,7 +475,7 @@ private struct ClipboardPreviewPane: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(localized("clipboard_panel_hint_choose"))
             Text(localized("clipboard_panel_hint_pin"))
-            Text(localized("clipboard_panel_hint_delete"))
+            Text(localized("clipboard_panel_hint_delete_item"))
         }
         .font(.system(size: 11))
         .foregroundStyle(.secondary)
@@ -499,7 +508,13 @@ private extension ClipboardItem {
             switch content.storage {
             case let .inlineData(data):
                 return NSImage(data: data)
-            case .inlineText, .asset:
+            case let .asset(fileName):
+                guard let data = try? ClipboardAssetStore.applicationSupportStore.read(fileName: fileName) else {
+                    return nil
+                }
+
+                return NSImage(data: data)
+            case .inlineText:
                 return nil
             }
         }

@@ -483,7 +483,7 @@
 "clipboard_panel_copies_count" = "%d 次复制";
 "clipboard_panel_hint_choose" = "⌘1...⌘9 选择";
 "clipboard_panel_hint_pin" = "⌘P 固定或取消固定";
-"clipboard_panel_hint_delete" = "⌦ 删除";
+"clipboard_panel_hint_delete_item" = "⌦ 删除所选条目";
 "clipboard_panel_pin_item" = "固定项目";
 "clipboard_panel_unpin_item" = "取消固定项目";
 "clipboard_item_image" = "图片";

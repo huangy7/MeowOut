@@ -481,7 +481,7 @@
 "clipboard_panel_copies_count" = "%d copies";
 "clipboard_panel_hint_choose" = "⌘1...⌘9 choose";
 "clipboard_panel_hint_pin" = "⌘P pin or unpin";
-"clipboard_panel_hint_delete" = "⌦ delete";
+"clipboard_panel_hint_delete_item" = "⌦ delete selected item";
 "clipboard_panel_pin_item" = "Pin item";
 "clipboard_panel_unpin_item" = "Unpin item";
 "clipboard_item_image" = "Image";

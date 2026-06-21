@@ -8,18 +8,21 @@ public final class ClipboardMonitorService {
     private let reader: ClipboardPasteboardReading
     private let store: ClipboardHistoryStore
     private let settings: ClipboardHistorySettings
+    private let assetStore: ClipboardAssetStore
     private var timer: Timer?
     private var lastChangeCount: Int
 
     public convenience init(
         reader: ClipboardPasteboardReading = NSPasteboardClipboardReader(),
         store: ClipboardHistoryStore? = nil,
-        settings: ClipboardHistorySettings? = nil
+        settings: ClipboardHistorySettings? = nil,
+        assetStore: ClipboardAssetStore = .applicationSupportStore
     ) {
         self.init(
             reader: reader,
             store: store ?? .shared,
             settings: settings ?? .shared,
+            assetStore: assetStore,
             lastChangeCount: reader.changeCount
         )
     }
@@ -28,11 +31,13 @@ public final class ClipboardMonitorService {
         reader: ClipboardPasteboardReading,
         store: ClipboardHistoryStore,
         settings: ClipboardHistorySettings,
+        assetStore: ClipboardAssetStore,
         lastChangeCount: Int
     ) {
         self.reader = reader
         self.store = store
         self.settings = settings
+        self.assetStore = assetStore
         self.lastChangeCount = lastChangeCount
     }
 
@@ -178,9 +183,13 @@ public final class ClipboardMonitorService {
             return nil
         }
 
+        guard let fileName = try? assetStore.write(data, preferredExtension: preferredExtension(for: type)) else {
+            return nil
+        }
+
         return ClipboardContent(
             type: type,
-            storage: .inlineData(data),
+            storage: .asset(fileName: fileName),
             previewText: "Image"
         )
     }
@@ -237,6 +246,23 @@ public final class ClipboardMonitorService {
 
         let url = URL(fileURLWithPath: string)
         return url.lastPathComponent.isEmpty ? nil : url.lastPathComponent
+    }
+
+    private func preferredExtension(for type: String) -> String {
+        switch type {
+        case "public.png":
+            return "png"
+        case "public.tiff":
+            return "tiff"
+        case "public.jpeg":
+            return "jpg"
+        case "public.heic":
+            return "heic"
+        case "com.compuserve.gif":
+            return "gif"
+        default:
+            return "bin"
+        }
     }
 
     private func title(for contents: [ClipboardContent]) -> String {

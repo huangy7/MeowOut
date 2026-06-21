@@ -223,6 +223,32 @@ final class ClipboardMonitorServiceTests: XCTestCase {
         XCTAssertEqual(harness.store.items[0].primaryKind, .image)
     }
 
+    func testImageContentIsStoredAsAssetReference() throws {
+        let harness = MonitorHarness()
+        let imageData = Data([0x89, 0x50, 0x4E, 0x47, 0x01, 0x02, 0x03])
+        harness.reader.changeCount = 2
+        harness.reader.items = [
+            ClipboardPasteboardSnapshotItem(
+                types: ["public.png"],
+                values: ["public.png": imageData]
+            )
+        ]
+
+        harness.monitor.checkNow()
+
+        let item = try XCTUnwrap(harness.store.items.first)
+        let content = try XCTUnwrap(item.contents.first)
+        guard case let .asset(fileName) = content.storage else {
+            XCTFail("Image content should be stored as an asset reference")
+            return
+        }
+
+        XCTAssertEqual(try harness.assetStore.read(fileName: fileName), imageData)
+        let historyData = try Data(contentsOf: harness.historyURL)
+        XCTAssertFalse(historyData.contains(imageData))
+        XCTAssertFalse(String(data: historyData, encoding: .utf8)?.contains("inlineData") ?? true)
+    }
+
     func testRespectsRecordFilesFalse() {
         let harness = MonitorHarness()
         harness.settings.recordFiles = false
@@ -299,16 +325,20 @@ private final class MonitorHarness {
     let store: ClipboardHistoryStore
     let settings: ClipboardHistorySettings
     let monitor: ClipboardMonitorService
+    let historyURL: URL
+    let assetStore: ClipboardAssetStore
 
     init() {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("MonitorHarness-\(UUID().uuidString)", isDirectory: true)
         settings = ClipboardHistorySettings(defaults: UserDefaults(suiteName: "MonitorHarness-\(UUID().uuidString)")!)
+        historyURL = root.appendingPathComponent("history.json")
+        assetStore = ClipboardAssetStore(rootDirectory: root.appendingPathComponent("Assets", isDirectory: true))
         store = ClipboardHistoryStore(
-            storageURL: root.appendingPathComponent("history.json"),
-            assetStore: ClipboardAssetStore(rootDirectory: root.appendingPathComponent("Assets", isDirectory: true)),
+            storageURL: historyURL,
+            assetStore: assetStore,
             settings: settings
         )
-        monitor = ClipboardMonitorService(reader: reader, store: store, settings: settings)
+        monitor = ClipboardMonitorService(reader: reader, store: store, settings: settings, assetStore: assetStore)
     }
 }
 

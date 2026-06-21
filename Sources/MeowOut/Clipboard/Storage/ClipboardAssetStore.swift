@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 public enum ClipboardAssetStoreError: Error, Equatable, LocalizedError, Sendable {
     case invalidFileName(String)
@@ -39,7 +40,7 @@ public struct ClipboardAssetStore: Sendable {
         )
 
         let sanitizedExtension = sanitizeExtension(preferredExtension)
-        let fileName = "\(UUID().uuidString).\(sanitizedExtension)"
+        let fileName = "\(stableIdentifier(for: data)).\(sanitizedExtension)"
         try data.write(to: assetURL(for: fileName), options: .atomic)
 
         return fileName
@@ -109,6 +110,12 @@ public struct ClipboardAssetStore: Sendable {
         }
 
         return String(trimmedExtension)
+    }
+
+    private func stableIdentifier(for data: Data) -> String {
+        SHA256.hash(data: data)
+            .map { String(format: "%02x", $0) }
+            .joined()
     }
 
     private func isSafeExtensionCharacter(_ scalar: UnicodeScalar) -> Bool {
