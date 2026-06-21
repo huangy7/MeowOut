@@ -16,6 +16,7 @@ struct SettingsView: View {
     @State private var selectedWaterSubTab: String = "general"
     @State private var selectedBehaviorSubTab: String = "pet"
     @State private var selectedSystemSubTab: String = "general"
+    @State private var selectedClipboardSubTab: String = "general"
 
     private var restSubTabs: [(id: String, key: String)] {
         [
@@ -48,6 +49,15 @@ struct SettingsView: View {
         ]
     }
 
+    private var clipboardSubTabs: [(id: String, key: String)] {
+        [
+            ("general", "clipboard_tab_general"),
+            ("storage", "clipboard_tab_storage"),
+            ("pinned", "clipboard_tab_pinned"),
+            ("ignored", "clipboard_tab_ignored")
+        ]
+    }
+
     private var sidebarItems: [SidebarItem] {
         let hasPendingUpdate = UpdateChecker.shared.hasPendingUpdate
         return [
@@ -55,6 +65,7 @@ struct SettingsView: View {
             SidebarItem(id: "water", title: I18n.localized("settings_tab_water", language: state.language), icon: "drop.fill"),
             SidebarItem(id: "behavior", title: I18n.localized("settings_section_behavior", language: state.language), icon: "cat.circle"),
             SidebarItem(id: "keydrop", title: I18n.localized("settings_tab_keydrop", language: state.language), icon: "keyboard"),
+            SidebarItem(id: "clipboard", title: I18n.localized("settings_tab_clipboard", language: state.language), icon: "clipboard"),
             SidebarItem(id: "quick_actions", title: I18n.localized("menu_quick_actions", language: state.language), icon: "bolt.fill"),
             SidebarItem(id: "memos", title: "Memos", icon: "note.text"),
             SidebarItem(id: "permissions", title: I18n.localized("settings_tab_permissions", language: state.language), icon: "lock.shield"),
@@ -96,6 +107,7 @@ struct SettingsView: View {
                             case "water": waterCards
                             case "behavior": behaviorCards
                             case "keydrop": keyDropCards
+                            case "clipboard": ClipboardSettingsView(selectedTab: selectedClipboardSubTab)
                             case "quick_actions": QuickActionsSettingsView(state: state)
                             case "memos": MemosSettingsView(state: state)
                             case "permissions": permissionsCards
@@ -185,6 +197,9 @@ struct SettingsView: View {
                        selection: subTabBinding(for: $selectedSystemSubTab, tabs: systemSubTabs))
         case "keydrop":
             EmptyView()
+        case "clipboard":
+            PillTabBar(items: clipboardSubTabs.map { I18n.localized($0.key, language: state.language) },
+                       selection: subTabBinding(for: $selectedClipboardSubTab, tabs: clipboardSubTabs))
         case "quick_actions":
             EmptyView()
         case "memos":

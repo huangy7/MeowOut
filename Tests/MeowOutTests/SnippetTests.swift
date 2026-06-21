@@ -166,6 +166,77 @@ final class SnippetTests: XCTestCase {
         XCTAssertEqual(filtered.count, 1)
         XCTAssertEqual(filtered.first?.title, "11111")
     }
+
+    @MainActor
+    func testPanelViewModelTreatsClipboardHistoryCategoryAsOrdinaryCategory() {
+        let store = SnippetStore.shared
+        let originalSnippets = store.snippets
+        defer { store.snippets = originalSnippets }
+
+        let workSnippet = Snippet(title: "Daily standup", content: "Project notes", category: "工作")
+        let clipboardNamedSnippet = Snippet(title: "User category", content: "Plain phrase", category: "剪贴板历史")
+        store.snippets = [workSnippet, clipboardNamedSnippet]
+
+        let viewModel = PanelViewModel()
+        XCTAssertEqual(viewModel.categories.filter { $0 == "剪贴板历史" }.count, 1)
+        XCTAssertTrue(viewModel.categories.contains("工作"))
+
+        viewModel.selectedCategory = "剪贴板历史"
+        let filtered = viewModel.filteredSnippets
+        XCTAssertEqual(filtered, [clipboardNamedSnippet])
+    }
+
+    func testKeyDropConstantsDoesNotDefineClipboardCategory() throws {
+        let constantsRelativePath = "Sources/MeowOut/KeyDrop/Constants.swift"
+        var directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        var sourceURL = directory.appendingPathComponent(constantsRelativePath)
+
+        while !FileManager.default.fileExists(atPath: sourceURL.path) {
+            let parent = directory.deletingLastPathComponent()
+            if parent.path == directory.path {
+                XCTFail("Could not locate package root containing \(constantsRelativePath)")
+                return
+            }
+
+            directory = parent
+            sourceURL = directory.appendingPathComponent(constantsRelativePath)
+        }
+
+        let source = try String(contentsOf: sourceURL, encoding: .utf8)
+        let declarationPattern = #"^\s*(?:public|internal|private|fileprivate)?\s*static\s+(?:let|var)\s+categoryClipboard\b"#
+        let declarationRegex = try NSRegularExpression(pattern: declarationPattern)
+        var isInsideBlockComment = false
+
+        let matchingDeclarations = source
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .filter { line in
+                var text = String(line)
+
+                if isInsideBlockComment {
+                    if text.contains("*/") {
+                        isInsideBlockComment = false
+                    }
+                    return false
+                }
+
+                let trimmed = text.trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("//") {
+                    return false
+                }
+                if trimmed.hasPrefix("/*") {
+                    isInsideBlockComment = !trimmed.contains("*/")
+                    return false
+                }
+                if let commentStart = text.range(of: "//") {
+                    text = String(text[..<commentStart.lowerBound])
+                }
+
+                let range = NSRange(text.startIndex..<text.endIndex, in: text)
+                return declarationRegex.firstMatch(in: text, range: range) != nil
+            }
+
+        XCTAssertTrue(matchingDeclarations.isEmpty, "KeyDropConstants must not define categoryClipboard")
+    }
     
     func testSnippetManagerLocalizations() {
         let titleZh = I18n.localized("keydrop_manager_title", language: .zhHans)
@@ -179,4 +250,3 @@ final class SnippetTests: XCTestCase {
         XCTAssertTrue(descEn.contains("phrase"))
     }
 }
-

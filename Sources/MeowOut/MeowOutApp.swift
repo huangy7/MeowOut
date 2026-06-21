@@ -31,6 +31,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         PowerAssertionService.shared.disable()
         KeyboardCleaningService.shared.stop()
         ScreenOverlayService.shared.stop()
+        ClipboardMonitorService.shared.stop()
+        LauncherTriggerService.shared.stop()
     }
 }
 
@@ -73,6 +75,9 @@ struct WindowOpener: View {
             .onReceive(NotificationCenter.default.publisher(for: .showMemosBrowserWindow)) { _ in
                 MemosBrowserWindowController.shared.show()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .clipboardHistoryRequireAccessibility)) { _ in
+                showAccessibilityPermissionAlert()
+            }
             .onReceive(NotificationCenter.default.publisher(for: .launcherAccessibilityPermissionLost)) { _ in
                 let alert = NSAlert()
                 alert.messageText = I18n.localized("accessibility_lost_title")
@@ -85,6 +90,17 @@ struct WindowOpener: View {
                     }
                 }
             }
+    }
+
+    private func showAccessibilityPermissionAlert() {
+        let alert = NSAlert()
+        alert.messageText = I18n.localized("clipboard_accessibility_alert_title")
+        alert.informativeText = I18n.localized("clipboard_accessibility_alert_message")
+        alert.addButton(withTitle: I18n.localized("clipboard_accessibility_open_settings"))
+        alert.addButton(withTitle: I18n.localized("accessibility_lost_cancel_btn"))
+        if alert.runModal() == .alertFirstButtonReturn {
+            ClipboardAccessibilityPermission.openSettingsAfterPrompt()
+        }
     }
 }
 
@@ -289,11 +305,14 @@ struct MeowOutApp: App {
                     MemosPanelController.shared.configure(appState: appState)
                     QuickMemoPanelController.shared.configure(appState: appState)
                     MemosBrowserWindowController.shared.configure(appState: appState)
+                    ClipboardPanelController.shared.configure(appState: appState)
                     QueueProcessor.shared.start()
+                    ClipboardMonitorService.shared.start()
                 }
                 .onChange(of: appState.language) { _, _ in
                     // Force engine restart if language changes to pick up new strings
                     appDelegate.tryStartEngine()
+                    ClipboardPanelController.shared.configure(appState: appState)
                 }
         }
         .environment(appState)

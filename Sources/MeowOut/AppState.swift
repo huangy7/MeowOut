@@ -44,6 +44,12 @@ public struct SessionLog: Identifiable, Equatable {
 public final class AppState {
     @ObservationIgnored
     private static var isLauncherShortcutHandlerRegistered = false
+    @ObservationIgnored
+    private static var isKeyDropShortcutHandlerRegistered = false
+    @ObservationIgnored
+    private static var areMemosShortcutHandlersRegistered = false
+    @ObservationIgnored
+    private static var isClipboardHistoryShortcutHandlerRegistered = false
 
     public enum PetType: String, CaseIterable, Identifiable {
         case clawd = "Clawd"
@@ -242,12 +248,9 @@ public final class AppState {
         set {
             withMutation(keyPath: \.keyDropEnabled) {
                 UserDefaults.standard.set(newValue, forKey: Keys.keyDropEnabled.rawValue)
+                registerKeyDropShortcutHandlerIfNeeded()
                 if newValue {
-                    KeyboardShortcuts.onKeyDown(for: .togglePanel) { [weak self] in
-                        Task { @MainActor in
-                            self?.handleKeyDropToggleShortcut()
-                        }
-                    }
+                    KeyboardShortcuts.enable(.togglePanel)
                 } else {
                     KeyboardShortcuts.disable(.togglePanel)
                 }
@@ -258,19 +261,56 @@ public final class AppState {
     @MainActor
     public func initializeKeyboardShortcuts() {
         if keyDropEnabled {
-            KeyboardShortcuts.onKeyDown(for: .togglePanel) { [weak self] in
-                Task { @MainActor in
-                    self?.handleKeyDropToggleShortcut()
-                }
+            registerKeyDropShortcutHandlerIfNeeded()
+            KeyboardShortcuts.enable(.togglePanel)
+        }
+        Self.registerMemosShortcutHandlersIfNeeded()
+        Self.registerClipboardHistoryShortcutHandlerIfNeeded()
+        if ClipboardHistorySettings.shared.isEnabled {
+            KeyboardShortcuts.enable(.toggleClipboardHistoryPanel)
+        } else {
+            KeyboardShortcuts.disable(.toggleClipboardHistoryPanel)
+        }
+        configureLauncherTriggerMode()
+    }
+
+    private func registerKeyDropShortcutHandlerIfNeeded() {
+        guard !Self.isKeyDropShortcutHandlerRegistered else { return }
+
+        KeyboardShortcuts.onKeyDown(for: .togglePanel) { [weak self] in
+            Task { @MainActor in
+                self?.handleKeyDropToggleShortcut()
             }
         }
+        Self.isKeyDropShortcutHandlerRegistered = true
+    }
+
+    private static func registerMemosShortcutHandlersIfNeeded() {
+        guard !areMemosShortcutHandlersRegistered else { return }
+
         KeyboardShortcuts.onKeyDown(for: .toggleMemosQuickCapture) {
             NotificationCenter.default.post(name: .toggleQuickMemoPanel, object: nil)
         }
         KeyboardShortcuts.onKeyDown(for: .toggleMemosBrowserWindow) {
             NotificationCenter.default.post(name: .toggleMemosBrowserWindow, object: nil)
         }
-        configureLauncherTriggerMode()
+        areMemosShortcutHandlersRegistered = true
+    }
+
+    private static func registerClipboardHistoryShortcutHandlerIfNeeded() {
+        guard !isClipboardHistoryShortcutHandlerRegistered else { return }
+
+        KeyboardShortcuts.onKeyDown(for: .toggleClipboardHistoryPanel) {
+            Task { @MainActor in
+                ClipboardHistoryToggleCommand.handle(
+                    isEnabled: ClipboardHistorySettings.shared.isEnabled,
+                    togglePanel: {
+                        ClipboardPanelController.shared.toggle()
+                    }
+                )
+            }
+        }
+        isClipboardHistoryShortcutHandlerRegistered = true
     }
 
     // MARK: - Memos
