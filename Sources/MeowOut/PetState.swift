@@ -18,6 +18,9 @@ public final class PetState {
     public var showBreathingButton: Bool = false
     public var isBeingDragged: Bool = false
 
+    /// 标记右键菜单是否打开，用于阻止鼠标追逐
+    public var isMenuOpen: Bool = false
+
     /// 标记气泡是否被锁定（用于显示高优先级交互对话，防止被自动倒计时覆盖）
     public var isBubbleLocked: Bool = false
 

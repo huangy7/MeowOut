@@ -48,6 +48,16 @@ public struct MeowView: View {
                 }
         )
         .frame(width: 60, height: 60)
+        .contextMenu {
+            Button("打开设置面板") {
+                NSApp.activate(ignoringOtherApps: true)
+                NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil)
+            }
+            
+            Button("赶跑桌宠") {
+                NotificationCenter.default.post(name: NSNotification.Name("TriggerEscapeHatch"), object: nil)
+            }
+        }
     }
 
     private func handleTap() {

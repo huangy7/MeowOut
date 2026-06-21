@@ -3,6 +3,10 @@ import AppKit
 
 public enum ClawdPose {
     case rest, lookLeft, lookRight, armsUp
+    case sleeping
+    case working
+    case grooving
+    case peeking
 }
 
 /// A clean room ASCII matrix rasterization engine for drawing pixel art sprites.
@@ -91,9 +95,19 @@ public struct ClawdCanvasView: View {
     private func renderClawd(ctx: GraphicsContext, size: CGSize) {
         let u = min(size.width / Self.viewBoxW, size.height / Self.viewBoxH)
         
-        let breathe = sin(now * 2 * .pi / 2.5)
-        let sx = 1.0 + CGFloat(breathe) * 0.03
-        let sy = 1.0 - CGFloat(breathe) * 0.05
+        var breatheCycle = 2.5
+        var breatheAmpX: CGFloat = 0.03
+        var breatheAmpY: CGFloat = 0.05
+        
+        if pose == .sleeping {
+            breatheCycle = 4.0
+            breatheAmpX = 0.05
+            breatheAmpY = 0.12
+        }
+        
+        let breathe = sin(now * 2 * .pi / breatheCycle)
+        let sx = 1.0 + CGFloat(breathe) * breatheAmpX
+        let sy = 1.0 - CGFloat(breathe) * breatheAmpY
         
         let walkPhase = isWalking ? now.truncatingRemainder(dividingBy: 1.0) : 0
         let isBlinking = (now.truncatingRemainder(dividingBy: 4.5) / 4.5) > 0.96
@@ -116,11 +130,20 @@ public struct ClawdCanvasView: View {
         // Walk kinematics
         let isStepBob = isWalking && (walkPhase < 0.25 || (walkPhase >= 0.5 && walkPhase < 0.75))
         let bobY: CGFloat = isStepBob ? 1 : 0
-        let swayX: CGFloat = isWalking ? CGFloat(sin(walkPhase * 2 * .pi)) * 0.4 : 0
+        var swayX: CGFloat = isWalking ? CGFloat(sin(walkPhase * 2 * .pi)) * 0.4 : 0
         
         let armSwing = isStepBob ? -1.5 : 1.5
-        let armWaveL: CGFloat = isWalking ? armSwing : 0
-        let armWaveR: CGFloat = -armWaveL
+        var armWaveL: CGFloat = isWalking ? armSwing : 0
+        var armWaveR: CGFloat = -armWaveL
+        
+        if pose == .working {
+            armWaveL = CGFloat(sin(now * 15)) * 2
+            armWaveR = CGFloat(cos(now * 15)) * 2
+        } else if pose == .grooving {
+            swayX += CGFloat(sin(now * 4)) * 1.5
+            armWaveL = CGFloat(sin(now * 4)) * 1.5
+            armWaveR = CGFloat(sin(now * 4)) * 1.5
+        }
         
         let idleBobY: CGFloat = isWalking ? 0 : CGFloat(breathe) * 0.35
         
@@ -149,7 +172,7 @@ public struct ClawdCanvasView: View {
         
         // Eyes
         let eyeOffset = CGPoint(x: finalOffset.x + lookOffset.x, y: finalOffset.y + lookOffset.y)
-        if isBlinking {
+        if isBlinking || pose == .sleeping {
             drawComponent(ctx, grid: "#", pos: CGPoint(x: 4, y: 2.85), unit: u, offset: eyeOffset, scale: finalScale, color: .black, pixelScale: CGSize(width: finalScale.width, height: finalScale.height * 0.3))
             drawComponent(ctx, grid: "#", pos: CGPoint(x: 10, y: 2.85), unit: u, offset: eyeOffset, scale: finalScale, color: .black, pixelScale: CGSize(width: finalScale.width, height: finalScale.height * 0.3))
         } else {

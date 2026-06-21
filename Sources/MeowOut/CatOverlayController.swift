@@ -42,12 +42,16 @@ public final class CatOverlayController {
     private var lastDialogueUpdate: Date = Date()
     private var currentDialogueIndex: Int = 0
     private var showHintNext: Bool = false
+    
+    private var nextAlertingActionTime: Date = Date()
+    private var isAlertingWalking: Bool = true
 
     private var localMonitor: Any?
     private var globalMonitor: Any?
     private var mouseOffsetInWindow: CGSize = .zero
     
     private var originalStateForPreview: AppPhase? = nil
+    private var lastState: AppPhase? = nil
 
     private init() {}
 
@@ -190,6 +194,13 @@ public final class CatOverlayController {
             hideWindows()
             stopTimer()
         }
+        if state.currentState != lastState {
+            if state.currentState == .alerting {
+                isAlertingWalking = true
+                nextAlertingActionTime = Date().addingTimeInterval(Double.random(in: 25...35))
+            }
+            lastState = state.currentState
+        }
 
         withObservationTracking {
             _ = self.appState?.currentState
@@ -253,7 +264,13 @@ public final class CatOverlayController {
     private func setupInputMonitoring() {
         NotificationCenter.default.addObserver(forName: NSMenu.didBeginTrackingNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
+                self?.petState.isMenuOpen = true
                 self?.triggerTrayScold()
+            }
+        }
+        NotificationCenter.default.addObserver(forName: NSMenu.didEndTrackingNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.petState.isMenuOpen = false
             }
         }
     }
@@ -371,6 +388,7 @@ public final class CatOverlayController {
 
     private func tick() {
         if petState.isBeingDragged { return }
+        if petState.isMenuOpen { return }
         guard let state = appState else { return }
         let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
 
@@ -430,7 +448,10 @@ public final class CatOverlayController {
                 let targetDist: CGFloat = 120.0
 
                 if dist > targetDist + 10 {
-                    petState.isWalking = true
+                    if !petState.isWalking {
+                        petState.isWalking = true
+                        petState.pose = .rest
+                    }
                     let speed: CGFloat = 2.5
                     let vx = (dx / dist) * speed
                     let vy = (dy / dist) * speed
@@ -438,7 +459,10 @@ public final class CatOverlayController {
                     petState.position.y += vy
                     petState.facingRight = vx > 0
                 } else {
-                    petState.isWalking = false
+                    if petState.isWalking {
+                        petState.isWalking = false
+                        petState.pose = [.sleeping, .working, .grooving, .rest].randomElement()!
+                    }
                     petState.facingRight = dx > 0
                 }
             } else {
@@ -460,36 +484,52 @@ public final class CatOverlayController {
                 else if petState.position.y >= screen.maxY - 30 { petState.position.y = screen.maxY - 30; patrolVelocity.y = -abs(patrolVelocity.y) }
             }
         } else if state.currentState == .alerting {
-            // ALERTING: Naturally walk to top-of-screen
-            petState.isWalking = true
-            let mildSpeed: CGFloat = 1.5
-
-            // Adjust boundaries to ensure the pet doesn't go off-screen or too high
-            // Visible frame usually excludes menu bar, but we want a safe margin from the top
-            let topMargin: CGFloat = 60.0
-            let minYBoundary = screen.maxY - 120.0
-            let maxYBoundary = screen.maxY - topMargin
-
-            // 1. Vertical Movement: If not in the top area, move UP
-            if petState.position.y < minYBoundary {
-                petState.position.y += mildSpeed // Climb up
-            } else if petState.position.y > maxYBoundary {
-                petState.position.y -= mildSpeed // Drift down slightly if too high
+            let now = Date()
+            if now > nextAlertingActionTime {
+                isAlertingWalking.toggle()
+                // 巡逻和停顿的大致时间改为30秒左右 (25~35秒随机)
+                nextAlertingActionTime = now.addingTimeInterval(Double.random(in: 25...35))
+                
+                if !isAlertingWalking {
+                    petState.isWalking = false
+                    petState.pose = [.sleeping, .working, .grooving, .rest].randomElement()!
+                } else {
+                    petState.isWalking = true
+                    petState.pose = .rest
+                }
             }
+            
+            if isAlertingWalking {
+                // ALERTING: Naturally walk to top-of-screen
+                let mildSpeed: CGFloat = 1.5
 
-            // 2. Horizontal Movement: Always move sideways
-            petState.position.x += patrolVelocity.x > 0 ? mildSpeed : -mildSpeed
+                // Adjust boundaries to ensure the pet doesn't go off-screen or too high
+                // Visible frame usually excludes menu bar, but we want a safe margin from the top
+                let topMargin: CGFloat = 60.0
+                let minYBoundary = screen.maxY - 120.0
+                let maxYBoundary = screen.maxY - topMargin
 
-            // Bounce horizontally
-            if petState.position.x <= screen.minX + 30 {
-                petState.position.x = screen.minX + 30
-                patrolVelocity.x = abs(patrolVelocity.x)
-            } else if petState.position.x >= screen.maxX - 30 {
-                petState.position.x = screen.maxX - 30
-                patrolVelocity.x = -abs(patrolVelocity.x)
+                // 1. Vertical Movement: If not in the top area, move UP
+                if petState.position.y < minYBoundary {
+                    petState.position.y += mildSpeed // Climb up
+                } else if petState.position.y > maxYBoundary {
+                    petState.position.y -= mildSpeed // Drift down slightly if too high
+                }
+
+                // 2. Horizontal Movement: Always move sideways
+                petState.position.x += patrolVelocity.x > 0 ? mildSpeed : -mildSpeed
+
+                // Bounce horizontally
+                if petState.position.x <= screen.minX + 30 {
+                    petState.position.x = screen.minX + 30
+                    patrolVelocity.x = abs(patrolVelocity.x)
+                } else if petState.position.x >= screen.maxX - 30 {
+                    petState.position.x = screen.maxX - 30
+                    patrolVelocity.x = -abs(patrolVelocity.x)
+                }
+
+                petState.facingRight = patrolVelocity.x > 0
             }
-
-            petState.facingRight = patrolVelocity.x > 0
         }
 
         updateWindowPositions()
@@ -617,6 +657,7 @@ public final class CatOverlayController {
         petState.isBeingDragged = false
         petState.pose = .rest
         lastDialogueUpdate = Date()
+        updateWindowPositions()
     }
 
 
