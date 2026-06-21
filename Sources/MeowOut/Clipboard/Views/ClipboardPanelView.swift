@@ -105,7 +105,7 @@ public struct ClipboardPanelView: View {
         } else {
             ScrollViewReader { proxy in
                 ScrollView(showsIndicators: true) {
-                    VStack(spacing: 0) {
+                    LazyVStack(spacing: 0) {
                         ForEach(viewModel.filteredRows) { row in
                             rowView(row)
                         }
@@ -323,10 +323,8 @@ private struct ClipboardPanelRow: View {
         }
         .frame(width: 30, height: 24)
         .overlay {
-            if let image = item.previewImage {
-                Image(nsImage: image)
-                    .resizable()
-                    .scaledToFill()
+            if item.primaryKind == .image {
+                AsyncClipboardImageView(item: item, contentMode: .fill)
                     .frame(width: 30, height: 24)
                     .clipShape(RoundedRectangle(cornerRadius: 4))
             }
@@ -412,16 +410,8 @@ private struct ClipboardPreviewPane: View {
                     .fill(Color.primary.opacity(0.05))
 
                 if item.primaryKind == .image {
-                    if let image = item.previewImage {
-                        Image(nsImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .padding(8)
-                    } else {
-                        Image(systemName: "photo")
-                            .font(.system(size: 30, weight: .regular))
-                            .foregroundStyle(.secondary)
-                    }
+                    AsyncClipboardImageView(item: item, contentMode: .fit)
+                        .padding(8)
                 } else {
                     Text(item.primaryPreview)
                         .font(.system(size: 12))
@@ -486,7 +476,7 @@ private struct ClipboardPreviewPane: View {
     }
 }
 
-private extension ClipboardItem {
+internal extension ClipboardItem {
     func localizedDisplayTitle(language: AppState.AppLanguage) -> String {
         if primaryKind == .image, title == "Image" {
             return I18n.localized("clipboard_item_image", language: language)
