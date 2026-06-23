@@ -176,13 +176,13 @@ public class MemosClient: @unchecked Sendable {
 
     private func delete(path: String) async throws {
         let request = try makeRequest(path: path, method: "DELETE")
-        let (_, response) = try await perform(request)
-        try checkStatus(response)
+        let (data, response) = try await perform(request)
+        try checkStatus(response, data: data)
     }
 
     private func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
         let (data, response) = try await perform(request)
-        try checkStatus(response)
+        try checkStatus(response, data: data)
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
@@ -206,13 +206,23 @@ public class MemosClient: @unchecked Sendable {
         }
     }
 
-    private func checkStatus(_ response: HTTPURLResponse) throws {
+    private struct ErrorResponse: Decodable {
+        let message: String
+    }
+
+    private func checkStatus(_ response: HTTPURLResponse, data: Data?) throws {
         switch response.statusCode {
         case 200..<300: return
         case 401: throw MemosError.unauthorized
         default:
+            var errorMessage = HTTPURLResponse.localizedString(forStatusCode: response.statusCode)
+            if let data = data,
+               let errorResp = try? decoder.decode(ErrorResponse.self, from: data),
+               !errorResp.message.isEmpty {
+                errorMessage = errorResp.message
+            }
             throw MemosError.serverError(statusCode: response.statusCode,
-                                         message: HTTPURLResponse.localizedString(forStatusCode: response.statusCode))
+                                         message: errorMessage)
         }
     }
 }
