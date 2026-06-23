@@ -13,6 +13,9 @@ struct QuickMemoView: View {
     @State private var suppressDraftPersistence = false
     @State private var createdAt = Date()
     @State private var uploadedAttachments: [Attachment] = []
+    @State private var didCopyError = false
+    @State private var isHoveringCopy = false
+    @State private var showingErrorPopover = false
 
     private let draftStore = QuickMemoDraftStore.shared
     @StateObject private var uploadManager = ImageUploadManager()
@@ -234,8 +237,92 @@ struct QuickMemoView: View {
                 .foregroundStyle(presentation.isError ? .red : .secondary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
 
             Spacer(minLength: 8)
+
+            if let rawError = presentation.rawErrorContent {
+                Button {
+                    showingErrorPopover.toggle()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "info.circle")
+                        Text("详细报错")
+                    }
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(didCopyError ? .green : (presentation.isError ? .red : .secondary))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(
+                        Capsule()
+                            .fill(
+                                didCopyError 
+                                ? Color.green.opacity(0.15) 
+                                : (presentation.isError ? Color.red.opacity(isHoveringCopy ? 0.2 : 0.08) : Color.secondary.opacity(isHoveringCopy ? 0.2 : 0.08))
+                            )
+                    )
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(
+                                didCopyError 
+                                ? Color.green.opacity(0.3) 
+                                : (presentation.isError ? Color.red.opacity(0.2) : Color.secondary.opacity(0.2)), 
+                                lineWidth: 1
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isHoveringCopy = hovering
+                    }
+                }
+                .scaleEffect(isHoveringCopy && !showingErrorPopover ? 1.02 : 1.0)
+                .help("查看原始报错信息")
+                .popover(isPresented: $showingErrorPopover, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("原始服务端错误")
+                            .font(.headline)
+                        
+                        ScrollView {
+                            Text(rawError)
+                                .font(.system(.caption, design: .monospaced))
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .frame(maxHeight: 120)
+                        .padding(8)
+                        .background(Color(nsColor: .textBackgroundColor).opacity(0.5))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                        )
+                        
+                        HStack {
+                            Spacer()
+                            Button {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(rawError, forType: .string)
+                                withAnimation { didCopyError = true }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                    withAnimation { didCopyError = false }
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: didCopyError ? "checkmark" : "doc.on.clipboard")
+                                    Text(didCopyError ? "已复制" : "一键复制")
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(didCopyError ? .green : .accentColor)
+                            .controlSize(.small)
+                        }
+                    }
+                    .padding()
+                    .frame(width: 320)
+                }
+            }
 
             if let actionTitle = presentation.actionTitle {
                 Button(actionTitle) {
@@ -248,12 +335,9 @@ struct QuickMemoView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .background(
-            RoundedRectangle(cornerRadius: 0)
-                .fill(presentation.isError ? Color.red.opacity(0.10) : Color.green.opacity(0.10))
+            RoundedRectangle(cornerRadius: 8)
+                .fill(presentation.isError ? .red.opacity(0.1) : .green.opacity(0.1))
         )
-        .overlay(alignment: .top) {
-            Divider()
-        }
     }
 
     private var editor: some View {
