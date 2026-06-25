@@ -12,11 +12,22 @@ public final class PetState {
     public var position: CGPoint = CGPoint(x: 200, y: 200)
     public var facingRight: Bool = true
     public var pose: ClawdPose = .rest
-    public var isWalking: Bool = false
+    public var eyeOffset: CGPoint = .zero
+    public var tiltAngle: Double = 0.0
+    public var isWalking: Bool = false {
+        didSet {
+            if isWalking && (pose == .sleeping || pose == .working || pose == .grooving) {
+                pose = .rest
+            }
+        }
+    }
     public var bubbleText: String = ""
     public var bubbleVisible: Bool = false
     public var showBreathingButton: Bool = false
     public var isBeingDragged: Bool = false
+    public var isHovered: Bool = false
+    public var isSnappedToEdge: Bool = false
+    public var isJumpingOut: Bool = false
 
     /// 标记右键菜单是否打开，用于阻止鼠标追逐
     public var isMenuOpen: Bool = false

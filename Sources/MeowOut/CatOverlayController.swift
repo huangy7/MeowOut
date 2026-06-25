@@ -29,8 +29,17 @@ public final class CatOverlayController {
     ) -> CGRect {
         let petTop = petCenter.y + petSize.height / 2
         let bubbleBottom = petTop + gap
+        
+        var x = petCenter.x - bubbleSize.width / 2
+        let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+        if x < screen.minX + 10 {
+            x = screen.minX + 10
+        } else if x + bubbleSize.width > screen.maxX - 10 {
+            x = screen.maxX - bubbleSize.width - 10
+        }
+        
         return CGRect(
-            x: petCenter.x - bubbleSize.width / 2,
+            x: x,
             y: bubbleBottom,
             width: bubbleSize.width,
             height: bubbleSize.height
@@ -48,7 +57,11 @@ public final class CatOverlayController {
 
     private var localMonitor: Any?
     private var globalMonitor: Any?
+    private var mouseMovedLocalMonitor: Any?
+    private var mouseMovedGlobalMonitor: Any?
     private var mouseOffsetInWindow: CGSize = .zero
+    private var lastDragX: CGFloat = 0
+    private var isAnimatingWindowFrame: Bool = false
     
     private var originalStateForPreview: AppPhase? = nil
     private var lastState: AppPhase? = nil
@@ -63,6 +76,53 @@ public final class CatOverlayController {
         NotificationCenter.default.addObserver(forName: NSNotification.Name("TriggerEscapeHatch"), object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.petState.isEscaping = true
+                self?.petState.isSnappedToEdge = false
+            }
+        }
+        
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("JumpOutFromEdge"), object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self, let appState = self.appState else { return }
+                self.petState.isSnappedToEdge = false
+                self.petState.pose = .rest
+                
+                let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+                let targetX: CGFloat
+                if self.petState.position.x < screen.midX {
+                    targetX = screen.minX + 60
+                    self.petState.facingRight = true
+                } else {
+                    targetX = screen.maxX - 60
+                    self.petState.facingRight = false
+                }
+                let targetPoint = CGPoint(x: targetX, y: self.petState.position.y)
+                self.animateJumpOut(to: targetPoint)
+                
+                let pack = DialogueManager.pack(for: appState.selectedPersonality, language: appState.language)
+                let jumpQuote = pack.resting.randomElement() ?? "BOO! 😺"
+                self.petState.showLockedBubble(jumpQuote, duration: 2.0)
+            }
+        }
+        
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("PeekInFromEdge"), object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                if self.petState.isSnappedToEdge {
+                    let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+                    let targetX: CGFloat = self.petState.facingRight ? (screen.minX + 15) : (screen.maxX - 15)
+                    self.animateSnap(to: CGPoint(x: targetX, y: self.petState.position.y))
+                }
+            }
+        }
+        
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("PeekOutToEdge"), object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                if self.petState.isSnappedToEdge {
+                    let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+                    let targetX: CGFloat = self.petState.facingRight ? (screen.minX - 10) : (screen.maxX + 10)
+                    self.animateSnap(to: CGPoint(x: targetX, y: self.petState.position.y))
+                }
             }
         }
 
@@ -198,6 +258,7 @@ public final class CatOverlayController {
             if state.currentState == .alerting {
                 isAlertingWalking = true
                 nextAlertingActionTime = Date().addingTimeInterval(Double.random(in: 25...35))
+                petState.isWalking = true
             }
             lastState = state.currentState
         }
@@ -273,6 +334,46 @@ public final class CatOverlayController {
                 self?.petState.isMenuOpen = false
             }
         }
+        
+        mouseMovedLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { [weak self] event in
+            Task { @MainActor in
+                self?.updateEyeOffset()
+            }
+            return event
+        }
+        mouseMovedGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
+            Task { @MainActor in
+                self?.updateEyeOffset()
+            }
+        }
+    }
+
+    private func updateEyeOffset() {
+        guard petState.pose == .rest else {
+            if petState.eyeOffset != .zero {
+                petState.eyeOffset = .zero
+            }
+            return
+        }
+
+        let mouseLoc = NSEvent.mouseLocation
+        let petLoc = petState.position
+        
+        let dx = mouseLoc.x - petLoc.x
+        let dy = mouseLoc.y - petLoc.y
+        let distance = sqrt(dx * dx + dy * dy)
+        
+        if distance < 1 {
+            petState.eyeOffset = .zero
+            return
+        }
+        
+        let angle = atan2(dy, dx)
+        let scale = min(1.0, distance / 300.0)
+        let rawOffsetX = cos(angle) * scale
+        let rawOffsetY = -sin(angle) * scale
+        
+        petState.eyeOffset = CGPoint(x: rawOffsetX, y: rawOffsetY)
     }
 
     private func showWindows() {
@@ -388,9 +489,20 @@ public final class CatOverlayController {
 
     private func tick() {
         if petState.isBeingDragged { return }
+        if petState.isJumpingOut { return }
         if petState.isMenuOpen { return }
+        if petState.isSnappedToEdge { return }
         guard let state = appState else { return }
         let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+        
+        defer {
+            if petState.tiltAngle != 0 {
+                petState.tiltAngle = petState.tiltAngle * 0.8
+                if abs(petState.tiltAngle) < 0.1 {
+                    petState.tiltAngle = 0
+                }
+            }
+        }
 
         // --- 0. Escape Animation: delegate to EscapeHatch ---
         if petState.isEscaping {
@@ -450,7 +562,6 @@ public final class CatOverlayController {
                 if dist > targetDist + 10 {
                     if !petState.isWalking {
                         petState.isWalking = true
-                        petState.pose = .rest
                     }
                     let speed: CGFloat = 2.5
                     let vx = (dx / dist) * speed
@@ -495,7 +606,6 @@ public final class CatOverlayController {
                     petState.pose = [.sleeping, .working, .grooving, .rest].randomElement()!
                 } else {
                     petState.isWalking = true
-                    petState.pose = .rest
                 }
             }
             
@@ -602,7 +712,9 @@ public final class CatOverlayController {
 
     private func updateWindowPositions() {
         guard let pw = petWindow, let bw = bubbleWindow else { return }
-        pw.setFrameOrigin(NSPoint(x: petState.position.x - petWindowSize.width / 2, y: petState.position.y - petWindowSize.height / 2))
+        if !isAnimatingWindowFrame {
+            pw.setFrameOrigin(NSPoint(x: petState.position.x - petWindowSize.width / 2, y: petState.position.y - petWindowSize.height / 2))
+        }
         let bubbleFrame = Self.bubbleFrame(
             petCenter: petState.position,
             petSize: petWindowSize,
@@ -636,16 +748,27 @@ public final class CatOverlayController {
 
         // Correctly assign mouseOffsetInWindow to prevent the pet from jumping
         mouseOffsetInWindow = CGSize(width: mouseLoc.x - winOrigin.x, height: mouseLoc.y - winOrigin.y)
+        lastDragX = mouseLoc.x
 
         petState.isBeingDragged = true
+        petState.isSnappedToEdge = false
         petState.isWalking = false
         petState.pose = .armsUp
         petState.bubbleVisible = false
+        petState.tiltAngle = 0
     }
 
     private func handleDragChanged(translation: CGSize) {
         guard petState.isBeingDragged, let win = petWindow else { return }
         let mouseLoc = NSEvent.mouseLocation
+        let dx = mouseLoc.x - lastDragX
+        lastDragX = mouseLoc.x
+
+        // Calculate target tilt from drag movement speed
+        let targetTilt = Double(dx * 2.5) // Adjust sensitivity
+        let maxTilt: Double = 20.0
+        petState.tiltAngle = max(-maxTilt, min(maxTilt, targetTilt))
+
         win.setFrameOrigin(NSPoint(x: mouseLoc.x - mouseOffsetInWindow.width, y: mouseLoc.y - mouseOffsetInWindow.height))
         let frame = win.frame
         petState.position = CGPoint(x: frame.midX, y: frame.midY)
@@ -655,9 +778,92 @@ public final class CatOverlayController {
 
     private func handleDragEnded(translation: CGSize) {
         petState.isBeingDragged = false
-        petState.pose = .rest
         lastDialogueUpdate = Date()
+        
+        // Reset tilt angle with a spring animation
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+            petState.tiltAngle = 0
+        }
+        
+        let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+        let snapThreshold: CGFloat = 30.0
+        
+        if petState.position.x - screen.minX < snapThreshold {
+            petState.isSnappedToEdge = true
+            petState.facingRight = true
+            petState.pose = .peeking
+            petState.bubbleVisible = false
+            // Hide slightly more of the body to match original peeking look
+            animateSnap(to: CGPoint(x: screen.minX - 10, y: petState.position.y))
+        } else if screen.maxX - petState.position.x < snapThreshold {
+            petState.isSnappedToEdge = true
+            petState.facingRight = false
+            petState.pose = .peeking
+            petState.bubbleVisible = false
+            animateSnap(to: CGPoint(x: screen.maxX + 10, y: petState.position.y))
+        } else {
+            petState.isWalking = false
+            petState.pose = .rest
+            updateWindowPositions()
+        }
+    }
+    
+    private func animateSnap(to point: CGPoint) {
+        guard let win = petWindow else { return }
+        
+        // Tilt pet slightly in the snap direction during the snap movement
+        let dx = point.x - petState.position.x
+        let targetTilt = dx > 0 ? 15.0 : -15.0
+        petState.tiltAngle = targetTilt
+        
+        isAnimatingWindowFrame = true
+        petState.position = point
         updateWindowPositions()
+        
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.25
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            win.animator().setFrameOrigin(NSPoint(x: point.x - petWindowSize.width / 2, y: point.y - petWindowSize.height / 2))
+        }, completionHandler: { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.isAnimatingWindowFrame = false
+                // Spring back to straight posture
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    self?.petState.tiltAngle = 0
+                }
+                self?.updateWindowPositions()
+            }
+        })
+    }
+
+    private func animateJumpOut(to point: CGPoint) {
+        guard let win = petWindow else { return }
+        petState.isJumpingOut = true
+        
+        // Tilt pet more during jump out
+        let dx = point.x - petState.position.x
+        let targetTilt = dx > 0 ? 20.0 : -20.0
+        petState.tiltAngle = targetTilt
+        
+        isAnimatingWindowFrame = true
+        petState.position = point
+        updateWindowPositions()
+        
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.3
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            win.animator().setFrameOrigin(NSPoint(x: point.x - petWindowSize.width / 2, y: point.y - petWindowSize.height / 2))
+        }, completionHandler: { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.petState.isJumpingOut = false
+                self?.isAnimatingWindowFrame = false
+                // Bounce back on landing
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                    self?.petState.tiltAngle = 0
+                }
+                self?.updateWindowPositions()
+            }
+        })
     }
 
 

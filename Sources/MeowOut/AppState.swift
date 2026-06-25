@@ -916,16 +916,16 @@ public final class AppState {
 }
 
 public protocol PetSpriteView: View {
-    init(pose: ClawdPose, height: CGFloat, isWalking: Bool)
+    init(pose: ClawdPose, height: CGFloat, isWalking: Bool, eyeOffset: CGPoint)
 }
 
 extension AppState.PetType {
     @ViewBuilder
-    public func makeView(pose: ClawdPose, height: CGFloat, isWalking: Bool) -> some View {
+    public func makeView(pose: ClawdPose, height: CGFloat, isWalking: Bool, eyeOffset: CGPoint = .zero) -> some View {
         switch self {
-        case .clawd: ClawdView(pose: pose, height: height, isWalking: isWalking)
-        case .panda: PandaView(pose: pose, height: height, isWalking: isWalking)
-        case .pika: PikaView(pose: pose, height: height, isWalking: isWalking)
+        case .clawd: ClawdView(pose: pose, height: height, isWalking: isWalking, eyeOffset: eyeOffset)
+        case .panda: PandaView(pose: pose, height: height, isWalking: isWalking, eyeOffset: eyeOffset)
+        case .pika: PikaView(pose: pose, height: height, isWalking: isWalking, eyeOffset: eyeOffset)
         }
     }
 }

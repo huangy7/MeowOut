@@ -25,11 +25,33 @@ public struct MeowView: View {
 
     public var body: some View {
         Group {
-            appState.selectedPet.makeView(pose: petState.pose, height: 40, isWalking: petState.isWalking)
+            let correctedX = petState.facingRight ? petState.eyeOffset.x : -petState.eyeOffset.x
+            let correctedOffset = CGPoint(x: correctedX, y: petState.eyeOffset.y)
+            appState.selectedPet.makeView(pose: petState.pose, height: 40, isWalking: petState.isWalking, eyeOffset: correctedOffset)
         }
         .contentShape(Rectangle())
         .scaleEffect(x: (petState.facingRight ? 1 : -1) * (petState.isBeingDragged ? 1.1 : 1),
                      y: petState.isBeingDragged ? 1.1 : 1)
+        .rotationEffect(.degrees(petState.isSnappedToEdge ? (petState.facingRight ? 25 : -25) : petState.tiltAngle))
+        .animation(.spring(response: 0.3, dampingFraction: 0.6, blendDuration: 0), value: petState.pose)
+        .onHover { isHovering in
+            petState.isHovered = isHovering
+            if isHovering {
+                if petState.pose != .armsUp {
+                    petState.pose = .wave
+                }
+                if petState.isSnappedToEdge {
+                    NotificationCenter.default.post(name: NSNotification.Name("PeekInFromEdge"), object: nil)
+                }
+            } else {
+                if petState.pose == .wave {
+                    petState.pose = petState.isSnappedToEdge ? .peeking : .rest
+                }
+                if petState.isSnappedToEdge {
+                    NotificationCenter.default.post(name: NSNotification.Name("PeekOutToEdge"), object: nil)
+                }
+            }
+        }
         .onTapGesture {
             handleTap()
         }
@@ -61,6 +83,11 @@ public struct MeowView: View {
     }
 
     private func handleTap() {
+        if petState.isSnappedToEdge {
+            NotificationCenter.default.post(name: NSNotification.Name("JumpOutFromEdge"), object: nil)
+            return
+        }
+
         // If there's an update interaction active, prioritize it.
         // Tapping the cat while updating should show a special evolution-related quote
         // but keep the buttons visible.
@@ -85,18 +112,28 @@ public struct MeowView: View {
             return
         }
 
+        if petState.tapCount == 0 {
+            let pack = DialogueManager.pack(for: appState.selectedPersonality, language: appState.language)
+            if let quote = pack.tapQuotes.randomElement() {
+                petState.showLockedBubble(quote, duration: 2.0)
+            }
+            petState.tapCount = 1
+            return
+        }
+
         petState.tapCount += 1
         let targetCount = (appState.currentState == .alerting) ? 3 : 5
+        let currentWarningIndex = petState.tapCount - 1
         let quote = DialogueManager.phasedEscapeQuotes(
             personality: appState.selectedPersonality,
             language: appState.language,
-            current: petState.tapCount,
+            current: currentWarningIndex,
             target: targetCount
         )
         
         petState.showLockedBubble(quote, duration: 2.0)
 
-        if petState.tapCount >= targetCount {
+        if currentWarningIndex >= targetCount {
             petState.tapCount = 0
             NotificationCenter.default.post(name: NSNotification.Name("TriggerEscapeHatch"), object: nil)
         }

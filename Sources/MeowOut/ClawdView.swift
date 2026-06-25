@@ -3,9 +3,8 @@ import AppKit
 
 public enum ClawdPose {
     case rest, lookLeft, lookRight, armsUp
-    case sleeping
-    case working
-    case grooving
+    case sleeping, working, grooving
+    case wallCling, wave
     case peeking
 }
 
@@ -36,6 +35,7 @@ public struct ClawdCanvasView: View {
     public let height: CGFloat
     public var isWalking: Bool = false
     public var now: TimeInterval
+    public let eyeOffset: CGPoint
     
     private let followMouse: Bool = true
 
@@ -78,11 +78,12 @@ public struct ClawdCanvasView: View {
     #########
     """
     
-    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval) {
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval, eyeOffset: CGPoint = .zero) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
         self.now = now
+        self.eyeOffset = eyeOffset
     }
 
     public var body: some View {
@@ -120,7 +121,7 @@ public struct ClawdCanvasView: View {
         else if pose == .lookLeft { lookOffset.x = -2 }
         else if pose == .lookRight { lookOffset.x = 2 }
         else if pose == .rest && followMouse {
-            lookOffset = calculateMouseTracking()
+            lookOffset = CGPoint(x: eyeOffset.x * 2.0, y: eyeOffset.y * 0.5)
         }
         
         let stretchSy = isStretch ? 1.10 : 1.0
@@ -143,6 +144,8 @@ public struct ClawdCanvasView: View {
             swayX += CGFloat(sin(now * 4)) * 1.5
             armWaveL = CGFloat(sin(now * 4)) * 1.5
             armWaveR = CGFloat(sin(now * 4)) * 1.5
+        } else if pose == .wave {
+            armWaveL = CGFloat(sin(now * 20)) * 4
         }
         
         let idleBobY: CGFloat = isWalking ? 0 : CGFloat(breathe) * 0.35
@@ -231,16 +234,25 @@ public struct ClawdView: View, PetSpriteView {
     public let pose: ClawdPose
     public let height: CGFloat
     public var isWalking: Bool = false
+    public var eyeOffset: CGPoint = .zero
 
     public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
+        self.eyeOffset = .zero
+    }
+
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool, eyeOffset: CGPoint) {
+        self.pose = pose
+        self.height = height
+        self.isWalking = isWalking
+        self.eyeOffset = eyeOffset
     }
 
     public var body: some View {
         TimelineView(.animation(minimumInterval: 1.0/30.0)) { timeline in
-            ClawdCanvasView(pose: pose, height: height, isWalking: isWalking, now: timeline.date.timeIntervalSinceReferenceDate)
+            ClawdCanvasView(pose: pose, height: height, isWalking: isWalking, now: timeline.date.timeIntervalSinceReferenceDate, eyeOffset: eyeOffset)
         }
     }
 }

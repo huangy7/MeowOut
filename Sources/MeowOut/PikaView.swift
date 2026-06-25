@@ -6,17 +6,19 @@ public struct PikaCanvasView: View {
     public let height: CGFloat
     public var isWalking: Bool = false
     public var now: TimeInterval
+    public let eyeOffset: CGPoint
 
     private let followMouse: Bool = true
     
     public static let viewBoxW: CGFloat = 16
     public static let viewBoxH: CGFloat = 16
 
-    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval) {
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false, now: TimeInterval, eyeOffset: CGPoint = .zero) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
         self.now = now
+        self.eyeOffset = eyeOffset
     }
 
     public var body: some View {
@@ -43,7 +45,7 @@ public struct PikaCanvasView: View {
         else if pose == .lookLeft { lookOffset.x = -1 }
         else if pose == .lookRight { lookOffset.x = 1 }
         else if pose == .rest && followMouse {
-            lookOffset = calculateMouseTracking()
+            lookOffset = CGPoint(x: eyeOffset.x * 1.0, y: eyeOffset.y * 0.5)
         }
         
         let swayX: CGFloat = isWalking ? CGFloat(sin(walkPhase * 2 * .pi)) * 0.3 : 0
@@ -284,16 +286,25 @@ public struct PikaView: View, PetSpriteView {
     public let pose: ClawdPose
     public let height: CGFloat
     public var isWalking: Bool = false
+    public var eyeOffset: CGPoint = .zero
 
     public init(pose: ClawdPose, height: CGFloat, isWalking: Bool = false) {
         self.pose = pose
         self.height = height
         self.isWalking = isWalking
+        self.eyeOffset = .zero
+    }
+
+    public init(pose: ClawdPose, height: CGFloat, isWalking: Bool, eyeOffset: CGPoint) {
+        self.pose = pose
+        self.height = height
+        self.isWalking = isWalking
+        self.eyeOffset = eyeOffset
     }
 
     public var body: some View {
         TimelineView(.animation(minimumInterval: 1.0/30.0)) { timeline in
-            PikaCanvasView(pose: pose, height: height, isWalking: isWalking, now: timeline.date.timeIntervalSinceReferenceDate)
+            PikaCanvasView(pose: pose, height: height, isWalking: isWalking, now: timeline.date.timeIntervalSinceReferenceDate, eyeOffset: eyeOffset)
         }
     }
 }
