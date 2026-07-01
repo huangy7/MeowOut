@@ -236,9 +236,9 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
     <div class="menu-l">
       <span style="font-size:15px;">&#xf8ff;</span>
       <span class="menu-item" style="font-weight:700;">MeowOut</span>
-      <span class="menu-item">文件</span>
-      <span class="menu-item">编辑</span>
-      <span class="menu-item">显示</span>
+      <span class="menu-item" data-i18n="menu_file">文件</span>
+      <span class="menu-item" data-i18n="menu_edit">编辑</span>
+      <span class="menu-item" data-i18n="menu_view">显示</span>
     </div>
     <div class="menu-r">
       <span class="menu-item">&#x1F4F6;</span>
@@ -258,7 +258,7 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
     <div class="tray-pop" id="tray-pop">
       <div class="pop-card">
         <div class="goal-head">
-          <span class="goal-title">&#x1F3AF; 今日目标</span>
+          <span class="goal-title"><span style="margin-right:5px">&#x1F3AF;</span><span data-i18n="tray_goal">今日目标</span></span>
           <span class="goal-val" id="goal-text">1.4 / 8.0 h</span>
         </div>
         <div class="goal-progress">
@@ -272,7 +272,7 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
         </div>
       </div>
       <div class="pop-card water-row">
-        <span class="water-label">&#x1F4A7; 今日喝水</span>
+        <span class="water-label"><span style="margin-right:5px">&#x1F4A7;</span><span data-i18n="tray_water">今日喝水</span></span>
         <div class="water-right">
           <span class="water-count" id="water-count">0/8</span>
           <button class="water-add" id="water-add">+</button>
@@ -280,7 +280,7 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
       </div>
       <div class="pop-divider"></div>
       <div class="pause-row">
-        <span class="pause-label">&#x23F8; 暂停</span>
+        <span class="pause-label"><span style="margin-right:5px">&#x23F8;</span><span data-i18n="tray_pause">暂停</span></span>
         <div class="pause-btns">
           <button class="pbtn" data-dur="15">15m</button>
           <button class="pbtn" data-dur="30">30m</button>
@@ -291,43 +291,43 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
       <div class="util-grid">
         <div class="util-card" id="card-caffeine" style="padding: 16px 10px; gap: 8px; background: rgba(0,0,0,0.03); border: none; box-shadow: none;">
           <span class="util-icon" style="font-size: 26px;">&#x2615;</span>
-          <span class="util-name" style="font-size: 13px;">防休眠</span>
+          <span class="util-name" style="font-size: 13px;" data-i18n="tray_caffeine">防休眠</span>
         </div>
         <div class="util-card" id="card-2fa" style="padding: 16px 10px; gap: 8px; background: rgba(0,0,0,0.03); border: none; box-shadow: none;">
           <span class="util-icon" style="font-size: 26px;">&#x1F511;</span>
-          <span class="util-name" style="font-size: 13px;">两步验证</span>
+          <span class="util-name" style="font-size: 13px;" data-i18n="tray_2fa">两步验证</span>
         </div>
       </div>
       <div class="util-mini-grid" id="mini-grid">
         <div class="util-mini-btn" id="card-clean">
           <span class="mini-icon">&#x2328;</span>
-          <span class="mini-label">键盘清洁</span>
+          <span class="mini-label" data-i18n="tray_clean">键盘清洁</span>
         </div>
         <div class="util-mini-btn">
           <span class="mini-icon">&#x2728;</span>
-          <span class="mini-label">屏幕清洁</span>
+          <span class="mini-label" data-i18n="tray_screen">屏幕清洁</span>
         </div>
         <div class="util-mini-btn" id="card-breath">
           <span class="mini-icon">&#x1F4A8;</span>
-          <span class="mini-label">正念练习</span>
+          <span class="mini-label" data-i18n="tray_breath">正念练习</span>
         </div>
         <div class="util-mini-btn">
           <span class="mini-icon">&#x1F4C8;</span>
-          <span class="mini-label">活动监视器</span>
+          <span class="mini-label" data-i18n="tray_monitor">活动监视器</span>
         </div>
         <div class="util-mini-btn" id="card-terminal">
           <div class="terminal-icon">
             <span class="term-warn">WARNING</span>
             <span class="term-time">7:36</span>
           </div>
-          <span class="mini-label">控制台</span>
+          <span class="mini-label" data-i18n="tray_term">控制台</span>
         </div>
       </div>
-      <div class="collapse-btn" id="btn-collapse"><span>^</span> 收起</div>
+      <div class="collapse-btn" id="btn-collapse"><span>^</span> <span data-i18n="tray_collapse">收起</span></div>
       <div class="pop-divider" style="margin-top:10px;"></div>
-      <div class="pop-list-item" id="pop-settings"><span class="left">&#x2699; &nbsp;设置...</span><span class="chevron">&#x203A;</span></div>
+      <div class="pop-list-item" id="pop-settings"><span class="left">&#x2699; &nbsp;<span data-i18n="tray_settings">设置...</span></span><span class="chevron">&#x203A;</span></div>
       <div class="pop-divider"></div>
-      <div class="pop-list-item exit" onclick="quitApp()"><span class="left">&#x23FB; &nbsp;退出</span></div>
+      <div class="pop-list-item exit" onclick="quitApp()"><span class="left">&#x23FB; &nbsp;<span data-i18n="tray_quit">退出</span></span></div>
     </div>
 
     <!-- CODE EDITOR WINDOW -->
@@ -356,20 +356,20 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
     <div class="win win-settings" id="win-settings">
       <div class="titlebar">
         <div class="dots"><span class="dot dot-r" onclick="closeWin('win-settings')"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-        <div class="win-title">MeowOut 设置</div>
+        <div class="win-title" data-i18n="win_settings">MeowOut 设置</div>
       </div>
       <div class="settings-body">
         <!-- SIDEBAR -->
         <div class="sidebar">
-          <div class="sitem active" data-tab="tab-rest"><span class="sicon">&#x23F0;</span> 休息提醒</div>
-          <div class="sitem" data-tab="tab-water"><span class="sicon">&#x1F4A7;</span> 喝水提醒</div>
-          <div class="sitem" data-tab="tab-pet"><span class="sicon">&#x1F408;</span> 宠物行为</div>
-          <div class="sitem" data-tab="tab-kd"><span class="sicon">&#x2328;</span> 常用语</div>
-          <div class="sitem" data-tab="tab-quick-actions"><span class="sicon">&#x26A1;</span> 快捷操作</div>
-          <div class="sitem" data-tab="tab-memos"><span class="sicon">&#x1F4DD;</span> Memos</div>
-          <div class="sitem" data-tab="tab-clipboard"><span class="sicon">&#x1F4CB;</span> 剪贴板</div>
-          <div class="sitem" data-tab="tab-perm"><span class="sicon">&#x1F6E1;</span> 安全与权限</div>
-          <div class="sitem" data-tab="tab-sys"><span class="sicon">&#x2699;</span> 系统<span class="sbadge hidden" id="sys-badge"></span></div>
+          <div class="sitem active" data-tab="tab-rest"><span class="sicon">&#x23F0;</span> <span data-i18n="sb_rest">休息提醒</span></div>
+          <div class="sitem" data-tab="tab-water"><span class="sicon">&#x1F4A7;</span> <span data-i18n="sb_water">喝水提醒</span></div>
+          <div class="sitem" data-tab="tab-pet"><span class="sicon">&#x1F408;</span> <span data-i18n="sb_pet">宠物行为</span></div>
+          <div class="sitem" data-tab="tab-kd"><span class="sicon">&#x2328;</span> <span data-i18n="sb_kd">常用语</span></div>
+          <div class="sitem" data-tab="tab-quick-actions"><span class="sicon">&#x26A1;</span> <span data-i18n="sb_quick">快捷操作</span></div>
+          <div class="sitem" data-tab="tab-memos"><span class="sicon">&#x1F4DD;</span> <span data-i18n="sb_memos">Memos</span></div>
+          <div class="sitem" data-tab="tab-clipboard"><span class="sicon">&#x1F4CB;</span> <span data-i18n="sb_clip">剪贴板</span></div>
+          <div class="sitem" data-tab="tab-perm"><span class="sicon">&#x1F6E1;</span> <span data-i18n="sb_perm">安全与权限</span></div>
+          <div class="sitem" data-tab="tab-sys"><span class="sicon">&#x2699;</span> <span data-i18n="sb_sys">系统</span><span class="sbadge hidden" id="sys-badge"></span></div>
         </div>
         <!-- CONTENT -->
         <div class="scontent">
@@ -377,35 +377,35 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
           <div class="tab-content show" id="tab-rest">
             <div class="pill-wrap">
               <div class="pill-bar" data-tab="tab-rest">
-                <button class="pill" data-sub="rest-goal">目标</button>
-                <button class="pill active" data-sub="rest-dur">时长</button>
-                <button class="pill" data-sub="rest-alert">提醒</button>
+                <button class="pill" data-sub="rest-goal" data-i18n="pill_goal">目标</button>
+                <button class="pill active" data-sub="rest-dur" data-i18n="pill_dur">时长</button>
+                <button class="pill" data-sub="rest-alert" data-i18n="pill_alert">提醒</button>
               </div>
               <button onclick="resetDurations()" title="恢复默认" style="border:none;background:none;font-size:14px;cursor:pointer;color:#86868b;">&#x21BA;</button>
             </div>
             <div class="sub-content" id="rest-goal">
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F3AF;</div><div class="card-texts"><div class="card-title">每日目标时间</div><div class="card-desc">您希望达成的总工作时长。</div></div></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F3AF;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_goal">每日目标时间</div><div class="card-desc" data-i18n="c_rest_goal_d">您希望达成的总工作时长。</div></div></div>
                 <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-goal" min="4" max="12" step="1" value="8"><span class="slider-val" id="lbl-goal" style="color:#ff7b00;">8小时</span></div>
               </div>
             </div>
             <div class="sub-content show" id="rest-dur">
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x23F0;</div><div class="card-texts"><div class="card-title">工作时长</div><div class="card-desc">休息前的最长连续工作时间。</div></div></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x23F0;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_work">工作时长</div><div class="card-desc" data-i18n="c_rest_work_d">休息前的最长连续工作时间。</div></div></div>
                 <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-work" min="15" max="120" step="5" value="45"><span class="slider-val" id="lbl-work">45分</span></div>
               </div>
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F49A;</div><div class="card-texts"><div class="card-title">休息时长</div><div class="card-desc">强制休息时的持续时间。</div></div></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F49A;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_rest">休息时长</div><div class="card-desc" data-i18n="c_rest_rest_d">强制休息时的持续时间。</div></div></div>
                 <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-rest" min="1" max="30" step="1" value="5"><span class="slider-val" id="lbl-rest">5分</span></div>
               </div>
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x1F504;</div><div class="card-texts"><div class="card-title">重置所需的休息时间 (完全恢复)</div><div class="card-desc">离开电脑这么久后将完全重置工作计时器。</div></div></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x1F504;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_reset">重置所需的休息时间 (完全恢复)</div><div class="card-desc" data-i18n="c_rest_reset_d">离开电脑这么久后将完全重置工作计时器。</div></div></div>
                 <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-reset" min="2" max="30" step="1" value="5"><span class="slider-val" id="lbl-reset">5分</span></div>
               </div>
             </div>
             <div class="sub-content" id="rest-alert">
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(255,59,48,0.1);">&#x1F514;</div><div class="card-texts"><div class="card-title">休假前警告</div><div class="card-desc">进入强制休息前提前几分钟发出警报。</div></div></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(255,59,48,0.1);">&#x1F514;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_alert">休假前警告</div><div class="card-desc" data-i18n="c_rest_alert_d">进入强制休息前提前几分钟发出警报。</div></div></div>
                 <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-alert" min="1" max="15" step="1" value="1"><span class="slider-val" id="lbl-alert" style="color:#ff3b30;">1分</span></div>
               </div>
             </div>
@@ -414,29 +414,29 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
           <div class="tab-content" id="tab-water">
             <div class="pill-wrap">
               <div class="pill-bar" data-tab="tab-water">
-                <button class="pill active" data-sub="water-gen">常规</button>
-                <button class="pill" data-sub="water-sched">计划</button>
-                <button class="pill" data-sub="water-goal">目标</button>
+                <button class="pill active" data-sub="water-gen" data-i18n="pill_gen">常规</button>
+                <button class="pill" data-sub="water-sched" data-i18n="pill_sched">计划</button>
+                <button class="pill" data-sub="water-goal" data-i18n="pill_goal2">目标</button>
               </div>
             </div>
             <div class="sub-content show" id="water-gen">
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F4A7;</div><div class="card-texts"><div class="card-title">启用喝水提醒</div><div class="card-desc">定时提醒您补充水分，保护健康。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-water" checked><span class="tog-slider"></span></label></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F4A7;</div><div class="card-texts"><div class="card-title" data-i18n="c_water_en">启用喝水提醒</div><div class="card-desc" data-i18n="c_water_en_d">定时提醒您补充水分，保护健康。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-water" checked><span class="tog-slider"></span></label></div>
               </div>
             </div>
             <div class="sub-content" id="water-sched">
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(85,190,240,0.1);">&#x1F4C5;</div><div class="card-texts"><div class="card-title">提醒模式</div></div></div>
-                <div class="mac-seg" style="margin-top:8px;"><button class="seg-btn active" id="wm-rhythm">跟随工作节奏</button><button class="seg-btn" id="wm-custom">自定义间隔</button></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(85,190,240,0.1);">&#x1F4C5;</div><div class="card-texts"><div class="card-title" data-i18n="c_water_mode">提醒模式</div></div></div>
+                <div class="mac-seg" style="margin-top:8px;"><button class="seg-btn active" id="wm-rhythm" data-i18n="c_water_m1">跟随工作节奏</button><button class="seg-btn" id="wm-custom" data-i18n="c_water_m2">自定义间隔</button></div>
               </div>
               <div class="scard" id="water-interval-card" style="display:none;">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x23F0;</div><div class="card-texts"><div class="card-title">喝水提醒间隔</div></div></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x23F0;</div><div class="card-texts"><div class="card-title" data-i18n="c_water_int">喝水提醒间隔</div></div></div>
                 <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-wint" min="15" max="120" step="5" value="45"><span class="slider-val" id="lbl-wint" style="color:#0071e3;">45分</span></div>
               </div>
             </div>
             <div class="sub-content" id="water-goal">
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F3AF;</div><div class="card-texts"><div class="card-title">每日喝水目标</div></div></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F3AF;</div><div class="card-texts"><div class="card-title" data-i18n="c_water_goal">每日喝水目标</div></div></div>
                 <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-wgoal" min="4" max="20" step="1" value="8"><span class="slider-val" id="lbl-wgoal" style="color:#ff7b00;">8杯</span></div>
               </div>
             </div>
@@ -445,14 +445,14 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
           <div class="tab-content" id="tab-pet">
             <div class="pill-wrap">
               <div class="pill-bar" data-tab="tab-pet">
-                <button class="pill active" data-sub="pet-sel">宠物</button>
-                <button class="pill" data-sub="pet-pers">性格</button>
-                <button class="pill" data-sub="pet-inter">互动</button>
+                <button class="pill active" data-sub="pet-sel" data-i18n="pill_pet">宠物</button>
+                <button class="pill" data-sub="pet-pers" data-i18n="pill_pers">性格</button>
+                <button class="pill" data-sub="pet-inter" data-i18n="pill_inter">互动</button>
               </div>
             </div>
             <div class="sub-content show" id="pet-sel">
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F43E;</div><div class="card-texts"><div class="card-title">选择宠物</div><div class="card-desc">挑选您喜爱的像素精灵伴侣。</div></div></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F43E;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_sel">选择宠物</div><div class="card-desc" data-i18n="c_pet_sel_d">挑选您喜爱的像素精灵伴侣。</div></div></div>
                 <div class="pet-grid">
                   <div class="pet-item sel" data-pet="clawd"><canvas id="pv-clawd" width="56" height="40"></canvas><span>Toby</span></div>
                   <div class="pet-item" data-pet="panda"><canvas id="pv-panda" width="56" height="40"></canvas><span>Oreo</span></div>
@@ -462,52 +462,52 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
             </div>
             <div class="sub-content" id="pet-pers">
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x1F3AD;</div><div class="card-texts"><div class="card-title">性格设定</div><div class="card-desc">宠物的发声态度与督促方式。</div></div></div>
-                <div class="mac-seg" style="margin-top:8px;" id="pers-seg"><button class="seg-btn active" data-pers="gentle">温柔</button><button class="seg-btn" data-pers="strict">严厉</button><button class="seg-btn" data-pers="tsundere">傲娇</button></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x1F3AD;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_pers">性格设定</div><div class="card-desc" data-i18n="c_pet_pers_d">宠物的发声态度与督促方式。</div></div></div>
+                <div class="mac-seg" style="margin-top:8px;" id="pers-seg"><button class="seg-btn active" data-pers="gentle" data-i18n="c_pet_p1">温柔</button><button class="seg-btn" data-pers="strict" data-i18n="c_pet_p2">严厉</button><button class="seg-btn" data-pers="tsundere" data-i18n="c_pet_p3">傲娇</button></div>
               </div>
             </div>
             <div class="sub-content" id="pet-inter">
-              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F440;</div><div class="card-texts"><div class="card-title">启用光标追逐</div><div class="card-desc">宠物眼神将跟随您的鼠标移动。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-chase" checked><span class="tog-slider"></span></label></div></div>
-              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,59,48,0.1);">&#x1F620;</div><div class="card-texts"><div class="card-title">键盘敲击警告</div><div class="card-desc">休息时继续打字，宠物会训斥你。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-scold"><span class="tog-slider"></span></label></div></div>
+              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F440;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_chase">启用光标追逐</div><div class="card-desc" data-i18n="c_pet_chase_d">宠物眼神将跟随您的鼠标移动。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-chase" checked><span class="tog-slider"></span></label></div></div>
+              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,59,48,0.1);">&#x1F620;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_scold">键盘敲击警告</div><div class="card-desc" data-i18n="c_pet_scold_d">休息时继续打字，宠物会训斥你。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-scold"><span class="tog-slider"></span></label></div></div>
               <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F441;</div><div class="card-texts"><div class="card-title">效果预览</div><div class="card-desc">快速体验提醒状态。</div></div></div>
-                <div style="display:flex;gap:8px;margin-top:8px;"><button class="mac-btn btn-secondary" id="btn-prev-alert" style="flex:1;">预览预警猫咪</button><button class="mac-btn btn-orange" id="btn-prev-rest" style="flex:1;">模拟强制休息</button></div>
+                <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F441;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_prev">效果预览</div><div class="card-desc" data-i18n="c_pet_prev_d">快速体验提醒状态。</div></div></div>
+                <div style="display:flex;gap:8px;margin-top:8px;"><button class="mac-btn btn-secondary" id="btn-prev-alert" style="flex:1;" data-i18n="btn_prev_alert">预览预警猫咪</button><button class="mac-btn btn-orange" id="btn-prev-rest" style="flex:1;" data-i18n="btn_prev_rest">模拟强制休息</button></div>
               </div>
             </div>
           </div>
           <!-- KEYDROP TAB -->
           <div class="tab-content" id="tab-kd">
             <div class="pill-wrap"><div style="height:20px;"></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x2328;</div><div class="card-texts"><div class="card-title">启用 KeyDrop 常用语</div><div class="card-desc">按下全局快捷键，快速注入常用短语。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">键盘快捷键</div><div class="card-desc">默认：Cmd + L</div></div></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x2328;</div><div class="card-texts"><div class="card-title" data-i18n="c_kd_en">启用 KeyDrop 常用语</div><div class="card-desc" data-i18n="c_kd_en_d">按下全局快捷键，快速注入常用短语。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title" data-i18n="c_hk">键盘快捷键</div><div class="card-desc" data-i18n="c_hk_l">默认：Cmd + L</div></div></div></div>
           </div>
           <!-- QUICK ACTIONS TAB -->
           <div class="tab-content" id="tab-quick-actions">
             <div class="pill-wrap"><div style="height:20px;"></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,149,0,0.1);">&#x26A1;</div><div class="card-texts"><div class="card-title">快捷操作</div><div class="card-desc">排在前 2 位的将显示为大磁贴，其余的在折叠面板中显示</div></div></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,149,0,0.1);">&#x26A1;</div><div class="card-texts"><div class="card-title" data-i18n="c_qa">快捷操作</div><div class="card-desc" data-i18n="c_qa_d">排在前 2 位的将显示为大磁贴，其余的在折叠面板中显示</div></div></div></div>
           </div>
           <!-- PERMISSIONS TAB -->
           <div class="tab-content" id="tab-perm">
             <div class="pill-wrap"><div style="height:20px;"></div></div>
             <div class="scard">
-              <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F6E1;</div><div class="card-texts"><div class="card-title">辅助功能权限</div><div class="card-desc">用于监测键盘空闲状态与打字训斥。</div></div></div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#34c759;"></div><span style="font-size:12px;color:#34c759;font-weight:700;">已授权</span></div>
+              <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F6E1;</div><div class="card-texts"><div class="card-title" data-i18n="c_perm">辅助功能权限</div><div class="card-desc" data-i18n="c_perm_d">用于监测键盘空闲状态与打字训斥。</div></div></div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#34c759;"></div><span style="font-size:12px;color:#34c759;font-weight:700;" data-i18n="c_perm_auth">已授权</span></div>
             </div>
           </div>
           <!-- MEMOS TAB -->
           <div class="tab-content" id="tab-memos">
             <div class="pill-wrap"><div style="height:20px;"></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F4DD;</div><div class="card-texts"><div class="card-title">启用 Memos 闪念胶囊</div><div class="card-desc">在全局支持快捷键呼出 Markdown 备忘录。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">全局快捷键</div><div class="card-desc">默认：Cmd + Shift + M</div></div></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F4DD;</div><div class="card-texts"><div class="card-title" data-i18n="c_memo_en">启用 Memos 闪念胶囊</div><div class="card-desc" data-i18n="c_memo_en_d">在全局支持快捷键呼出 Markdown 备忘录。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">全局快捷键</div><div class="card-desc" data-i18n="c_hk_m">默认：Cmd + Shift + M</div></div></div></div>
           </div>
           <!-- CLIPBOARD TAB -->
           <div class="tab-content" id="tab-clipboard">
             <div class="pill-wrap"><div style="height:20px;"></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F4CB;</div><div class="card-texts"><div class="card-title">启用剪贴板历史</div><div class="card-desc">自动记录复制的文本与图片，支持快捷键呼出。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">全局快捷键</div><div class="card-desc">默认：Cmd + Shift + C</div></div></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F4CB;</div><div class="card-texts"><div class="card-title" data-i18n="c_clip_en">启用剪贴板历史</div><div class="card-desc" data-i18n="c_clip_en_d">自动记录复制的文本与图片，支持快捷键呼出。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
+            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">全局快捷键</div><div class="card-desc" data-i18n="c_hk_c">默认：Cmd + Shift + C</div></div></div></div>
             <div class="scard">
-              <div class="scard-row"><div class="icon-box" style="background:rgba(255,149,0,0.1);">&#x1F5D1;</div><div class="card-texts"><div class="card-title">历史记录保留时间</div><div class="card-desc">超过此时间的记录将被自动清理。</div></div></div>
-              <div class="mac-seg" style="margin-top:8px;"><button class="seg-btn">1 天</button><button class="seg-btn active">7 天</button><button class="seg-btn">30 天</button></div>
+              <div class="scard-row"><div class="icon-box" style="background:rgba(255,149,0,0.1);">&#x1F5D1;</div><div class="card-texts"><div class="card-title" data-i18n="c_clip_ret">历史记录保留时间</div><div class="card-desc" data-i18n="c_clip_ret_d">超过此时间的记录将被自动清理。</div></div></div>
+              <div class="mac-seg" style="margin-top:8px;"><button class="seg-btn" data-i18n="c_clip_1d">1 天</button><button class="seg-btn active" data-i18n="c_clip_7d">7 天</button><button class="seg-btn" data-i18n="c_clip_30d">30 天</button></div>
             </div>
           </div>
           <!-- 2FA TAB (Removed to match app state) -->
@@ -515,8 +515,8 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
           <div class="tab-content" id="tab-sys">
             <div class="pill-wrap">
               <div class="pill-bar" data-tab="tab-sys">
-                <button class="pill active" data-sub="sys-gen">常规</button>
-                <button class="pill" data-sub="sys-about">关于</button>
+                <button class="pill active" data-sub="sys-gen" data-i18n="pill_gen2">常规</button>
+                <button class="pill" data-sub="sys-about" data-i18n="pill_about">关于</button>
               </div>
             </div>
             <div class="sub-content show" id="sys-gen">
@@ -524,16 +524,16 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
                 <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F310;</div><div class="card-texts"><div class="card-title">应用语言 (Language)</div></div></div>
                 <div class="mac-seg" style="margin-top:8px;" id="lang-seg"><button class="seg-btn active" data-lang="zh">中文</button><button class="seg-btn" data-lang="en">English</button></div>
               </div>
-              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F680;</div><div class="card-texts"><div class="card-title">开机自启动</div><div class="card-desc">在 macOS 启动时自动运行 MeowOut。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
+              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F680;</div><div class="card-texts"><div class="card-title" data-i18n="c_sys_boot">开机自启动</div><div class="card-desc" data-i18n="c_sys_boot_d">在 macOS 启动时自动运行 MeowOut。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
             </div>
             <div class="sub-content" id="sys-about">
               <div class="scard" style="text-align:center;padding:16px;">
                 <div style="font-size:26px;margin-bottom:8px;">&#x1F43E;</div>
                 <div style="font-size:17px;font-weight:700;margin-bottom:4px;">MeowOut</div>
-                <div style="font-size:11px;color:#86868b;margin-bottom:4px;">版本 1.5.0 (Stable)</div>
-                <div style="font-size:11px;color:#86868b;">原生像素伴侣，呵护您的健康编码。</div>
+                <div style="font-size:11px;color:#86868b;margin-bottom:4px;" data-i18n="c_sys_ver">版本 1.5.0 (Stable)</div>
+                <div style="font-size:11px;color:#86868b;" data-i18n="c_sys_slogan">原生像素伴侣，呵护您的健康编码。</div>
               </div>
-              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F504;</div><div class="card-texts"><div class="card-title">检查更新</div><div class="card-desc" id="upd-desc">上次检查：今天 11:20</div></div><button class="mac-btn btn-secondary" id="btn-check-upd">检查</button></div></div>
+              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F504;</div><div class="card-texts"><div class="card-title" data-i18n="c_sys_upd">检查更新</div><div class="card-desc" id="upd-desc">上次检查：今天 11:20</div></div><button class="mac-btn btn-secondary" id="btn-check-upd" data-i18n="c_sys_check">检查</button></div></div>
             </div>
           </div>
         </div>
@@ -544,14 +544,14 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
     <div class="win win-breath" id="win-breath">
       <div class="titlebar">
         <div class="dots"><span class="dot dot-r" onclick="closeBreath()"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-        <div class="win-title" style="color:rgba(255,255,255,0.7);">正念练习</div>
+        <div class="win-title" style="color:rgba(255,255,255,0.7);" data-i18n="win_breath">正念练习</div>
         <button onclick="closeBreath()" style="position:absolute;right:14px;border:none;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:11px;">&#x00D7;</button>
       </div>
       <div style="display:flex;justify-content:center;">
         <div class="breath-chips" id="breath-chips">
-          <button class="bchip active" data-pat="box">箱式</button>
-          <button class="bchip" data-pat="478">4-7-8</button>
-          <button class="bchip" data-pat="abdominal">腹式</button>
+          <button class="bchip active" data-pat="box" data-i18n="br_box">箱式</button>
+          <button class="bchip" data-pat="478" data-i18n="br_478">4-7-8</button>
+          <button class="bchip" data-pat="abdominal" data-i18n="br_abd">腹式</button>
         </div>
       </div>
       <div class="breath-area">
@@ -565,7 +565,7 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
       </div>
       <div class="breath-bottom">
         <div class="breath-session-time" id="breath-timer">04:00</div>
-        <button class="btn-breath" id="btn-breath">开始练习</button>
+        <button class="btn-breath" id="btn-breath" data-i18n="br_start">开始练习</button>
       </div>
     </div>
 
@@ -584,7 +584,7 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
       <div class="tfa-search-wrap">
         <div class="tfa-search">
           <span>&#x1F50D;</span>
-          <input type="text" placeholder="搜索账号..." />
+          <input type="text" placeholder="搜索账号..." id="tfa-search-input" data-i18n-placeholder="tfa_search" />
         </div>
       </div>
       <div class="tfa-list">
@@ -638,24 +638,24 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
     </div>
 
     <!-- KEYDROP -->
-    <button class="kd-trigger" id="kd-trigger">&#x2328; 常用语 (Cmd+L)</button>
+    <button class="kd-trigger" id="kd-trigger">&#x2328; <span data-i18n="kd_trig">常用语</span> (Cmd+L)</button>
     <div class="kd-panel" id="kd-panel">
-      <div class="kd-hdr">选择常用语注入代码编辑器：</div>
-      <div class="kd-item" data-code="print('Hello, MeowOut! 🐱')">&#x1F4C4; 打印问候</div>
-      <div class="kd-item" data-code="let pet = Companion(name: 'Clawd')">&#x1F980; 实例化宠物</div>
-      <div class="kd-item" data-code="func takeBreak() { App.shared.forceRest() }">&#x1F9D8; 触发强制休息</div>
-      <div class="kd-item" data-code="git commit -m 'feat: pixel pets interactive'">&#x1F98A; Git 提交命令</div>
-      <div class="kd-item" data-code="💧 Take a break! Drink water!">&#x1F4A7; 喝水打卡字符</div>
+      <div class="kd-hdr" data-i18n="kd_hdr">选择常用语注入代码编辑器：</div>
+      <div class="kd-item" data-code="print('Hello, MeowOut! 🐱')">&#x1F4C4; <span data-i18n="kd_i1">打印问候</span></div>
+      <div class="kd-item" data-code="let pet = Companion(name: 'Clawd')">&#x1F980; <span data-i18n="kd_i2">实例化宠物</span></div>
+      <div class="kd-item" data-code="func takeBreak() { App.shared.forceRest() }">&#x1F9D8; <span data-i18n="kd_i3">触发强制休息</span></div>
+      <div class="kd-item" data-code="git commit -m 'feat: pixel pets interactive'">&#x1F98A; <span data-i18n="kd_i4">Git 提交命令</span></div>
+      <div class="kd-item" data-code="💧 Take a break! Drink water!">&#x1F4A7; <span data-i18n="kd_i5">喝水打卡字符</span></div>
     </div>
 
     <!-- UPDATE POPUP -->
     <div class="update-popup" id="update-popup">
       <div class="upd-avatar">&#x2728;</div>
-      <div class="upd-title">发现进化补丁 v1.4.2！</div>
-      <div class="upd-desc">像素宠物为你带来了全新的「Memos 闪念胶囊」与「2FA 验证器」模块！点击更新立即部署。</div>
+      <div class="upd-title" data-i18n="upd_title">发现进化补丁 v1.4.2！</div>
+      <div class="upd-desc" data-i18n="upd_desc">像素宠物为你带来了全新的「Memos 闪念胶囊」与「2FA 验证器」模块！点击更新立即部署。</div>
       <div class="upd-btns">
-        <button class="upd-btn upd-cancel" onclick="document.getElementById('update-popup').classList.remove('show')">稍后</button>
-        <button class="upd-btn upd-confirm" onclick="applyUpdate()">立即重启</button>
+        <button class="upd-btn upd-cancel" onclick="document.getElementById('update-popup').classList.remove('show')" data-i18n="upd_later">稍后</button>
+        <button class="upd-btn upd-confirm" onclick="applyUpdate()" data-i18n="upd_now">立即重启</button>
       </div>
     </div>
 
@@ -663,9 +663,9 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
     <div class="clean-overlay" id="clean-overlay">
       <div class="clean-particles" id="clean-particles"></div>
       <div style="font-size:50px;margin-bottom:14px;animation:bounce 1.5s infinite;">&#x1F9FC;</div>
-      <h2 style="font-size:20px;font-weight:600;margin-bottom:8px;">键盘清洁模式</h2>
-      <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:22px;">键盘已锁定，请随意清洁。长按 Esc 退出。</p>
-      <button class="mac-btn btn-secondary" onclick="exitClean()" style="z-index:10;">退出模式</button>
+      <h2 style="font-size:20px;font-weight:600;margin-bottom:8px;" data-i18n="clean_title">键盘清洁模式</h2>
+      <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:22px;" data-i18n="clean_desc">键盘已锁定，请随意清洁。长按 Esc 退出。</p>
+      <button class="mac-btn btn-secondary" onclick="exitClean()" style="z-index:10;" data-i18n="clean_exit">退出模式</button>
     </div>
   </div>
 </div>
@@ -676,6 +676,119 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
 
 <script>
 // ─── STATE ───────────────────────────────────────────────────────────────────
+
+// ─── I18N ─────────────────────────────────────────────────────────────────────
+const MOCKUP_I18N = {
+  zh: {
+    menu_file: "文件", menu_edit: "编辑", menu_view: "显示",
+    tray_goal: "今日目标", tray_water: "今日喝水", tray_pause: "暂停", tray_caffeine: "防休眠", tray_2fa: "两步验证",
+    tray_clean: "键盘清洁", tray_screen: "屏幕清洁", tray_breath: "正念练习", tray_monitor: "活动监视器", tray_term: "控制台",
+    tray_collapse: "收起", tray_settings: "设置...", tray_quit: "退出",
+    win_settings: "MeowOut 设置", win_breath: "正念练习",
+    sb_rest: "休息提醒", sb_water: "喝水提醒", sb_pet: "宠物行为", sb_kd: "常用语", sb_quick: "快捷操作", sb_memos: "Memos", sb_clip: "剪贴板", sb_perm: "安全与权限", sb_sys: "系统",
+    pill_goal: "目标", pill_dur: "时长", pill_alert: "提醒", pill_gen: "常规", pill_sched: "计划", pill_goal2: "目标", pill_pet: "宠物", pill_pers: "性格", pill_inter: "互动", pill_gen2: "常规", pill_about: "关于",
+    c_rest_goal: "每日目标时间", c_rest_goal_d: "您希望达成的总工作时长。", c_rest_work: "工作时长", c_rest_work_d: "休息前的最长连续工作时间。", c_rest_rest: "休息时长", c_rest_rest_d: "强制休息时的持续时间。",
+    c_rest_reset: "重置所需的休息时间 (完全恢复)", c_rest_reset_d: "离开电脑这么久后将完全重置工作计时器。", c_rest_alert: "休假前警告", c_rest_alert_d: "进入强制休息前提前几分钟发出警报。",
+    c_water_en: "启用喝水提醒", c_water_en_d: "定时提醒您补充水分，保护健康。", c_water_mode: "提醒模式", c_water_m1: "跟随工作节奏", c_water_m2: "自定义间隔", c_water_int: "喝水提醒间隔", c_water_goal: "每日喝水目标",
+    c_pet_sel: "选择宠物", c_pet_sel_d: "挑选您喜爱的像素精灵伴侣。", c_pet_pers: "性格设定", c_pet_pers_d: "宠物的发声态度与督促方式。", c_pet_p1: "温柔", c_pet_p2: "严厉", c_pet_p3: "傲娇",
+    c_pet_chase: "启用光标追逐", c_pet_chase_d: "宠物眼神将跟随您的鼠标移动。", c_pet_scold: "键盘敲击警告", c_pet_scold_d: "休息时继续打字，宠物会训斥你。", c_pet_prev: "效果预览", c_pet_prev_d: "快速体验提醒状态。",
+    btn_prev_alert: "预览预警猫咪", btn_prev_rest: "模拟强制休息",
+    c_kd_en: "启用 KeyDrop 常用语", c_kd_en_d: "按下全局快捷键，快速注入常用短语。", c_hk: "键盘快捷键", c_hk_l: "默认：Cmd + L", c_qa: "快捷操作", c_qa_d: "排在前 2 位的将显示为大磁贴，其余的在折叠面板中显示",
+    c_perm: "辅助功能权限", c_perm_d: "用于监测键盘空闲状态与打字训斥。", c_perm_auth: "已授权",
+    c_memo_en: "启用 Memos 闪念胶囊", c_memo_en_d: "在全局支持快捷键呼出 Markdown 备忘录。", c_hk_m: "默认：Cmd + Shift + M", c_clip_en: "启用剪贴板历史", c_clip_en_d: "自动记录复制的文本与图片，支持快捷键呼出。",
+    c_hk_c: "默认：Cmd + Shift + C", c_clip_ret: "历史记录保留时间", c_clip_ret_d: "超过此时间的记录将被自动清理。", c_clip_1d: "1 天", c_clip_7d: "7 天", c_clip_30d: "30 天",
+    c_sys_boot: "开机自启动", c_sys_boot_d: "在 macOS 启动时自动运行 MeowOut。", c_sys_ver: "版本 1.5.0 (Stable)", c_sys_slogan: "原生像素伴侣，呵护您的健康编码。", c_sys_upd: "检查更新", c_sys_check: "检查",
+    br_box: "箱式", br_478: "4-7-8", br_abd: "腹式", br_start: "开始练习",
+    upd_title: "发现进化补丁 v1.4.2！", upd_desc: "像素宠物为你带来了全新的「Memos 闪念胶囊」与「2FA 验证器」模块！点击更新立即部署。", upd_later: "稍后", upd_now: "立即重启",
+    clean_title: "键盘清洁模式", clean_desc: "键盘已锁定，请随意清洁。长按 Esc 退出。", clean_exit: "退出模式",
+    kd_trig: "常用语", kd_hdr: "选择常用语注入代码编辑器：", kd_i1: "打印问候", kd_i2: "实例化宠物", kd_i3: "触发强制休息", kd_i4: "Git 提交命令", kd_i5: "喝水打卡字符",
+    tfa_search: "搜索账号...",
+    // Dynamic text
+    js_water_done: "多喝水好棒！+1 ✓", js_pause: "暂停{m}分钟，好好休息~", js_caf_on: "防睡眠开启！☕ 保持专注~", js_caf_off: "防睡眠已关闭。",
+    js_upd_chk: "检查中...", js_upd_avail: "可用补丁 v1.4.2 (傲娇狐狸)", js_upd_succ: "进化补丁 v1.4.2 部署成功！\n🎉 傲娇狐狸 Fomo 已解锁！",
+    js_bye: "再见啦！喵~", js_kd_succ: "代码短语注入成功！💻", js_alert: "⚠️ 连续工作太久了！\n请休息一下！",
+    js_ready: "准备好了", js_sel_start: "选择模式，点击开始", js_end_prac: "结束练习", js_start_prac: "开始练习",
+    js_b_inhale: "吸气", js_b_hold: "屏息", js_b_exhale: "呼气", js_b_hold2: "屏气"
+  },
+  en: {
+    menu_file: "File", menu_edit: "Edit", menu_view: "View",
+    tray_goal: "Daily Goal", tray_water: "Hydration", tray_pause: "Pause", tray_caffeine: "Caffeine", tray_2fa: "Meow2FA",
+    tray_clean: "Keyboard Clean", tray_screen: "Screen Clean", tray_breath: "Mindfulness", tray_monitor: "Activity", tray_term: "Terminal",
+    tray_collapse: "Collapse", tray_settings: "Settings...", tray_quit: "Quit",
+    win_settings: "MeowOut Settings", win_breath: "Mindfulness",
+    sb_rest: "Rest Alarm", sb_water: "Hydration", sb_pet: "Pet Behavior", sb_kd: "KeyDrop", sb_quick: "Quick Actions", sb_memos: "Memos", sb_clip: "Clipboard", sb_perm: "Privacy", sb_sys: "System",
+    pill_goal: "Goal", pill_dur: "Duration", pill_alert: "Alerts", pill_gen: "General", pill_sched: "Schedule", pill_goal2: "Goal", pill_pet: "Pet", pill_pers: "Personality", pill_inter: "Interactive", pill_gen2: "General", pill_about: "About",
+    c_rest_goal: "Daily Work Goal", c_rest_goal_d: "Target total working hours.", c_rest_work: "Work Duration", c_rest_work_d: "Continuous work time before a break.", c_rest_rest: "Break Duration", c_rest_rest_d: "Duration of the forced break.",
+    c_rest_reset: "Idle Reset Time", c_rest_reset_d: "Reset timer after this much idle time.", c_rest_alert: "Pre-break Warning", c_rest_alert_d: "Warn this many minutes before break.",
+    c_water_en: "Enable Hydration Reminders", c_water_en_d: "Remind you to drink water regularly.", c_water_mode: "Reminder Mode", c_water_m1: "Follow Rest Routine", c_water_m2: "Custom Interval", c_water_int: "Reminder Interval", c_water_goal: "Daily Goal",
+    c_pet_sel: "Choose Pet", c_pet_sel_d: "Select your pixel companion.", c_pet_pers: "Personality", c_pet_pers_d: "How your pet talks to you.", c_pet_p1: "Gentle", c_pet_p2: "Strict", c_pet_p3: "Tsundere",
+    c_pet_chase: "Enable Cursor Chasing", c_pet_chase_d: "Pet's eyes follow your mouse.", c_pet_scold: "Typing Warning", c_pet_scold_d: "Pet scolds you if you type during breaks.", c_pet_prev: "Preview", c_pet_prev_d: "Quickly test the alerts.",
+    btn_prev_alert: "Preview Warning", btn_prev_rest: "Simulate Break",
+    c_kd_en: "Enable KeyDrop", c_kd_en_d: "Inject snippets with a global hotkey.", c_hk: "Shortcut", c_hk_l: "Default: Cmd + L", c_qa: "Quick Actions", c_qa_d: "Top 2 items appear as large tiles.",
+    c_perm: "Accessibility Access", c_perm_d: "Required to monitor idle state.", c_perm_auth: "Authorized",
+    c_memo_en: "Enable Memos", c_memo_en_d: "Global hotkey for quick notes.", c_hk_m: "Default: Cmd + Shift + M", c_clip_en: "Enable Clipboard History", c_clip_en_d: "Record text and images automatically.",
+    c_hk_c: "Default: Cmd + Shift + C", c_clip_ret: "Retention Period", c_clip_ret_d: "Clear history older than this.", c_clip_1d: "1 Day", c_clip_7d: "7 Days", c_clip_30d: "30 Days",
+    c_sys_boot: "Launch at Login", c_sys_boot_d: "Start MeowOut on macOS boot.", c_sys_ver: "Version 1.5.0 (Stable)", c_sys_slogan: "Native pixel companion for healthy coding.", c_sys_upd: "Check for Updates", c_sys_check: "Check",
+    br_box: "Box", br_478: "4-7-8", br_abd: "Belly", br_start: "Start",
+    upd_title: "Evolution Patch v1.4.2!", upd_desc: "New 'Memos' and '2FA Authenticator' modules available! Click to deploy.", upd_later: "Later", upd_now: "Restart Now",
+    clean_title: "Keyboard Clean Mode", clean_desc: "Keyboard locked. Clean safely. Hold Esc to exit.", clean_exit: "Exit Mode",
+    kd_trig: "Snippets", kd_hdr: "Select snippet to inject:", kd_i1: "Print Greeting", kd_i2: "Instantiate Pet", kd_i3: "Trigger Break", kd_i4: "Git Commit Cmd", kd_i5: "Water Emoji",
+    tfa_search: "Search accounts...",
+    // Dynamic text
+    js_water_done: "Great job! +1 ✓", js_pause: "Paused for {m}m, rest well~", js_caf_on: "Caffeine ON! ☕ Stay focused.", js_caf_off: "Caffeine OFF.",
+    js_upd_chk: "Checking...", js_upd_avail: "Update v1.4.2 (Fomo) Available", js_upd_succ: "Patch v1.4.2 Deployed!\n🎉 Tsundere Fox Fomo Unlocked!",
+    js_bye: "Goodbye! Meow~", js_kd_succ: "Snippet injected! 💻", js_alert: "⚠️ Working too long!\nPlease take a break!",
+    js_ready: "Ready", js_sel_start: "Select mode, click start", js_end_prac: "End Practice", js_start_prac: "Start Practice",
+    js_b_inhale: "Inhale", js_b_hold: "Hold", js_b_exhale: "Exhale", js_b_hold2: "Hold"
+  }
+};
+
+function setMockupLanguage(lang) {
+  if (lang === 'zh-CN') lang = 'zh';
+  if (!MOCKUP_I18N[lang]) lang = 'en';
+  S.lang = lang;
+  
+  // Update segment control
+  document.querySelectorAll('#lang-seg .seg-btn').forEach(b => {
+    b.classList.remove('active');
+    if (b.dataset.lang === lang) b.classList.add('active');
+  });
+
+  // Update HTML elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (MOCKUP_I18N[lang][key]) el.innerHTML = MOCKUP_I18N[lang][key];
+  });
+  
+  // Update Placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (MOCKUP_I18N[lang][key]) el.setAttribute('placeholder', MOCKUP_I18N[lang][key]);
+  });
+  
+}
+
+// Sync with parent window
+window.addEventListener('storage', (e) => {
+  if (e.key === 'meowout-lang' && e.newValue) {
+    setMockupLanguage(e.newValue);
+  }
+});
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SET_LANG') {
+    setMockupLanguage(e.data.lang);
+  }
+});
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const saved = localStorage.getItem('meowout-lang');
+    if (saved) setMockupLanguage(saved);
+  } catch(e) {}
+});
+
+
 const S = {
   pet: 'clawd', pers: 'gentle', lang: 'zh',
   drinkCount: 0, waterGoal: 8,
@@ -837,7 +950,7 @@ document.getElementById('water-add').addEventListener('click', () => {
   S.drinkCount++;
   water();
   updateWater();
-  showSpeech('多喝水好棒！+1 ✓');
+  showSpeech(MOCKUP_I18N[S.lang].js_water_done);
 });
 
 // ─── PAUSE BUTTONS ────────────────────────────────────────────────────────────
@@ -851,7 +964,7 @@ document.querySelectorAll('.pbtn').forEach(btn => {
       S.pauseDur = d;
       document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('on'));
       btn.classList.add('on');
-      showSpeech(`暂停${d}分钟，好好休息~`);
+      showSpeech(MOCKUP_I18N[S.lang].js_pause.replace('{m}', d));
     }
     click();
   });
@@ -862,8 +975,8 @@ const caffCard = document.getElementById('card-caffeine');
 caffCard.addEventListener('click', () => {
   S.caffeineOn = !S.caffeineOn;
   caffCard.classList.toggle('on', S.caffeineOn);
-  document.getElementById('status-caffeine').innerText = S.caffeineOn ? '开启' : '关闭';
-  showSpeech(S.caffeineOn ? '防睡眠开启！☕ 保持专注~' : '防睡眠已关闭。');
+  ;
+  showSpeech(S.caffeineOn ? MOCKUP_I18N[S.lang].js_caf_on : MOCKUP_I18N[S.lang].js_caf_off);
   playTone(600,'triangle',0.15,0.08);
 });
 
@@ -959,8 +1072,7 @@ document.querySelectorAll('#pers-seg .seg-btn').forEach(btn => {
 document.querySelectorAll('#lang-seg .seg-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     click();
-    document.querySelectorAll('#lang-seg .seg-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active'); S.lang = btn.dataset.lang;
+    setMockupLanguage(btn.dataset.lang);
   });
 });
 
@@ -997,7 +1109,7 @@ document.getElementById('tog-scold').addEventListener('change', e => S.scoldEnab
 // ─── PREVIEW BUTTONS ──────────────────────────────────────────────────────────
 document.getElementById('btn-prev-alert').addEventListener('click', () => {
   alert2();
-  showSpeech('⚠️ 连续工作太久了！\n请休息一下！');
+  showSpeech(MOCKUP_I18N[S.lang].js_alert);
   poseState = 'armsUp'; S.compWalk = false;
   setTimeout(() => { poseState='rest'; S.compWalk=true; }, 2800);
 });
@@ -1010,9 +1122,9 @@ document.getElementById('btn-prev-rest').addEventListener('click', () => {
 // ─── UPDATER ──────────────────────────────────────────────────────────────────
 document.getElementById('btn-check-upd').addEventListener('click', () => {
   click();
-  document.getElementById('upd-desc').innerText = '检查中...';
+  document.getElementById('upd-desc').innerText = MOCKUP_I18N[S.lang].js_upd_chk;
   setTimeout(() => {
-    document.getElementById('upd-desc').innerText = '可用补丁 v1.4.2 (傲娇狐狸)';
+    document.getElementById('upd-desc').innerText = MOCKUP_I18N[S.lang].js_upd_avail;
     document.getElementById('sys-badge').classList.remove('hidden');
     document.getElementById('update-popup').classList.add('show');
   }, 1200);
@@ -1022,12 +1134,12 @@ function applyUpdate() {
   S.fomoUnlocked = true;
   document.getElementById('fomo-lbl').innerText = 'Fomo';
   playTone(880,'sine',0.5,0.2);
-  alert('进化补丁 v1.4.2 部署成功！\n🎉 傲娇狐狸 Fomo 已解锁！');
+  alert(MOCKUP_I18N[S.lang].js_upd_succ);
   document.querySelector('[data-pet="fomo"]').click();
 }
 function quitApp() {
   trayPop.classList.remove('show');
-  showSpeech('再见啦！喵~');
+  showSpeech(MOCKUP_I18N[S.lang].js_bye);
   setTimeout(() => { S.compWalk=true; S.compSpeed=3.5; S.compDir=1; setTimeout(() => document.getElementById('companion').style.opacity='0', 2200); }, 200);
 }
 
@@ -1049,7 +1161,7 @@ document.querySelectorAll('.kd-item').forEach(item => {
     body.scrollTop = body.scrollHeight;
     document.getElementById('kd-panel').classList.remove('show');
     playTone(700,'sine',0.22,0.12);
-    showSpeech('代码短语注入成功！💻');
+    showSpeech(MOCKUP_I18N[S.lang].js_kd_succ);
   });
 });
 document.addEventListener('keydown', e => {
@@ -1071,9 +1183,9 @@ document.addEventListener('keydown', e => {
 
 // ─── BREATHING EXERCISE ──────────────────────────────────────────────────────
 const PATTERNS = {
-  box: [{name:'吸气',s:4,scale:1.0},{name:'屏气',s:4,scale:1.0},{name:'呼气',s:4,scale:0.7},{name:'屏气',s:4,scale:0.7}],
-  478: [{name:'吸气',s:4,scale:1.0},{name:'屏息',s:7,scale:1.0},{name:'呼气',s:8,scale:0.7}],
-  abdominal: [{name:'吸气',s:5,scale:1.0},{name:'呼气',s:5,scale:0.7}],
+  box: [{name: MOCKUP_I18N[S.lang].js_b_inhale,s:4,scale:1.0},{name: MOCKUP_I18N[S.lang].js_b_hold2,s:4,scale:1.0},{name: MOCKUP_I18N[S.lang].js_b_exhale,s:4,scale:0.7},{name: MOCKUP_I18N[S.lang].js_b_hold2,s:4,scale:0.7}],
+  478: [{name: MOCKUP_I18N[S.lang].js_b_inhale,s:4,scale:1.0},{name: MOCKUP_I18N[S.lang].js_b_hold,s:7,scale:1.0},{name: MOCKUP_I18N[S.lang].js_b_exhale,s:8,scale:0.7}],
+  abdominal: [{name: MOCKUP_I18N[S.lang].js_b_inhale,s:5,scale:1.0},{name: MOCKUP_I18N[S.lang].js_b_exhale,s:5,scale:0.7}],
 };
 document.querySelectorAll('.bchip').forEach(chip => {
   chip.addEventListener('click', () => {
@@ -1088,7 +1200,7 @@ document.getElementById('btn-breath').addEventListener('click', () => {
 function closeBreath() { stopBreathing(); document.getElementById('win-breath').classList.remove('show'); document.getElementById('win-breath').style.display='none'; }
 function startBreathing() {
   breathRunning=true; breathPhase=0; breathRemaining=4; breathSessionSec=240;
-  document.getElementById('btn-breath').innerText='结束练习';
+  document.getElementById('btn-breath').innerText=MOCKUP_I18N[S.lang].js_end_prac;
   document.getElementById('btn-breath').className='btn-breath secondary';
   document.getElementById('breath-timer').style.display='block';
   document.getElementById('companion').style.opacity='0.15';
@@ -1104,11 +1216,11 @@ function startBreathing() {
 }
 function stopBreathing() {
   clearInterval(breathTimer); breathRunning=false;
-  document.getElementById('btn-breath').innerText='开始练习';
+  document.getElementById('btn-breath').innerText=MOCKUP_I18N[S.lang].js_start_prac;
   document.getElementById('btn-breath').className='btn-breath';
   document.getElementById('breath-timer').style.display='none';
-  document.getElementById('breath-main').innerText='准备好了';
-  document.getElementById('breath-sub').innerText='选择模式，点击开始';
+  document.getElementById('breath-main').innerText=MOCKUP_I18N[S.lang].js_ready;
+  document.getElementById('breath-sub').innerText=MOCKUP_I18N[S.lang].js_sel_start;
   document.getElementById('companion').style.opacity='1';
   ['breath-glow','breath-outer','breath-inner'].forEach(id=>{
     const el=document.getElementById(id); el.style.transform='scale(0.7)';
@@ -1118,7 +1230,7 @@ function stopBreathing() {
 }
 function runBreathStep() {
   const step = PATTERNS[breathPat][breathPhase];
-  document.getElementById('breath-main').innerText = step.name;
+  document.getElementById('breath-main').innerText = MOCKUP_I18N[S.lang][step.name]();
   breathRemaining = step.s;
   document.getElementById('breath-sub').innerText = breathRemaining+' 秒';
   const dur = step.s+'s';
