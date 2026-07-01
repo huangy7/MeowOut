@@ -8,12 +8,27 @@ public class PanelViewModel: ObservableObject {
     @Published public var shouldScroll: Bool = false
     @Published public var selectedCategory: String = KeyDropConstants.categoryAll
     
+    public var isPanelVisible: Bool = false {
+        didSet {
+            if isPanelVisible && needsRefresh {
+                needsRefresh = false
+                objectWillChange.send()
+            }
+        }
+    }
+    private var needsRefresh = false
+    
     private var cancellables = Set<AnyCancellable>()
     
     public init() {
         SnippetStore.shared.$snippets
             .sink { [weak self] _ in
-                self?.objectWillChange.send()
+                guard let self = self else { return }
+                if self.isPanelVisible {
+                    self.objectWillChange.send()
+                } else {
+                    self.needsRefresh = true
+                }
             }
             .store(in: &cancellables)
     }

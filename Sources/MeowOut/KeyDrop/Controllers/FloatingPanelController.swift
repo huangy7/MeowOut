@@ -59,6 +59,7 @@ public class FloatingPanelController: NSPanel {
     }
     
     public func show() {
+        viewModel.isPanelVisible = true
         viewModel.reset()
         let mouseLocation = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { $0.frame.contains(mouseLocation) } ?? NSScreen.main
@@ -83,6 +84,7 @@ public class FloatingPanelController: NSPanel {
     }
     
     public func hide() {
+        viewModel.isPanelVisible = false
         self.orderOut(nil)
         removeMonitors()
     }
