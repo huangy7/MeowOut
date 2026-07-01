@@ -502,3 +502,20 @@
 "power_battery_title" = "低电量保护";
 "power_battery_desc" = "使用电池且电量低于设定值时，自动关闭防休眠以保护电池。设为 0 即为关闭该保护。";
 "power_battery_unit" = "电量: %lld%%";
+
+// Shelf
+"settings_tab_shelf" = "中转站";
+"shelf_settings_enabled" = "启用文件中转站";
+"shelf_settings_enabled_desc" = "屏幕边缘的临时悬浮坞，可以暂存文件、图片、文本或链接。";
+"shelf_settings_shortcut" = "快捷键";
+"shelf_settings_shortcut_desc" = "全局呼出文件中转站的快捷键。";
+"shelf_settings_shake" = "拖拽时摇一摇呼出";
+"shelf_settings_shake_desc" = "当你拖拽文件时，快速左右摇晃鼠标即可自动呼出中转站。";
+"shelf_hint" = "将内容拖拽至此暂存";
+"shelf_clear_all" = "清空全部";
+"shelf_remove_selected" = "移除选中";
+"shelf_title" = "中转站";
+"shelf_selected_format" = "已选择 %d 项";
+"shelf_empty" = "将文件或内容
+拖拽至此处";
+"shelf_item_image" = "图片";

@@ -70,6 +70,7 @@ struct SettingsView: View {
             SidebarItem(id: "behavior", title: I18n.localized("settings_section_behavior", language: state.language), icon: "cat.circle"),
             SidebarItem(id: "keydrop", title: I18n.localized("settings_tab_keydrop", language: state.language), icon: "keyboard"),
             SidebarItem(id: "clipboard", title: I18n.localized("settings_tab_clipboard", language: state.language), icon: "clipboard"),
+            SidebarItem(id: "shelf", title: I18n.localized("settings_tab_shelf", language: state.language), icon: "tray.and.arrow.down"),
             SidebarItem(id: "quick_actions", title: I18n.localized("menu_quick_actions", language: state.language), icon: "bolt.fill"),
             SidebarItem(id: "memos", title: "Memos", icon: "note.text"),
             SidebarItem(id: "permissions", title: I18n.localized("settings_tab_permissions", language: state.language), icon: "lock.shield"),
@@ -112,6 +113,7 @@ struct SettingsView: View {
                             case "behavior": behaviorCards
                             case "keydrop": keyDropCards
                             case "clipboard": ClipboardSettingsView(selectedTab: selectedClipboardSubTab)
+                            case "shelf": ShelfSettingsView()
                             case "quick_actions": QuickActionsSettingsView(state: state)
                             case "memos": MemosSettingsView(state: state)
                             case "permissions": permissionsCards
@@ -205,6 +207,8 @@ struct SettingsView: View {
         case "clipboard":
             PillTabBar(items: clipboardSubTabs.map { I18n.localized($0.key, language: state.language) },
                        selection: subTabBinding(for: $selectedClipboardSubTab, tabs: clipboardSubTabs))
+        case "shelf":
+            EmptyView()
         case "quick_actions":
             EmptyView()
         case "memos":

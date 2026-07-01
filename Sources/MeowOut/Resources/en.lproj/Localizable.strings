@@ -500,3 +500,19 @@
 "power_battery_title" = "Battery Protection";
 "power_battery_desc" = "Automatically disable keep awake when on battery and below threshold. 0 means disabled.";
 "power_battery_unit" = "Battery: %lld%%";
+
+// Shelf
+"settings_tab_shelf" = "Shelf";
+"shelf_settings_enabled" = "Enable File Shelf";
+"shelf_settings_enabled_desc" = "A floating dock to temporarily hold files, images, text, and links.";
+"shelf_settings_shortcut" = "Shortcut";
+"shelf_settings_shortcut_desc" = "Global shortcut to toggle the shelf.";
+"shelf_settings_shake" = "Shake to Open";
+"shelf_settings_shake_desc" = "Quickly shake your mouse left and right while dragging an item to summon the shelf.";
+"shelf_hint" = "Drag files here to hold";
+"shelf_clear_all" = "Clear All";
+"shelf_remove_selected" = "Remove Selected";
+"shelf_title" = "Shelf";
+"shelf_selected_format" = "%d Selected";
+"shelf_empty" = "Drop items here";
+"shelf_item_image" = "Image";

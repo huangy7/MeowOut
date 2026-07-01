@@ -312,6 +312,7 @@ struct MeowOutApp: App {
                     ClipboardPanelController.shared.configure(appState: appState)
                     QueueProcessor.shared.start()
                     ClipboardMonitorService.shared.start()
+                    ShelfService.shared.start(appState: appState)
                 }
                 .onChange(of: appState.language) { _, _ in
                     // Force engine restart if language changes to pick up new strings
