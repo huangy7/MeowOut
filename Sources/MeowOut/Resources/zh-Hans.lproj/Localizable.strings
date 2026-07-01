@@ -488,3 +488,17 @@
 "clipboard_panel_unpin_item" = "取消固定项目";
 "clipboard_item_image" = "图片";
 "clipboard_item_generic" = "剪贴板项目";
+
+// Advanced Power Settings
+"settings_subtab_power" = "高级电源";
+"power_clamshell_title" = "开启合盖不休眠";
+"power_clamshell_desc" = "此功能通过修改系统底层的 pmset disablesleep 配置项实现。";
+"power_clamshell_toggle" = "合盖不休眠";
+"power_clamshell_alert_title" = "需要管理员权限";
+"power_clamshell_alert_msg" = "控制系统合盖不休眠状态需要管理员权限。我们将请求一次密码以配置免密脚本（Sudoers），之后无需再次输入。";
+"power_clamshell_alert_cancel" = "取消";
+"power_clamshell_alert_auth" = "去授权";
+"power_clamshell_external_tip" = "此处已自动同步外部开启的状态。";
+"power_battery_title" = "低电量保护";
+"power_battery_desc" = "使用电池且电量低于设定值时，自动关闭防休眠以保护电池。设为 0 即为关闭该保护。";
+"power_battery_unit" = "电量: %lld%%";

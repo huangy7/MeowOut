@@ -9,6 +9,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isStarted = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // 恢复上次异常退出时遗留的系统电源设置
+        ClamshellManager.shared.restoreOnQuit()
+        
         // 对于托盘应用，确保激活策略正确
         NSApp.setActivationPolicy(.accessory)
         
@@ -28,6 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        ClamshellManager.shared.restoreOnQuit()
         PowerAssertionService.shared.disable()
         KeyboardCleaningService.shared.stop()
         ScreenOverlayService.shared.stop()
@@ -286,6 +290,7 @@ struct MeowOutApp: App {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("isQuickToolsExpanded") private var isQuickToolsExpanded = false
     @State private var isHoveredToggle = false
+    @ObservedObject private var clamshell = ClamshellManager.shared
 
     var body: some Scene {
         MenuBarExtra {
@@ -466,12 +471,15 @@ struct MeowOutApp: App {
         let descriptor = QuickToolActionResolver.descriptor(for: tool, appState: appState)
         let launchSubtitle = I18n.localized("menu_shortcuts_launch", language: appState.language)
 
+        let isClamshell = (descriptor.id == BuiltInToolType.keepAwake.rawValue) && ClamshellManager.shared.isEnabledGlobally && (descriptor.state?.isActive == true)
+
         ControlTileButton(
             title: descriptor.displayName,
             subtitleActive: descriptor.state?.subtitle ?? launchSubtitle,
             subtitleInactive: descriptor.state?.subtitle ?? launchSubtitle,
             iconEmoji: descriptor.iconText ?? "🚀",
             isActive: descriptor.state?.isActive ?? false,
+            isClamshellKeepAwake: isClamshell,
             action: {
                 if descriptor.behavior == .launch || descriptor.id != BuiltInToolType.keepAwake.rawValue {
                     dismissMenu()
@@ -572,6 +580,7 @@ struct ControlTileButton: View {
     let subtitleInactive: String
     let iconEmoji: String
     let isActive: Bool
+    var isClamshellKeepAwake: Bool = false
     let action: () -> Void
     
     @Environment(\.colorScheme) private var colorScheme
@@ -609,6 +618,16 @@ struct ControlTileButton: View {
                 RoundedRectangle(cornerRadius: 14)
                     .stroke(isActive ? Color.orange.opacity(0.2) : Color.primary.opacity(0.06), lineWidth: 0.5)
             )
+            .overlay(alignment: .topTrailing) {
+                if isClamshellKeepAwake {
+                    Circle()
+                        .fill(Color.white.opacity(0.9))
+                        .frame(width: 6, height: 6)
+                        .shadow(color: Color.black.opacity(0.15), radius: 1, x: 0, y: 1)
+                        .offset(x: -8, y: 8)
+                        .help(I18n.localized("power_clamshell_title", language: AppState().language))
+                }
+            }
             .shadow(color: isActive ? Color.orange.opacity(0.2) : Color.black.opacity(0.04), radius: isActive ? 5 : 3, x: 0, y: isActive ? 2 : 1)
             .contentShape(Rectangle())
         }

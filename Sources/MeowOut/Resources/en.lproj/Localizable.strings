@@ -486,3 +486,17 @@
 "clipboard_panel_unpin_item" = "Unpin item";
 "clipboard_item_image" = "Image";
 "clipboard_item_generic" = "Clipboard Item";
+
+// Advanced Power Settings
+"settings_subtab_power" = "Power";
+"power_clamshell_title" = "Clamshell Mode";
+"power_clamshell_desc" = "This feature works by modifying the system's underlying pmset disablesleep configuration.";
+"power_clamshell_toggle" = "Clamshell Mode";
+"power_clamshell_alert_title" = "Administrator Access Required";
+"power_clamshell_alert_msg" = "Controlling clamshell mode requires administrator privileges. We will request your password once to configure a script (Sudoers), and you won't need to enter it again.";
+"power_clamshell_alert_cancel" = "Cancel";
+"power_clamshell_alert_auth" = "Authorize";
+"power_clamshell_external_tip" = "Status synced from external configuration.";
+"power_battery_title" = "Battery Protection";
+"power_battery_desc" = "Automatically disable keep awake when on battery and below threshold. 0 means disabled.";
+"power_battery_unit" = "Battery: %lld%%";

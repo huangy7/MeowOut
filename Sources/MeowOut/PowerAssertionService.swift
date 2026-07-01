@@ -1,16 +1,17 @@
 import Foundation
 import IOKit.pwr_mgt
+import Combine
+import UserNotifications
 
 @MainActor
-final class PowerAssertionService {
+final class PowerAssertionService: ObservableObject {
     static let shared = PowerAssertionService()
 
     private var idleSleepAssertionID: IOPMAssertionID = 0
     private var displaySleepAssertionID: IOPMAssertionID = 0
+    private var batteryCancellable: AnyCancellable?
 
-    var isKeepingAwake: Bool {
-        idleSleepAssertionID != 0 || displaySleepAssertionID != 0
-    }
+    @Published var isKeepingAwake: Bool = false
 
     private init() {}
 
@@ -45,6 +46,10 @@ final class PowerAssertionService {
 
         idleSleepAssertionID = idleAssertion
         displaySleepAssertionID = displayAssertion
+        isKeepingAwake = true
+        
+        // Start Battery Protection
+        startBatteryProtection()
     }
 
     func disable() {
@@ -59,5 +64,49 @@ final class PowerAssertionService {
             IOPMAssertionRelease(displaySleepAssertionID)
             displaySleepAssertionID = 0
         }
+        
+        isKeepingAwake = false
+        // Stop Battery Protection
+        stopBatteryProtection()
+    }
+    
+    // MARK: - Battery Protection
+    
+    private func startBatteryProtection() {
+        BatteryMonitor.shared.startMonitoring()
+        
+        batteryCancellable = BatteryMonitor.shared.$batteryPercentage
+            .combineLatest(BatteryMonitor.shared.$isOnBattery)
+            .sink { [weak self] percentage, isOnBattery in
+                guard let self = self, self.isKeepingAwake else { return }
+                
+                let threshold = UserDefaults.standard.integer(forKey: "batteryProtectionThreshold")
+                // default threshold is 0 if not set, meaning disabled unless user sets it
+                guard threshold > 0 else { return }
+                
+                if isOnBattery && percentage <= threshold {
+                    self.triggerBatteryProtection()
+                }
+            }
+    }
+    
+    private func stopBatteryProtection() {
+        batteryCancellable?.cancel()
+        batteryCancellable = nil
+        BatteryMonitor.shared.stopMonitoring()
+    }
+    
+    private func triggerBatteryProtection() {
+        disable()
+        sendBatteryNotification()
+    }
+    
+    private func sendBatteryNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "MeowOut 提示"
+        content.body = "电池电量已低至保护线，防休眠已自动关闭。"
+        
+        let request = UNNotificationRequest(identifier: "MeowOutBatteryProtection", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
     }
 }

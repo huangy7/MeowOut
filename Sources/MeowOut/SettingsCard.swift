@@ -5,7 +5,19 @@ struct SettingsCard<Content: View>: View {
     let iconColor: Color
     let title: String
     let description: String?
+    let tip: String?
     @ViewBuilder var content: () -> Content
+    
+    @State private var showTipPopover = false
+
+    init(icon: String, iconColor: Color, title: String, description: String? = nil, tip: String? = nil, @ViewBuilder content: @escaping () -> Content) {
+        self.icon = icon
+        self.iconColor = iconColor
+        self.title = title
+        self.description = description
+        self.tip = tip
+        self.content = content
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -21,8 +33,26 @@ struct SettingsCard<Content: View>: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 13, weight: .semibold))
+                    HStack(spacing: 6) {
+                        Text(title)
+                            .font(.system(size: 13, weight: .semibold))
+                        
+                        if let tip = tip {
+                            Button(action: { showTipPopover.toggle() }) {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 12))
+                            }
+                            .buttonStyle(.plain)
+                            .popover(isPresented: $showTipPopover, arrowEdge: .bottom) {
+                                Text(tip)
+                                    .font(.system(size: 12))
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .padding(12)
+                                    .frame(maxWidth: 220)
+                            }
+                        }
+                    }
                     if let description = description {
                         Text(description)
                             .font(.system(size: 11))

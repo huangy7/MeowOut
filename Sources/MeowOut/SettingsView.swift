@@ -10,6 +10,9 @@ struct SettingsView: View {
     @State private var isAwaitingAccessibilityForKeyDrop = false
     @State private var accessibilityStatus = AXIsProcessTrusted()
     @State private var selectedTab: String = "rest"
+    
+    @ObservedObject private var clamshell = ClamshellManager.shared
+    @AppStorage("batteryProtectionThreshold") private var batteryProtectionThreshold = 0
 
     // Sub-tab selection identifiers
     @State private var selectedRestSubTab: String = "goal"
@@ -45,6 +48,7 @@ struct SettingsView: View {
     private var systemSubTabs: [(id: String, key: String)] {
         [
             ("general", "settings_subtab_general"),
+            ("power", "settings_subtab_power"),
             ("about", "settings_subtab_about")
         ]
     }
@@ -142,6 +146,7 @@ struct SettingsView: View {
             selectedTab = "permissions"
         }
         .onAppear {
+            clamshell.syncWithSystem()
             applyPendingNavigationTarget()
         }
         .onChange(of: state.settingsNavigationTarget) { _, _ in
@@ -373,6 +378,8 @@ struct SettingsView: View {
                     .toggleStyle(.switch)
                 }
             }
+        case "power":
+            powerCards
         case "about":
             VStack(spacing: 24) {
                 let version = Bundle.main.appVersion
@@ -405,6 +412,56 @@ struct SettingsView: View {
             }
         default:
             EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private var powerCards: some View {
+        VStack(spacing: 16) {
+            SettingsCard(
+                icon: "display",
+                iconColor: .blue,
+                title: I18n.localized("power_clamshell_title", language: state.language),
+                description: nil,
+                tip: I18n.localized("power_clamshell_desc", language: state.language)
+            ) {
+                HStack {
+                    Toggle(isOn: Binding(
+                        get: { clamshell.isEnabledGlobally },
+                        set: { newValue in
+                            if !SudoersManager.isConfigured() {
+                                showSudoersNSAlert(pendingValue: newValue)
+                            } else {
+                                clamshell.setClamshellMode(enabled: newValue)
+                            }
+                        }
+                    )) {
+                        Text(I18n.localized("power_clamshell_toggle", language: state.language))
+                    }
+                    .toggleStyle(.switch)
+                    
+                    if clamshell.isExternallyEnabled {
+                        InlineTipButton(
+                            tip: I18n.localized("power_clamshell_external_tip", language: state.language),
+                            iconColor: .orange
+                        )
+                    }
+                }
+            }
+            
+            SettingsCard(
+                icon: "battery.100.bolt",
+                iconColor: .green,
+                title: I18n.localized("power_battery_title", language: state.language),
+                description: I18n.localized("power_battery_desc", language: state.language)
+            ) {
+                settingSlider(
+                    value: Binding(get: { Double(batteryProtectionThreshold) }, set: { batteryProtectionThreshold = Int($0) }),
+                    in: 0...50,
+                    step: 5,
+                    unit: "power_battery_unit"
+                )
+            }
         }
     }
 
@@ -505,6 +562,22 @@ struct SettingsView: View {
                         Spacer()
                         checkButton
                     }
+                }
+            }
+        }
+    }
+    
+    private func showSudoersNSAlert(pendingValue: Bool) {
+        let alert = NSAlert()
+        alert.messageText = I18n.localized("power_clamshell_alert_title", language: state.language)
+        alert.informativeText = I18n.localized("power_clamshell_alert_msg", language: state.language)
+        alert.addButton(withTitle: I18n.localized("power_clamshell_alert_auth", language: state.language))
+        alert.addButton(withTitle: I18n.localized("power_clamshell_alert_cancel", language: state.language))
+        
+        if alert.runModal() == .alertFirstButtonReturn {
+            SudoersManager.install { success in
+                if success {
+                    clamshell.setClamshellMode(enabled: pendingValue)
                 }
             }
         }
@@ -1357,6 +1430,28 @@ struct LauncherRingsEditorView: View {
                     appendTool(newTool, to: ringId)
                 }
             }
+        }
+    }
+}
+
+struct InlineTipButton: View {
+    let tip: String
+    var iconColor: Color = .secondary
+    @State private var showTipPopover = false
+
+    var body: some View {
+        Button(action: { showTipPopover.toggle() }) {
+            Image(systemName: "info.circle")
+                .foregroundColor(iconColor)
+                .font(.system(size: 12))
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $showTipPopover, arrowEdge: .bottom) {
+            Text(tip)
+                .font(.system(size: 12))
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(12)
+                .frame(maxWidth: 220)
         }
     }
 }
