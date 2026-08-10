@@ -214,6 +214,36 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
 .tfa-timer circle { fill: none; stroke-width: 3.5; }
 .tfa-timer .bg { stroke: rgba(0,0,0,0.08); }
 .tfa-timer .fg { stroke: #0071e3; stroke-dasharray: 53.4; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+/* LIGHT THEME */
+:root[data-theme="light"] body { background: #f8fafc; }
+:root[data-theme="light"] .screen { background: radial-gradient(circle at 20% 30%, #e0e7ff 0%, #f1f5f9 60%, #e2e8f0 100%); border: 1px solid rgba(0, 0, 0, 0.1); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08); }
+:root[data-theme="light"] .menubar { background: rgba(255, 255, 255, 0.8); border-bottom: 0.5px solid rgba(0, 0, 0, 0.1); color: rgba(0, 0, 0, 0.85); }
+:root[data-theme="light"] .tray-btn:hover, :root[data-theme="light"] .tray-btn.open { background: rgba(0, 0, 0, 0.08); }
+
+/* LIGHT THEME FOR WINDOWS & PANELS */
+:root[data-theme="light"] .win-code { background: #ffffff; border: 0.5px solid rgba(0, 0, 0, 0.12); box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1); }
+:root[data-theme="light"] .win-code .titlebar { background: rgba(236, 236, 240, 0.9); border-bottom: 0.5px solid rgba(0, 0, 0, 0.08); }
+:root[data-theme="light"] .win-code .win-title { color: #1d1d1f; }
+:root[data-theme="light"] .code-body { color: #1d1d1f; }
+:root[data-theme="light"] .kw { color: #ad3da4; font-weight: 600; }
+:root[data-theme="light"] .fn { color: #0071e3; }
+:root[data-theme="light"] .str { color: #d12f1b; }
+:root[data-theme="light"] .cm { color: #707f8d; font-style: italic; }
+
+:root[data-theme="light"] .win-breath { background: #ffffff; border: 0.5px solid rgba(0, 0, 0, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); }
+:root[data-theme="light"] .win-breath .titlebar { background: rgba(236, 236, 240, 0.9); border-bottom: 0.5px solid rgba(0, 0, 0, 0.08); }
+:root[data-theme="light"] .win-breath .win-title { color: #1d1d1f; }
+:root[data-theme="light"] .breath-main { color: #1d1d1f; }
+:root[data-theme="light"] .breath-sub { color: #86868b; }
+:root[data-theme="light"] .breath-chips { background: rgba(0, 0, 0, 0.05); }
+:root[data-theme="light"] .bchip { color: #86868b; }
+
+:root[data-theme="light"] .kd-trigger { background: rgba(255, 255, 255, 0.85); border: 0.5px solid rgba(0, 0, 0, 0.12); color: #1d1d1f; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); }
+:root[data-theme="light"] .kd-trigger:hover { background: #ffffff; }
+:root[data-theme="light"] .kd-panel { background: rgba(255, 255, 255, 0.96); border: 0.5px solid rgba(0, 0, 0, 0.12); box-shadow: 0 10px 32px rgba(0, 0, 0, 0.12); }
+:root[data-theme="light"] .kd-hdr { color: #86868b; border-bottom: 0.5px solid rgba(0, 0, 0, 0.08); }
+:root[data-theme="light"] .kd-item { color: #1d1d1f; }
+:root[data-theme="light"] .kd-item:hover { background: #0071e3; color: #ffffff; }
 </style>
 
 <!-- Vercel Web Analytics -->
@@ -775,9 +805,13 @@ window.addEventListener('storage', (e) => {
   }
 });
 window.addEventListener('message', (e) => {
-  if (e.data && e.data.type === 'SET_LANG') {
-    setMockupLanguage(e.data.lang);
-  }
+    if (e.data && e.data.type === 'SET_LANG') {
+        if (typeof setLanguage === 'function') setLanguage(e.data.lang);
+        if (typeof setMockupLanguage === 'function') setMockupLanguage(e.data.lang);
+    }
+    if (e.data && e.data.type === 'SET_THEME') {
+        document.documentElement.setAttribute('data-theme', e.data.theme);
+    }
 });
 
 // Initialize on load

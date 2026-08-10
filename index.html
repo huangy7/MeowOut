@@ -39,8 +39,11 @@
     <style>
         /* CSS RESET & VARIABLES */
         :root {
+            --theme-mode: dark;
             --bg-color: #06060c;
             --bg-gradient: radial-gradient(circle at 50% -20%, #1e1145 0%, #06060c 60%, #030306 100%);
+            --header-bg: rgba(6, 6, 12, 0.65);
+            --header-bg-scroll: rgba(6, 6, 12, 0.88);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
@@ -52,11 +55,71 @@
             --accent-purple: #a855f7;
             
             --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-bg-hover: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.08);
             --glass-border-hover: rgba(255, 255, 255, 0.16);
             --glass-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+            --dropdown-bg: rgba(16, 16, 28, 0.95);
+            --mockup-bg: #0f0f1b;
+            --mockup-toolbar: #141424;
+            --cli-bg: rgba(0, 0, 0, 0.75);
+            --footer-bg: #030307;
             
             --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        :root[data-theme="light"] {
+            --theme-mode: light;
+            --bg-color: #f8fafc;
+            --bg-gradient: radial-gradient(circle at 50% -20%, #e0e7ff 0%, #f8fafc 55%, #f1f5f9 100%);
+            --header-bg: rgba(255, 255, 255, 0.82);
+            --header-bg-scroll: rgba(255, 255, 255, 0.95);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            
+            --accent-orange: #ea580c;
+            --accent-orange-glow: rgba(234, 88, 12, 0.15);
+            --accent-blue: #0284c7;
+            --accent-blue-glow: rgba(2, 132, 199, 0.15);
+            --accent-purple: #7c3aed;
+            
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-bg-hover: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(15, 23, 42, 0.08);
+            --glass-border-hover: rgba(15, 23, 42, 0.18);
+            --glass-glow: 0 10px 30px rgba(15, 23, 42, 0.05);
+
+            --dropdown-bg: rgba(255, 255, 255, 0.96);
+            --mockup-bg: #ffffff;
+            --mockup-toolbar: #f1f5f9;
+            --cli-bg: #ffffff;
+            --footer-bg: #f1f5f9;
+        }
+
+        :root[data-theme="light"] .cli-container {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+        }
+        :root[data-theme="light"] .cli-code {
+            color: #6d28d9;
+        }
+        :root[data-theme="light"] .cli-copy {
+            background: #f1f5f9;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            color: #0f172a;
+        }
+        :root[data-theme="light"] .cli-copy:hover {
+            background: #e2e8f0;
+        }
+
+        :root[data-theme="light"] .browser-address {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            color: #475569;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
         }
 
         * {
@@ -99,7 +162,7 @@
         }
 
         .gradient-text {
-            background: linear-gradient(135deg, #fff 30%, var(--text-secondary) 100%);
+            background: linear-gradient(135deg, var(--text-primary) 30%, var(--text-secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -117,8 +180,9 @@
             left: 0;
             width: 100%;
             z-index: 1000;
-            background: rgba(6, 6, 12, 0.6);
+            background: var(--header-bg);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--glass-border);
             transition: var(--transition-smooth);
         }
@@ -137,7 +201,7 @@
             font-family: 'Outfit', sans-serif;
             font-size: 20px;
             font-weight: 800;
-            background: linear-gradient(135deg, #ffffff 0%, #a855f7 100%);
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -227,6 +291,56 @@
             position: relative;
         }
 
+        .aurora-mesh {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1200px;
+            height: 600px;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .aurora-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.35;
+            animation: auroraFloat 18s infinite alternate ease-in-out;
+        }
+
+        .aurora-orb-1 {
+            width: 450px;
+            height: 450px;
+            background: #ea580c;
+            top: -100px;
+            left: 15%;
+        }
+
+        .aurora-orb-2 {
+            width: 500px;
+            height: 500px;
+            background: #7c3aed;
+            top: -50px;
+            right: 15%;
+            animation-delay: -9s;
+        }
+
+        @keyframes auroraFloat {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            50% {
+                transform: translate(30px, 20px) scale(1.05);
+            }
+            100% {
+                transform: translate(-20px, 40px) scale(0.95);
+            }
+        }
+
         .hero-badge {
             display: inline-flex;
             align-items: center;
@@ -240,6 +354,8 @@
             color: #c084fc;
             margin-bottom: 24px;
             animation: pulse-glow 3s infinite ease-in-out;
+            position: relative;
+            z-index: 1;
         }
 
         @keyframes pulse-glow {
@@ -252,6 +368,8 @@
             line-height: 1.15;
             margin-bottom: 20px;
             font-weight: 800;
+            position: relative;
+            z-index: 1;
         }
 
         .hero p {
@@ -260,6 +378,8 @@
             max-width: 680px;
             margin: 0 auto 36px;
             font-weight: 400;
+            position: relative;
+            z-index: 1;
         }
 
         .hero-ctas {
@@ -268,11 +388,54 @@
             justify-content: center;
             gap: 16px;
             margin-bottom: 64px;
+            position: relative;
+            z-index: 1;
         }
 
         .hero-ctas .btn {
             padding: 14px 28px;
             font-size: 16px;
+        }
+
+        /* HERO VISUAL MOCKUP & STAGE */
+        .hero-stage {
+            position: relative;
+            perspective: 1200px;
+            margin-top: 40px;
+        }
+
+        .hero-stage-inner {
+            transform: rotateX(6deg) rotateY(-2deg);
+            transition: transform 0.4s ease-out;
+        }
+
+        .hero-stage-inner:hover {
+            transform: rotateX(2deg) rotateY(0deg);
+        }
+
+        .hero-badge-pill {
+            position: absolute;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            z-index: 10;
+            animation: badgeFloat 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes badgeFloat {
+            0% {
+                transform: translateY(0px);
+            }
+            100% {
+                transform: translateY(-8px);
+            }
         }
 
         /* HERO VISUAL MOCKUP */
@@ -349,24 +512,32 @@
             margin: 0 auto;
         }
 
-        .features-grid {
+        /* BENTO GRID SHOWCASE */
+        .bento-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
+            gap: 20px;
+            max-width: 1140px;
+            margin: 0 auto;
         }
 
-        .feature-card {
+        .bento-card {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
-            padding: 32px;
-            box-shadow: var(--glass-glow);
-            transition: var(--transition-smooth);
+            padding: 24px;
             position: relative;
             overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: var(--glass-glow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .feature-card::before {
+        .bento-card::before {
             content: '';
             position: absolute;
             top: 0;
@@ -379,69 +550,391 @@
             transition: opacity 0.5s;
         }
 
+        .bento-card:hover::before {
+            opacity: 1;
+        }
+
+        .bento-card:hover {
+            border-color: var(--glass-border-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 0 25px rgba(124, 58, 237, 0.08);
+        }
+
+        .bento-card.col-span-2 { grid-column: span 2; }
+        .bento-card.row-span-2 { grid-row: span 2; }
+
+        .bento-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 22px;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: var(--transition-smooth);
+        }
+
+        .bento-card:hover .bento-icon {
+            background: var(--text-primary);
+            color: var(--bg-color);
+            transform: scale(1.05) rotate(5deg);
+        }
+
+        .bento-card h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .bento-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Bento Tile 1: Pet Switcher Tabs */
+        .bento-pet-tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .bento-pet-tab {
+            padding: 6px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .bento-pet-tab.active, .bento-pet-tab:hover {
+            background: var(--accent-orange-glow);
+            border-color: var(--accent-orange);
+            color: var(--text-primary);
+        }
+
+        .bento-pet-display {
+            margin-top: 16px;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .bento-pet-avatar {
+            font-size: 42px;
+            animation: bouncePet 2s infinite ease-in-out;
+        }
+
+        @keyframes bouncePet {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .bento-pet-info h4 {
+            font-size: 15px;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .bento-pet-info p {
+            font-size: 12px;
+            color: var(--accent-orange);
+        }
+
+        /* Bento Tile 2: Breathing Pulse Ring */
+        .breath-ring-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 24px 0;
+            position: relative;
+        }
+
+        .pulse-breath-ring {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, rgba(168, 85, 247, 0.02) 70%);
+            border: 2px solid var(--accent-purple);
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: breathPulse 6s infinite ease-in-out;
+        }
+
+        @keyframes breathPulse {
+            0%, 100% { transform: scale(0.92); box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); }
+            50% { transform: scale(1.15); box-shadow: 0 0 45px rgba(168, 85, 247, 0.5); }
+        }
+
+        .breath-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .breath-pills {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .breath-pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--glass-border);
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Bento Tile 3: Memos Preview Pill */
+        .memos-preview-container {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .memos-pill {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .memos-shortcut-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            padding: 2px 8px;
+            background: rgba(168, 85, 247, 0.2);
+            border-radius: 6px;
+            color: #c084fc;
+        }
+
+        /* Bento Tile 4: 2FA Countdown Circle */
+        .twofa-box {
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .twofa-code {
+            font-family: 'Fira Code', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--accent-orange);
+        }
+
+        .twofa-ring-svg {
+            width: 32px;
+            height: 32px;
+            transform: rotate(-90deg);
+        }
+
+        .twofa-ring-circle {
+            stroke-dasharray: 88;
+            stroke-dashoffset: 22;
+            animation: countdown2FA 30s linear infinite;
+        }
+
+        @keyframes countdown2FA {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: 88; }
+        }
+
+        /* Bento Tile 5: File Shelf Preview Tile */
+        .fileshelf-box {
+            margin-top: 16px;
+            padding: 14px;
+            border: 2px dashed var(--glass-border-hover);
+            border-radius: 14px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .fileshelf-chips {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .file-chip {
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            font-size: 11px;
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+        }
+
+        /* Bento Tile 6: Clamshell Toggle Switches */
+        .clamshell-switches {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .toggle-switch {
+            width: 38px;
+            height: 20px;
+            background: #22c55e;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 20px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            transition: var(--transition-smooth);
+        }
+
+        /* SPOTLIGHT GLASS FEATURES GRID */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1140px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: var(--glass-glow);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(450px circle at var(--x, 50%) var(--y, 50%), var(--spotlight-color, rgba(124, 58, 237, 0.15)), transparent 80%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
         .feature-card:hover::before {
             opacity: 1;
         }
 
         .feature-card:hover {
             border-color: var(--glass-border-hover);
-            transform: translateY(-6px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(168, 85, 247, 0.05);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 0 25px var(--spotlight-glow, rgba(124, 58, 237, 0.08));
         }
 
-        .feature-icon {
+        .feature-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon-badge {
             width: 48px;
             height: 48px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 24px;
             font-size: 24px;
-            color: var(--text-primary);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: var(--transition-smooth);
+            background: var(--badge-bg, rgba(255, 255, 255, 0.05));
+            border: 1px solid var(--badge-border, rgba(255, 255, 255, 0.1));
+            transition: transform 0.3s ease;
         }
 
-        .feature-card:hover .feature-icon {
-            background: var(--text-primary);
-            color: var(--bg-color);
-            transform: scale(1.05) rotate(5deg);
+        .feature-card:hover .feature-icon-badge {
+            transform: scale(1.08) rotate(3deg);
         }
 
-        .feature-card h3 {
-            font-size: 20px;
-            margin-bottom: 12px;
+        .feature-tag-badge {
+            font-size: 11px;
             font-weight: 600;
-        }
-
-        .feature-card p {
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--glass-border);
             color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.6;
         }
 
         /* INTERACTIVE DEMO PLAYGROUND */
         .demo-section {
             padding: 100px 0;
-            background: radial-gradient(circle at 50% 50%, rgba(30, 17, 69, 0.2) 0%, transparent 60%);
+            background: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 60%);
         }
 
         .mockup-browser {
             max-width: 1080px;
             margin: 0 auto;
-            background: #0f0f1b;
+            background: var(--mockup-bg);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
-            box-shadow: var(--glass-glow), 0 20px 60px rgba(0,0,0,0.6);
+            box-shadow: var(--glass-glow), 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
 
         .browser-toolbar {
             height: 44px;
-            background: #141424;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            background: var(--mockup-toolbar);
+            border-bottom: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
             padding: 0 16px;
@@ -451,9 +944,9 @@
         .browser-address {
             flex: 1;
             height: 28px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.25);
             border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -468,7 +961,7 @@
             width: 100%;
             height: 700px;
             position: relative;
-            background: #0a0a14;
+            background: var(--mockup-bg);
         }
 
         .iframe-container iframe {
@@ -502,25 +995,97 @@
             text-align: center;
         }
 
-        .install-box {
-            max-width: 800px;
+        .install-terminal-box {
+            max-width: 840px;
             margin: 0 auto;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+            background: var(--mockup-bg);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 48px;
-            box-shadow: var(--glass-glow);
+            border-radius: 16px;
+            box-shadow: var(--glass-glow), 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            text-align: left;
         }
 
-        .install-box h3 {
-            font-size: 28px;
-            margin-bottom: 12px;
+        .install-tabs-bar {
+            height: 48px;
+            background: var(--mockup-toolbar);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
         }
 
-        .install-box p {
+        .install-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .install-tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
             color: var(--text-secondary);
-            font-size: 15px;
-            margin-bottom: 32px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .install-tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .install-tab-btn.active {
+            background: var(--glass-bg-hover);
+            color: var(--text-primary);
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        :root[data-theme="light"] .install-tab-btn.active {
+            background: #ffffff;
+            border-color: rgba(15, 23, 42, 0.15);
+            color: #0f172a;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+        }
+
+        .install-tab-content {
+            padding: 36px 32px 28px;
+        }
+
+        .install-tab-pane {
+            display: none;
+            animation: fadeInTab 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .install-tab-pane.show {
+            display: block;
+        }
+
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .install-note-footer {
+            padding: 16px 32px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            text-align: center;
         }
 
         /* CLI COMMAND BOX */
@@ -528,20 +1093,20 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #000000bf;
+            background: var(--cli-bg);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 14px 20px;
             font-family: 'Fira Code', monospace;
             font-size: 13px;
-            max-width: 600px;
-            margin: 0 auto 40px;
+            max-width: 680px;
+            margin: 0 auto;
             text-align: left;
             position: relative;
         }
 
         .cli-code {
-            color: #a855f7;
+            color: var(--accent-purple);
             overflow-x: auto;
             white-space: nowrap;
             margin-right: 15px;
@@ -558,7 +1123,7 @@
 
         .cli-copy {
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
             color: var(--text-primary);
             padding: 6px 12px;
             border-radius: 6px;
@@ -596,14 +1161,14 @@
             gap: 4px;
             padding: 16px;
             border-radius: 14px;
-            background: rgba(255,255,255,0.02);
+            background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             cursor: pointer;
             transition: var(--transition-smooth);
         }
 
         .dmg-btn:hover {
-            background: rgba(255,255,255,0.05);
+            background: var(--glass-bg-hover);
             border-color: var(--glass-border-hover);
             transform: translateY(-2px);
         }
@@ -619,49 +1184,57 @@
             color: var(--text-muted);
         }
 
-        /* LANG SWITCHER */
-        .lang-switcher {
+        /* LANG & THEME SWITCHERS */
+        .lang-switcher, .theme-switcher {
             position: relative;
             display: flex;
             align-items: center;
         }
-        .lang-btn {
+        .lang-btn, .theme-btn {
             padding: 8px 14px;
             border-radius: 20px;
             font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
-        .lang-dropdown {
+        .lang-dropdown, .theme-dropdown {
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
-            background: rgba(16, 16, 28, 0.95);
-            backdrop-filter: blur(12px);
+            background: var(--dropdown-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
-            padding: 8px;
-            min-width: 120px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 6px;
+            min-width: 135px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
             opacity: 0;
             visibility: hidden;
             transform: translateY(-10px);
             transition: var(--transition-smooth);
             z-index: 1001;
         }
-        .lang-dropdown.show {
+        .lang-dropdown.show, .theme-dropdown.show {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
         }
-        .lang-option {
+        .lang-option, .theme-option {
             padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 13px;
             color: var(--text-secondary);
             cursor: pointer;
             transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .lang-option:hover, .lang-option.active {
-            background: rgba(255, 255, 255, 0.08);
+        .lang-option:hover, .lang-option.active,
+        .theme-option:hover, .theme-option.active {
+            background: var(--glass-bg-hover);
             color: var(--text-primary);
         }
 
@@ -669,9 +1242,10 @@
         footer {
             border-top: 1px solid var(--glass-border);
             padding: 48px 0;
-            background: #030307;
+            background: var(--footer-bg);
             font-size: 13px;
             color: var(--text-muted);
+            transition: var(--transition-smooth);
         }
 
         .footer-container {
@@ -693,6 +1267,17 @@
         @media (max-width: 968px) {
             .features-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+            .bento-card.col-span-2,
+            .bento-card.row-span-2 {
+                grid-column: span 1;
+                grid-row: span 1;
             }
             .hero h1 {
                 font-size: 40px;
@@ -728,6 +1313,51 @@
                 font-size: 32px;
             }
         }
+
+        /* Canvas Pet Widget */
+        .canvas-pet-widget {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 64px;
+            height: 64px;
+            z-index: 9990;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .canvas-pet-widget:hover {
+            transform: scale(1.15);
+        }
+        #pet-widget-canvas {
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+            display: block;
+        }
+        .pet-widget-bubble {
+            position: absolute;
+            bottom: 72px;
+            right: 0;
+            width: 180px;
+            padding: 8px 12px;
+            background: var(--dropdown-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            font-size: 11px;
+            color: var(--text-primary);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(6px);
+            pointer-events: none;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .pet-widget-bubble.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -747,14 +1377,37 @@
                 </ul>
             </nav>
             <div class="nav-cta">
+                <!-- Theme Switcher -->
+                <div class="theme-switcher" id="theme-switcher-container">
+                    <button id="theme-toggle" class="btn btn-secondary theme-btn" aria-label="Theme Switcher">
+                        <span id="theme-icon">🌙</span>
+                        <span id="theme-label" data-i18n="theme-dark">深色</span>
+                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; vertical-align: middle;">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="theme-dropdown" id="theme-dropdown">
+                        <div class="theme-option" data-theme="dark">
+                            <span>🌙</span> <span data-i18n="theme-dark">深色模式</span>
+                        </div>
+                        <div class="theme-option" data-theme="light">
+                            <span>☀️</span> <span data-i18n="theme-light">浅色模式</span>
+                        </div>
+                        <div class="theme-option" data-theme="system">
+                            <span>💻</span> <span data-i18n="theme-system">跟随系统</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Language Switcher -->
                 <div class="lang-switcher" id="lang-switcher-container">
-                    <button id="lang-toggle" class="btn btn-secondary lang-btn">
+                    <button id="lang-toggle" class="btn btn-secondary lang-btn" aria-label="Language Switcher">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="2" y1="12" x2="22" y2="12"></line>
                             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                         </svg>
-                        <span id="lang-label">EN</span>
+                        <span id="lang-label">中</span>
                         <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: middle;">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -762,7 +1415,8 @@
                     <div class="lang-dropdown" id="lang-dropdown">
                         <div class="lang-option" data-lang="zh-CN">简体中文</div>
                         <div class="lang-option" data-lang="en">English</div>
-                        <!-- Future languages can be easily added here -->
+                        <div class="lang-option" data-lang="zh-TW">繁體中文</div>
+                        <div class="lang-option" data-lang="ja">日本語</div>
                     </div>
                 </div>
                 <a href="https://github.com/huangy7/MeowOut" class="btn btn-secondary" target="_blank">
@@ -778,6 +1432,10 @@
 
     <!-- HERO SECTION -->
     <section class="hero container">
+        <div class="aurora-mesh">
+            <div class="aurora-orb aurora-orb-1"></div>
+            <div class="aurora-orb aurora-orb-2"></div>
+        </div>
         <div class="hero-badge">
             <span data-i18n="hero-badge">✨ macOS 14.0+ 原生支持</span>
         </div>
@@ -787,16 +1445,23 @@
             <a href="#install" class="btn btn-accent" data-i18n="hero-btn-download">📦 立即下载 App</a>
             <a href="#demo" class="btn btn-secondary" data-i18n="hero-btn-demo">🎮 网页在线试用</a>
         </div>
-        <div class="hero-visual">
-            <div class="hero-visual-header">
-                <div class="visual-dots">
-                    <div class="visual-dot red"></div>
-                    <div class="visual-dot yellow"></div>
-                    <div class="visual-dot green"></div>
+        <div class="hero-stage">
+            <div class="hero-badge-pill" style="top: -15px; left: -20px; animation-delay: 0s;">💧 <span data-i18n="hero_pill_water">喝水提醒</span></div>
+            <div class="hero-badge-pill" style="top: 20px; right: -25px; animation-delay: -1.5s;">🧘 <span data-i18n="hero_pill_breath">正念呼吸</span></div>
+            <div class="hero-badge-pill" style="bottom: 40px; left: -30px; animation-delay: -3s;">⚡ <span data-i18n="hero_pill_kd">常用语 (Cmd+L)</span></div>
+            <div class="hero-stage-inner">
+                <div class="hero-visual">
+                    <div class="hero-visual-header">
+                        <div class="visual-dots">
+                            <div class="visual-dot red"></div>
+                            <div class="visual-dot yellow"></div>
+                            <div class="visual-dot green"></div>
+                        </div>
+                        <div class="visual-title">MeowOut - Running Companion Mockup</div>
+                    </div>
+                    <img src="./.github/assets/hero.gif" alt="MeowOut Core Screenshot">
                 </div>
-                <div class="visual-title">MeowOut - Running Companion Mockup</div>
             </div>
-            <img src="./.github/assets/hero.gif" alt="MeowOut Core Screenshot">
         </div>
     </section>
 
@@ -807,58 +1472,112 @@
             <p data-i18n="features-subtitle">为常年久坐、高强度编码的职场人精心定制的健康监控系统</p>
         </div>
         <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🐱</div>
+            <!-- Card 1: 🐱 多样化像素伙伴 -->
+            <div class="feature-card" style="--badge-bg: rgba(234, 88, 12, 0.12); --badge-border: rgba(234, 88, 12, 0.3); --spotlight-color: rgba(234, 88, 12, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">🐱</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-1">✨ 多形象</span>
+                </div>
                 <h3 data-i18n="feat-pet-title">多样化像素伙伴</h3>
                 <p data-i18n="feat-pet-desc">内置 Toby (托比橘猫)、Oreo (奥利奥熊猫) 与 Pika (皮卡) 等极简风格宠物，支持实时切换与独立的高清像素动画渲染。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">⏳</div>
+
+            <!-- Card 2: ⏳ 硬核防沉迷算法 -->
+            <div class="feature-card" style="--badge-bg: rgba(124, 58, 237, 0.12); --badge-border: rgba(124, 58, 237, 0.3); --spotlight-color: rgba(124, 58, 237, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">⏳</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-2">🔄 智能重置</span>
+                </div>
                 <h3 data-i18n="feat-anti-title">硬核防沉迷算法</h3>
                 <p data-i18n="feat-anti-desc">支持时光回滚：精准扣除离座初期的“幽灵时间”，防止计时虚高；满血复活：强制休息阈值确保工作循环得到科学、彻底的重置。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">💧</div>
+
+            <!-- Card 3: 💧 全能喝水提醒 -->
+            <div class="feature-card" style="--badge-bg: rgba(2, 132, 199, 0.12); --badge-border: rgba(2, 132, 199, 0.3); --spotlight-color: rgba(2, 132, 199, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">💧</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-3">💧 智能频率</span>
+                </div>
                 <h3 data-i18n="feat-water-title">全能喝水提醒</h3>
                 <p data-i18n="feat-water-desc">提供“跟随工作节奏”或“自定义时间间隔”双模式。在菜单栏实时以直观百分比或杯数显示饮水进度，保护你的肾脏健康。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🧘</div>
+
+            <!-- Card 4: 🧘 正念呼吸练习 -->
+            <div class="feature-card" style="--badge-bg: rgba(217, 70, 239, 0.12); --badge-border: rgba(217, 70, 239, 0.3); --spotlight-color: rgba(217, 70, 239, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">🧘</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-4">🧘 4-7-8 箱式</span>
+                </div>
                 <h3 data-i18n="feat-breathe-title">正念呼吸练习</h3>
                 <p data-i18n="feat-breathe-desc">集成 5 分钟呼吸训练模块（支持箱式、4-7-8、腹式呼吸），全屏沉浸式交互引导，练习数据自动同步至健康时间回顾。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
+
+            <!-- Card 5: 📊 现代化管理面板 -->
+            <div class="feature-card" style="--badge-bg: rgba(99, 102, 241, 0.12); --badge-border: rgba(99, 102, 241, 0.3); --spotlight-color: rgba(99, 102, 241, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">📊</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-5">📈 动态图表</span>
+                </div>
                 <h3 data-i18n="feat-dashboard-title">现代化管理面板</h3>
                 <p data-i18n="feat-dashboard-desc">基于 SwiftUI 构建的侧边栏导航面板，提供深度个性化的设置选项，以及详尽直观的“今日回顾时间轴”和历史统计图表。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">⚡️</div>
+
+            <!-- Card 6: ⚡️ 原生极佳性能 -->
+            <div class="feature-card" style="--badge-bg: rgba(245, 158, 11, 0.12); --badge-border: rgba(245, 158, 11, 0.3); --spotlight-color: rgba(245, 158, 11, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">⚡️</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-6">⚡ 0 额外功耗</span>
+                </div>
                 <h3 data-i18n="feat-perf-title">原生极佳性能</h3>
                 <p data-i18n="feat-perf-desc">完美适配 macOS 系统。采用 Swift Observation 状态机与 AppKit 多窗口底层协同机制，配合 Canvas 渲染，30FPS 完美兼顾功耗平衡。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📝</div>
+
+            <!-- Card 7: 📝 Memos 闪念胶囊 -->
+            <div class="feature-card" style="--badge-bg: rgba(14, 165, 233, 0.12); --badge-border: rgba(14, 165, 233, 0.3); --spotlight-color: rgba(14, 165, 233, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">📝</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-7">💡 Markdown</span>
+                </div>
                 <h3 data-i18n="feat-memos-title">Memos 闪念胶囊</h3>
                 <p data-i18n="feat-memos-desc">不仅是健康伴侣，更是效率利器。支持 Markdown 渲染、时间轴与日历双视图，并集成图片附件管理的原生备忘录。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📋</div>
+
+            <!-- Card 8: 📋 剪贴板历史 -->
+            <div class="feature-card" style="--badge-bg: rgba(20, 184, 166, 0.12); --badge-border: rgba(20, 184, 166, 0.3); --spotlight-color: rgba(20, 184, 166, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">📋</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-8">📋 无感检索</span>
+                </div>
                 <h3 data-i18n="feat-clip-title">剪贴板历史</h3>
                 <p data-i18n="feat-clip-desc">原生级别的轻量级剪贴板管理工具。支持纯文本、富文本与图片，提供极速的搜索、预览与快捷键操作，让你的复制粘贴效率翻倍。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🔐</div>
+
+            <!-- Card 9: 🔐 Toolbox 2FA -->
+            <div class="feature-card" style="--badge-bg: rgba(16, 185, 129, 0.12); --badge-border: rgba(16, 185, 129, 0.3); --spotlight-color: rgba(16, 185, 129, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">🔐</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-9">🔐 金融级加密</span>
+                </div>
                 <h3 data-i18n="feat-2fa-title">Toolbox 2FA</h3>
                 <p data-i18n="feat-2fa-desc">内置安全可靠的双因素验证器，支持多哈希算法，依托 Keychain 提供金融级加密存储。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📁</div>
+
+            <!-- Card 10: 📁 原生文件中转站 -->
+            <div class="feature-card" style="--badge-bg: rgba(6, 182, 212, 0.12); --badge-border: rgba(6, 182, 212, 0.3); --spotlight-color: rgba(6, 182, 212, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">📁</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-10">📁 悬浮贴边</span>
+                </div>
                 <h3 data-i18n="feat-file-title">原生文件中转站</h3>
                 <p data-i18n="feat-file-desc">跨应用文件拖拽的中转枢纽。支持图片、文本、任意文件格式临时寄存与快速分发，彻底告别频繁切换窗口的烦恼。</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">💻</div>
+
+            <!-- Card 11: 💻 合盖防休眠 -->
+            <div class="feature-card" style="--badge-bg: rgba(244, 63, 94, 0.12); --badge-border: rgba(244, 63, 94, 0.3); --spotlight-color: rgba(244, 63, 94, 0.15);">
+                <div class="feature-card-header">
+                    <div class="feature-icon-badge">💻</div>
+                    <span class="feature-tag-badge" data-i18n="feat-tag-11">💻 合盖常亮</span>
+                </div>
                 <h3 data-i18n="feat-power-title">合盖防休眠</h3>
                 <p data-i18n="feat-power-desc">支持自定义外接显示器合盖不休眠机制，并集成了智能电池保护，全方位提升 Mac 工作流体验并延长硬件寿命。</p>
             </div>
@@ -890,41 +1609,64 @@
 
     <!-- INSTALLATION & DOWNLOAD SECTION -->
     <section id="install" class="install container">
-        <div class="install-box" style="margin-bottom: 24px;">
-            <h3 data-i18n="install-brew-title">🍺 使用 Homebrew 安装 (推荐)</h3>
-            <p data-i18n="install-brew-desc">如果你的 Mac 上已安装 Homebrew，可以通过我们的专属 Tap 一键安装和更新：</p>
-            
-            <div class="cli-container">
-                <div class="cli-code" id="cli-text-brew">brew install huangy7/tap/meowout</div>
-                <button class="cli-copy" onclick="copyCli('cli-text-brew', this)" data-i18n="install-btn-copy">复制命令</button>
-            </div>
+        <div class="section-header">
+            <h2 data-i18n="nav-install">安装指南</h2>
         </div>
 
-        <div class="install-box">
-            <h3 data-i18n="install-curl-title">⚡️ 极速一键安装</h3>
-            <p data-i18n="install-curl-desc">打开终端，复制并粘贴运行以下一键脚本即可快速安装并打开 MeowOut：</p>
-            
-            <div class="cli-container">
-                <div class="cli-code" id="cli-text">curl -L https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg -o ~/Downloads/MeowOut.dmg &amp;&amp; xattr -cr ~/Downloads/MeowOut.dmg &amp;&amp; open ~/Downloads/MeowOut.dmg</div>
-                <button class="cli-copy" onclick="copyCli('cli-text', this)" data-i18n="install-btn-copy">复制命令</button>
+        <div class="mockup-browser install-terminal-box">
+            <div class="install-tabs-bar">
+                <div class="visual-dots">
+                    <div class="visual-dot red"></div>
+                    <div class="visual-dot yellow"></div>
+                    <div class="visual-dot green"></div>
+                </div>
+                <div class="install-tabs">
+                    <button class="install-tab-btn active" data-tab="brew" onclick="switchInstallTab('brew')" data-i18n="install_tab_brew">🍺 Homebrew</button>
+                    <button class="install-tab-btn" data-tab="shell" onclick="switchInstallTab('shell')" data-i18n="install_tab_shell">⚡️ 一键 Shell 脚本</button>
+                    <button class="install-tab-btn" data-tab="dmg" onclick="switchInstallTab('dmg')" data-i18n="install_tab_dmg">📦 DMG 直接下载</button>
+                </div>
             </div>
 
-            <p style="margin-bottom: 16px; font-weight: 500;" data-i18n="install-dmg-desc">或手动下载对应芯片的最新 Stable 安装包：</p>
-            
-            <div class="dmg-grid">
-                <a href="https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut-1.3.3-arm64.dmg" class="dmg-btn">
-                    <span class="dmg-title"> Apple Silicon (M1/M2/M3)</span>
-                    <span class="dmg-desc">MeowOut-1.3.3-arm64.dmg</span>
-                </a>
-                <a href="https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut-1.3.3-x86_64.dmg" class="dmg-btn">
-                    <span class="dmg-title" data-i18n="dmg-intel">Intel 处理器版</span>
-                    <span class="dmg-desc">MeowOut-1.3.3-x86_64.dmg</span>
-                </a>
+            <div class="install-tab-content">
+                <!-- Tab 1: Homebrew -->
+                <div class="install-tab-pane show" id="install-tab-brew">
+                    <p class="tab-desc" data-i18n="install-brew-desc">如果你的 Mac 上已安装 Homebrew，可以通过我们的专属 Tap 一键安装和更新：</p>
+                    <div class="cli-container">
+                        <div class="cli-code" id="cli-text-brew">brew install huangy7/tap/meowout</div>
+                        <button class="cli-copy" onclick="copyCli('cli-text-brew', this)" data-i18n="install-btn-copy">复制命令</button>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Shell Script -->
+                <div class="install-tab-pane" id="install-tab-shell">
+                    <p class="tab-desc" data-i18n="install-curl-desc">打开终端，复制并粘贴运行以下一键脚本即可快速下载安装并打开 MeowOut：</p>
+                    <div class="cli-container">
+                        <div class="cli-code" id="cli-text-shell">curl -L https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg -o ~/Downloads/MeowOut.dmg &amp;&amp; xattr -cr ~/Downloads/MeowOut.dmg &amp;&amp; open ~/Downloads/MeowOut.dmg</div>
+                        <button class="cli-copy" onclick="copyCli('cli-text-shell', this)" data-i18n="install-btn-copy">复制命令</button>
+                    </div>
+                </div>
+
+                <!-- Tab 3: DMG Download -->
+                <div class="install-tab-pane" id="install-tab-dmg">
+                    <p class="tab-desc" data-i18n="install-dmg-desc">直接下载最新稳定版 DMG 安装包（支持 Universal 架构）：</p>
+                    <div class="dmg-grid">
+                        <a href="https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg" class="dmg-btn">
+                            <span class="dmg-title" data-i18n="install_universal_dmg"> 下载最新 MeowOut.dmg</span>
+                            <span class="dmg-desc">Universal (Apple Silicon M1-M4 &amp; Intel)</span>
+                        </a>
+                        <a href="https://github.com/huangy7/MeowOut/releases/latest" class="dmg-btn" target="_blank" rel="noopener noreferrer">
+                            <span class="dmg-title" data-i18n="install_all_releases">📦 GitHub Releases 发行日志</span>
+                            <span class="dmg-desc">查看历史版本与 Release 变动</span>
+                        </a>
+                    </div>
+                </div>
             </div>
-            
-            <p style="margin-top: 24px; font-size: 12px; color: var(--text-muted);">
-                <span data-i18n="install-note">⚠️ 注：若首次运行提示“无法打开/未识别开发者”，请在终端运行 `xattr -cr /Applications/MeowOut.app` 即可解锁。</span>
-            </p>
+
+            <div class="install-note-footer">
+                <p style="font-size: 12px; color: var(--text-muted);">
+                    <span data-i18n="install-note">⚠️ 注：若首次运行提示“无法打开/未识别开发者”，请在终端运行 `xattr -cr /Applications/MeowOut.app` 即可解锁。</span>
+                </p>
+            </div>
         </div>
     </section>
 
@@ -955,6 +1697,64 @@
                 card.style.setProperty('--y', `${y}px`);
             });
         });
+
+        // Bento Grid Pet Switcher Logic
+        function switchBentoPet(petId) {
+            const petMap = {
+                'cat': {
+                    icon: '🐱',
+                    name: 'Toby (托比橘猫)',
+                    statusKey: 'bento-pet-status-cat',
+                    defaultStatus: '🏃 正在奔跑守护中 · 活跃度 98%'
+                },
+                'panda': {
+                    icon: '🐼',
+                    name: 'Oreo (奥利奥熊猫)',
+                    statusKey: 'bento-pet-status-panda',
+                    defaultStatus: '🐾 竹林漫步中 · 休息倒计时 12:00'
+                },
+                'pika': {
+                    icon: '⚡',
+                    name: 'Pika (皮卡)',
+                    statusKey: 'bento-pet-status-pika',
+                    defaultStatus: '⚡ 充满电量 · 喝水提醒已开启'
+                }
+            };
+            const info = petMap[petId] || petMap['cat'];
+            const avatarEl = document.getElementById('bento-pet-avatar');
+            const nameEl = document.getElementById('bento-pet-name');
+            const statusEl = document.getElementById('bento-pet-status');
+
+            if (avatarEl) avatarEl.innerText = info.icon;
+            if (nameEl) nameEl.innerText = info.name;
+            if (statusEl) {
+                statusEl.setAttribute('data-i18n', info.statusKey);
+                const lang = currentLang || 'zh-CN';
+                if (typeof i18n !== 'undefined' && i18n[lang] && i18n[lang][info.statusKey]) {
+                    statusEl.innerText = i18n[lang][info.statusKey];
+                } else {
+                    statusEl.innerText = info.defaultStatus;
+                }
+            }
+
+            document.querySelectorAll('.bento-pet-tab').forEach(btn => {
+                if (btn.getAttribute('data-pet') === petId) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Installation Tab Switcher Logic
+        function switchInstallTab(tabName) {
+            document.querySelectorAll('.install-tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+            });
+            document.querySelectorAll('.install-tab-pane').forEach(pane => {
+                pane.classList.toggle('show', pane.id === 'install-tab-' + tabName);
+            });
+        }
 
         // Copy CLI Command to Clipboard
         function copyCli(elementId = 'cli-text', btnElement = null) {
@@ -999,7 +1799,14 @@
         }
 
         window.addEventListener('resize', scaleIframe);
-        window.addEventListener('load', scaleIframe);
+        window.addEventListener('load', () => {
+            scaleIframe();
+            const promoIframe = document.getElementById('promo-iframe');
+            if (promoIframe && promoIframe.contentWindow) {
+                if (typeof applyTheme === 'function') applyTheme(currentThemeSetting);
+                if (typeof setLanguage === 'function') setLanguage(currentLang);
+            }
+        });
         
         // Listen for storage events (if user changes lang in another tab or iframe)
         window.addEventListener('storage', (e) => {
@@ -1012,16 +1819,14 @@
         window.addEventListener('scroll', () => {
             const header = document.getElementById('header');
             if (window.scrollY > 50) {
-                header.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)';
-                header.style.background = 'rgba(6, 6, 12, 0.85)';
+                header.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.15)';
             } else {
                 header.style.boxShadow = 'none';
-                header.style.background = 'rgba(6, 6, 12, 0.6)';
             }
         });
     </script>
 
-    <!-- I18N SCRIPT -->
+    <!-- I18N & THEME SCRIPT -->
     <script>
         const i18n = {
             'zh-CN': {
@@ -1033,11 +1838,17 @@
                 'nav-demo': '在线试用',
                 'nav-install': '安装指南',
                 'nav-download': '下载',
+                'theme-dark': '深色',
+                'theme-light': '浅色',
+                'theme-system': '跟随系统',
                 'hero-badge': '✨ macOS 14.0+ 原生支持',
                 'hero-title': '一只奔跑的像素伴侣<br>守护你的职场健康',
                 'hero-desc': 'MeowOut 是一款 macOS 原生菜单栏应用。它通过系统底层接口精准检测用户活跃度，根据连续工作时长自动提醒并引导你规律休息、喝水和呼吸，是每一位开发者最贴心的健康编码伙伴。',
                 'hero-btn-download': '📦 立即下载 App',
                 'hero-btn-demo': '🎮 网页在线试用',
+                'hero_pill_water': '喝水提醒',
+                'hero_pill_breath': '正念呼吸',
+                'hero_pill_kd': '常用语 (Cmd+L)',
                 'features-title': '✨ 核心特性',
                 'features-subtitle': '为常年久坐、高强度编码的职场人精心定制的健康监控系统',
                 'feat-pet-title': '多样化像素伙伴',
@@ -1072,11 +1883,46 @@
                 'install-curl-desc': '打开终端，复制并粘贴运行以下一键脚本即可快速安装并打开 MeowOut：',
                 'install-dmg-desc': '或手动下载对应芯片的最新 Stable 安装包：',
                 'dmg-intel': 'Intel 处理器版',
-                'install-note': '<span data-i18n="install-note">⚠️ 注：若首次运行提示“无法打开/未识别开发者”，请在终端运行 `xattr -cr /Applications/MeowOut.app` 即可解锁。</span>',
+                'install-note': '⚠️ 注：若首次运行提示“无法打开/未识别开发者”，请在终端运行 `xattr -cr /Applications/MeowOut.app` 即可解锁。',
                 'footer-copyright': '© 2026 MeowOut. 基于 MIT 协议开源。',
                 'footer-repo': 'GitHub 仓库',
                 'footer-releases': '发布日志',
-                'footer-author': '关于作者'
+                'footer-author': '关于作者',
+                'bento-pet-cat': '🐱 橘猫 Toby',
+                'bento-pet-panda': '🐼 熊猫 Oreo',
+                'bento-pet-pika': '⚡ 皮卡 Pika',
+                'bento-pet-status-cat': '🏃 正在奔跑守护中 · 活跃度 98%',
+                'bento-pet-status-panda': '🐾 竹林漫步中 · 休息倒计时 12:00',
+                'bento-pet-status-pika': '⚡ 充满电量 · 喝水提醒已开启',
+                'bento-breath-guide': '4-7-8<br>箱式呼吸',
+                'bento-breath-pill1': '⏱️ 45分工作 / 5分休息',
+                'bento-breath-pill2': '🔄 智能平滑重置',
+                'bento-memos-pill1': '需求评审记录 - 优化菜单栏内存占用',
+                'bento-memos-pill2': '代码片段: Swift Observation state machine',
+                'bento-memos-clip': '剪贴板历史',
+                'bento-2fa-label': 'AWS Production Root',
+                'bento-file-dropzone': '📥 拖拽文件至屏幕边缘即可寄存',
+                'bento-clamshell-label': '🖥️ 外接屏合盖防休眠',
+                'bento-lock-label': '⌨️ 键盘误触锁定',
+                'install_tab_brew': '🍺 Homebrew',
+                'install_tab_shell': '⚡️ 一键 Shell 脚本',
+                'install_tab_dmg': '📦 DMG 直接下载',
+                'install_universal_dmg': ' 下载最新 MeowOut.dmg',
+                'install_all_releases': '📦 GitHub Releases 发行日志',
+                'widget_meow_msg1': '喵~ 记得定期喝水和正念呼吸哦！',
+                'widget_meow_msg2': '伸个懒腰吧！MeowOut 守护你的职场健康 🐾',
+                'widget_meow_msg3': '今天代码写得非常棒！继续保持活力喵~',
+                'feat-tag-1': '✨ 多形象',
+                'feat-tag-2': '🔄 智能重置',
+                'feat-tag-3': '💧 智能频率',
+                'feat-tag-4': '🧘 4-7-8 箱式',
+                'feat-tag-5': '📈 动态图表',
+                'feat-tag-6': '⚡ 0 额外功耗',
+                'feat-tag-7': '💡 Markdown',
+                'feat-tag-8': '📋 无感检索',
+                'feat-tag-9': '🔐 金融级加密',
+                'feat-tag-10': '📁 悬浮贴边',
+                'feat-tag-11': '💻 合盖常亮'
             },
             'en': {
                 'meta-title': 'MeowOut - A running pixel companion guarding your workplace health',
@@ -1087,11 +1933,17 @@
                 'nav-demo': 'Live Demo',
                 'nav-install': 'Installation',
                 'nav-download': 'Download',
+                'theme-dark': 'Dark',
+                'theme-light': 'Light',
+                'theme-system': 'System',
                 'hero-badge': '✨ macOS 14.0+ Native Support',
                 'hero-title': 'A Running Pixel Companion<br>Guarding Your Workplace Health',
                 'hero-desc': 'MeowOut is a native macOS menu bar app. It accurately detects user activity through low-level system APIs, automatically reminding and guiding you to take regular breaks, drink water, and breathe based on continuous working time. It\'s the most caring healthy coding companion for every developer.',
                 'hero-btn-download': '📦 Download App Now',
                 'hero-btn-demo': '🎮 Try Live Demo',
+                'hero_pill_water': 'Water Reminder',
+                'hero_pill_breath': 'Mindful Breathing',
+                'hero_pill_kd': 'Quick Phrases (Cmd+L)',
                 'features-title': '✨ Core Features',
                 'features-subtitle': 'A health monitoring system meticulously tailored for sedentary professionals with high-intensity coding',
                 'feat-pet-title': 'Diverse Pixel Companions',
@@ -1130,19 +1982,396 @@
                 'footer-copyright': '© 2026 MeowOut. Open sourced under the MIT License.',
                 'footer-repo': 'GitHub Repo',
                 'footer-releases': 'Release Notes',
-                'footer-author': 'About Author'
+                'footer-author': 'About Author',
+                'bento-pet-cat': '🐱 Cat Toby',
+                'bento-pet-panda': '🐼 Panda Oreo',
+                'bento-pet-pika': '⚡ Pika',
+                'bento-pet-status-cat': '🏃 Running and guarding · Activity 98%',
+                'bento-pet-status-panda': '🐾 Walking in bamboo grove · Break in 12:00',
+                'bento-pet-status-pika': '⚡ Fully charged · Water reminder active',
+                'bento-breath-guide': '4-7-8<br>Box Breath',
+                'bento-breath-pill1': '⏱️ 45m Work / 5m Rest',
+                'bento-breath-pill2': '🔄 Smart Smooth Reset',
+                'bento-memos-pill1': 'Spec Review - Optimize Menu Bar Memory',
+                'bento-memos-pill2': 'Code Snippet: Swift Observation state machine',
+                'bento-memos-clip': 'Clipboard History',
+                'bento-2fa-label': 'AWS Production Root',
+                'bento-file-dropzone': '📥 Drop files to screen edge to store',
+                'bento-clamshell-label': '🖥️ External Display Anti-Sleep',
+                'bento-lock-label': '⌨️ Keyboard Lock Mode',
+                'install_tab_brew': '🍺 Homebrew',
+                'install_tab_shell': '⚡️ One-line Shell Script',
+                'install_tab_dmg': '📦 Direct DMG Download',
+                'install_universal_dmg': ' Download Latest MeowOut.dmg',
+                'install_all_releases': '📦 GitHub Releases Log',
+                'widget_meow_msg1': 'Meow~ Remember to drink water and take mindful breaths!',
+                'widget_meow_msg2': 'Time to stretch! MeowOut is protecting your health 🐾',
+                'widget_meow_msg3': 'Great job on your code today! Stay energized, meow~',
+                'feat-tag-1': '✨ Multi-Pet',
+                'feat-tag-2': '🔄 Smart Reset',
+                'feat-tag-3': '💧 Auto Pace',
+                'feat-tag-4': '🧘 4-7-8 Box',
+                'feat-tag-5': '📈 Live Charts',
+                'feat-tag-6': '⚡ Zero Lag',
+                'feat-tag-7': '💡 Markdown',
+                'feat-tag-8': '📋 Instant Search',
+                'feat-tag-9': '🔐 Keychain Safe',
+                'feat-tag-10': '📁 Screen Dock',
+                'feat-tag-11': '💻 Clamshell Keep'
+            },
+            'zh-TW': {
+                'meta-title': 'MeowOut - 一隻奔跑的像素伴侶，守護你的職場健康',
+                'meta-desc': 'MeowOut 是一款 macOS 原生功能表欄應用，用可愛的像素寵物提醒您定時休息與喝水。精準檢測活躍狀態，防沉迷呼吸練習，提供閃念膠囊(Memos)與雙因素驗證(2FA)功能，呵護每一位開發者的職場健康與效率。',
+                'og-title': 'MeowOut - 一隻奔跑的像素伴侶，守護你的職場健康',
+                'og-desc': 'MeowOut 是一款 macOS 原生功能表欄應用，用可愛的像素寵物提醒您定時休息與喝水。',
+                'nav-features': '特性',
+                'nav-demo': '線上試用',
+                'nav-install': '安裝指南',
+                'nav-download': '下載',
+                'theme-dark': '深色',
+                'theme-light': '淺色',
+                'theme-system': '跟隨系統',
+                'hero-badge': '✨ macOS 14.0+ 原生支援',
+                'hero-title': '一隻奔跑的像素伴侶<br>守護你的職場健康',
+                'hero-desc': 'MeowOut 是一款 macOS 原生功能表欄應用。它透過系統底層介面精準檢測使用者活躍度，根據連續工作時長自動提醒並引導你規律休息、喝水和呼吸，是每一位開發者最貼心的健康編碼夥伴。',
+                'hero-btn-download': '📦 立即下載 App',
+                'hero-btn-demo': '🎮 網頁線上試用',
+                'hero_pill_water': '喝水提醒',
+                'hero_pill_breath': '正念呼吸',
+                'hero_pill_kd': '常用語 (Cmd+L)',
+                'features-title': '✨ 核心特性',
+                'features-subtitle': '為常年久坐、高強度編碼的職場人精心定制的健康監控系統',
+                'feat-pet-title': '多樣化像素夥伴',
+                'feat-pet-desc': '內置 Toby (托比橘貓)、Oreo (奧利奧貓熊) 與 Pika (皮卡) 等極簡風格寵物，支援即時切換與獨立的高清像素動畫渲染。',
+                'feat-anti-title': '硬核防沉迷演算法',
+                'feat-anti-desc': '支援時光回滾：精準扣除離座初期的“幽靈時間”，防止計時虛高；滿血復活：強制休息閾值確保工作循環得到科學、徹底的重置。',
+                'feat-water-title': '全能喝水提醒',
+                'feat-water-desc': '提供“跟隨工作節奏”或“自訂時間間隔”雙模式。在功能表欄即時以直觀百分比或杯數顯示飲水進度，保護你的腎臟健康。',
+                'feat-breathe-title': '正念呼吸練習',
+                'feat-breathe-desc': '集成 5 分鐘呼吸訓練模組（支援箱式、4-7-8、腹式呼吸），全螢幕沉浸式互動引導，練習數據自動同步至健康時間回顧。',
+                'feat-dashboard-title': '現代化管理面板',
+                'feat-dashboard-desc': '基於 SwiftUI 構建的側邊欄導航面板，提供深度個性化的設定選項，以及詳盡直觀的“今日回顧時間軸”和歷史統計圖表。',
+                'feat-perf-title': '原生極佳效能',
+                'feat-perf-desc': '完美適配 macOS 系統。採用 Swift Observation 狀態機與 AppKit 多視窗底層協同機制，配合 Canvas 渲染，30FPS 完美兼顧功耗平衡。',
+                'feat-memos-title': 'Memos 閃念膠囊',
+                'feat-memos-desc': '不僅是健康伴侶，更是效率利器。支援 Markdown 渲染、時間軸與行事曆雙視圖，並集成圖片附件管理的原生備忘錄。',
+                'feat-clip-title': '剪貼簿歷史',
+                'feat-clip-desc': '原生級別的輕量級剪貼簿管理工具。支援純文字、富文字與圖片，提供極速的搜尋、預覽與快捷鍵操作，讓你的複製貼上效率翻倍。',
+                'feat-2fa-title': 'Toolbox 2FA',
+                'feat-2fa-desc': '內置安全可靠的雙因素驗證器，支援多雜湊演算法，依託 Keychain 提供金融級加密存儲。',
+                'feat-file-title': '原生檔案中轉站',
+                'feat-file-desc': '跨應用檔案拖拽的中轉樞紐。支援圖片、文字、任意檔案格式臨時寄存與快速分發，徹底告別頻繁切換視窗的煩惱。',
+                'feat-power-title': '合蓋防休眠',
+                'feat-power-desc': '支援自訂外接顯示器合蓋不休眠機制，並集成了智慧電池保護，全方位提升 Mac 工作流體驗並延長硬體壽命。',
+                'demo-title': '🎮 網頁線上試用原型',
+                'demo-desc': '無需下載，直接在下方模擬器中體驗 MeowOut 的功能表欄狀態與設定互動！',
+                'install-brew-title': '🍺 使用 Homebrew 安裝 (推薦)',
+                'install-brew-desc': '如果你的 Mac 上已安裝 Homebrew，可以透過我們的專屬 Tap 一鍵安裝和更新：',
+                'install-btn-copy': '複製命令',
+                'install-btn-copied': '已複製！',
+                'install-curl-title': '⚡️ 極速一鍵安裝',
+                'install-curl-desc': '打開終端機，複製並貼上執行以下一鍵指令碼即可快速安裝並打開 MeowOut：',
+                'install-dmg-desc': '或手動下載對應晶片的最新 Stable 安裝包：',
+                'dmg-intel': 'Intel 處理器版',
+                'install-note': '⚠️ 註：若首次執行提示“無法打開/未識別開發者”，請在終端機執行 `xattr -cr /Applications/MeowOut.app` 即可解鎖。',
+                'footer-copyright': '© 2026 MeowOut. 基於 MIT 協定開源。',
+                'footer-repo': 'GitHub 儲存庫',
+                'footer-releases': '發佈日誌',
+                'footer-author': '關於作者',
+                'bento-pet-cat': '🐱 橘貓 Toby',
+                'bento-pet-panda': '🐼 貓熊 Oreo',
+                'bento-pet-pika': '⚡ 皮卡 Pika',
+                'bento-pet-status-cat': '🏃 正在奔跑守護中 · 活躍度 98%',
+                'bento-pet-status-panda': '🐾 竹林漫步中 · 休息倒計時 12:00',
+                'bento-pet-status-pika': '⚡ 充滿電量 · 喝水提醒已開啟',
+                'bento-breath-guide': '4-7-8<br>箱式呼吸',
+                'bento-breath-pill1': '⏱️ 45分工作 / 5分休息',
+                'bento-breath-pill2': '🔄 智慧平滑重置',
+                'bento-memos-pill1': '需求評審記錄 - 優化功能表欄記憶體佔用',
+                'bento-memos-pill2': '程式碼片段: Swift Observation state machine',
+                'bento-memos-clip': '剪貼簿歷史',
+                'bento-2fa-label': 'AWS Production Root',
+                'bento-file-dropzone': '📥 拖拽檔案至螢幕邊緣即可寄存',
+                'bento-clamshell-label': '🖥️ 外接屏合蓋防休眠',
+                'bento-lock-label': '⌨️ 鍵盤誤觸鎖定',
+                'install_tab_brew': '🍺 Homebrew',
+                'install_tab_shell': '⚡️ 一鍵 Shell 指令碼',
+                'install_tab_dmg': '📦 DMG 直接下載',
+                'install_universal_dmg': ' 下載最新 MeowOut.dmg',
+                'install_all_releases': '📦 GitHub Releases 發佈日誌',
+                'widget_meow_msg1': '喵~ 記得定期喝水和正念呼吸哦！',
+                'widget_meow_msg2': '伸個懶腰吧！MeowOut 守護你的職場健康 🐾',
+                'widget_meow_msg3': '今天程式碼寫得非常棒！繼續保持活力喵~',
+                'feat-tag-1': '✨ 多形象',
+                'feat-tag-2': '🔄 智慧重置',
+                'feat-tag-3': '💧 智慧頻率',
+                'feat-tag-4': '🧘 4-7-8 箱式',
+                'feat-tag-5': '📈 動態圖表',
+                'feat-tag-6': '⚡ 0 額外功耗',
+                'feat-tag-7': '💡 Markdown',
+                'feat-tag-8': '📋 無感檢索',
+                'feat-tag-9': '🔐 金融級加密',
+                'feat-tag-10': '📁 懸浮貼邊',
+                'feat-tag-11': '💻 合蓋常亮'
+            },
+            'ja': {
+                'meta-title': 'MeowOut - あなたの健康的なコーディングを見守る走るドット絵の相棒',
+                'meta-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。アクティビティ検知、マインドフルネス呼吸法、メモ機能（Memos）、二要素認証（2FA）を搭載し、エンジニアの健康と効率をサポートします。',
+                'og-title': 'MeowOut - あなたの健康的なコーディングを見守る走るドット絵の相棒',
+                'og-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。',
+                'nav-features': '機能',
+                'nav-demo': 'オンラインデモ',
+                'nav-install': 'インストール',
+                'nav-download': 'ダウンロード',
+                'theme-dark': 'ダーク',
+                'theme-light': 'ライト',
+                'theme-system': 'システム',
+                'hero-badge': '✨ macOS 14.0+ ネイティブ対応',
+                'hero-title': '走るドット絵の相棒が<br>あなたの健康を見守る',
+                'hero-desc': 'MeowOutは、macOSネイティブのメニューバーアプリです。連続作業時間に応じて、定期的な休憩、水分補給、深呼吸を自動でリマインド・案内し、開発者の健康的なコーディングをサポートします。',
+                'hero-btn-download': '📦 アプリをダウンロード',
+                'hero-btn-demo': '🎮 オンラインデモを試す',
+                'hero_pill_water': '水分補給リマインダー',
+                'hero_pill_breath': 'マインドフルネス呼吸',
+                'hero_pill_kd': 'クイックフレーズ (Cmd+L)',
+                'features-title': '✨ 主な機能',
+                'features-subtitle': '長時間のデスクワークや高負荷な開発作業に携わるプロフェッショナルのための健康モニタリング',
+                'feat-pet-title': '多彩なドット絵ペット',
+                'feat-pet-desc': 'Toby（茶トラ）、Oreo（パンダ）、Pika（ピカ）などのミニマルなドット絵ペットをリアルタイムで切り替え可能。',
+                'feat-anti-title': '集中しすぎ防止アルゴリズム',
+                'feat-anti-desc': 'タイムロールバック：離席初期の離脱時間を自動控除。強制リセット：しっかりとした休憩閾値で作業サイクルをリフレッシュ。',
+                'feat-water-title': '充実の水分補給リマインダー',
+                'feat-water-desc': '「作業リズムに連動」または「カスタム時間間隔」の2モード。メニューバーで水分の進捗をパーセントや杯数でリアルタイム表示。',
+                'feat-breathe-title': 'マインドフルネス呼吸エクササイズ',
+                'feat-breathe-desc': '5分間の呼吸トレーニング（ボックス呼吸、4-7-8、腹式呼吸）を搭載。フルスクリーンアニメーションでリラックスを支援。',
+                'feat-dashboard-title': 'モダンな管理ダッシュボード',
+                'feat-dashboard-desc': 'SwiftUIで構築されたサイドバーナビゲーション。詳細な設定項目と「今日のタイムライン」履歴グラフを提供。',
+                'feat-perf-title': '優れたネイティブパフォーマンス',
+                'feat-perf-desc': 'Swift ObservationとAppKitのマルチウィンドウ連携、Canvas描画により、30FPSのなめらかな描画と低消費電力を両立。',
+                'feat-memos-title': 'Memos（アイデアメモ）',
+                'feat-memos-desc': 'Markdown対応、タイムライン・カレンダー表示、画像添付管理を備えたネイティブメモ機能。',
+                'feat-clip-title': 'クリップボード履歴',
+                'feat-clip-desc': 'テキスト・画像に対応した軽量なクリップボード管理。高速検索とショートカット操作でコピペ効率アップ。',
+                'feat-2fa-title': 'Toolbox 2FA',
+                'feat-2fa-desc': 'Keychainを利用した金融グレードの暗号化ストレージを備える安全・確実な2要素認証器（ワンタイムパスワード）。',
+                'feat-file-title': 'ネイティブファイルシェルフ',
+                'feat-file-desc': 'アプリ間のファイルドラッグ＆ドロップ用の一時保管ハブ。画像・テキスト・任意ファイルをすばやくやり取り。',
+                'feat-power-title': 'クラムシェル休眠防止',
+                'feat-power-desc': '外部ディスプレイ接続時のクラムシェル（カバー閉じ）休眠防止とスマートバッテリー保護機能を搭載。',
+                'demo-title': '🎮 インタラクティブWEBデモ',
+                'demo-desc': 'ダウンロード不要！下のシミュレーターでMeowOutのメニューバーと設定画面をお試しいただけます。',
+                'install-brew-title': '🍺 Homebrewでインストール（推奨）',
+                'install-brew-desc': 'MacにHomebrewがインストールされている場合は、公式Tapからワンタップでインストール・更新できます：',
+                'install-btn-copy': 'コマンドをコピー',
+                'install-btn-copied': 'コピーしました！',
+                'install-curl-title': '⚡️ ワンクリック高速インストール',
+                'install-curl-desc': 'ターミナルを開き、以下のワンクリック installer をコピー＆ペーストして実行してください：',
+                'install-dmg-desc': 'または、チップに合った最新Stableインストーラーを直接ダウンロード：',
+                'dmg-intel': 'Intel プロセッサ版',
+                'install-note': '⚠️ 注: 初回起動時に「開発元が未確認」と表示された場合は、ターミナルで `xattr -cr /Applications/MeowOut.app` を実行してください。',
+                'footer-copyright': '© 2026 MeowOut. MITライセンスでオープンソース公開中。',
+                'footer-repo': 'GitHub リポジトリ',
+                'footer-releases': 'リリースノート',
+                'footer-author': '制作者について',
+                'bento-pet-cat': '🐱 茶トラ Toby',
+                'bento-pet-panda': '🐼 パンダ Oreo',
+                'bento-pet-pika': '⚡ ピカ Pika',
+                'bento-pet-status-cat': '🏃 走って見守り中 · アクティビティ98%',
+                'bento-pet-status-panda': '🐾 竹林を散歩中 · 休憩まで12:00',
+                'bento-pet-status-pika': '⚡ フル充電完了 · 水分補給リマインダーON',
+                'bento-breath-guide': '4-7-8<br>ボックス呼吸',
+                'bento-breath-pill1': '⏱️ 45分作業 / 5分休憩',
+                'bento-breath-pill2': '🔄 スマートリセット',
+                'bento-memos-pill1': '仕様レビューメモ - メニューバーメモリ最適化',
+                'bento-memos-pill2': 'コードスニペット: Swift Observation',
+                'bento-memos-clip': 'クリップボード履歴',
+                'bento-2fa-label': 'AWS Production Root',
+                'bento-file-dropzone': '📥 画面端にファイルをドラッグして一時保管',
+                'bento-clamshell-label': '🖥️ クラムシェル休眠防止',
+                'bento-lock-label': '⌨️ キーボードロックモード',
+                'install_tab_brew': '🍺 Homebrew',
+                'install_tab_shell': '⚡️ 一鍵 Shell 指令碼',
+                'install_tab_dmg': '📦 DMG 直接下載',
+                'install_universal_dmg': ' 下載最新 MeowOut.dmg',
+                'install_all_releases': '📦 GitHub Releases 發佈日誌',
+                'widget_meow_msg1': '喵~ 記得定期喝水和正念呼吸哦！',
+                'widget_meow_msg2': '伸個懶腰吧！MeowOut 守護你的職場健康 🐾',
+                'widget_meow_msg3': '今天程式碼寫得非常棒！繼續保持活力喵~',
+                'feat-tag-1': '✨ 多形象',
+                'feat-tag-2': '🔄 智慧重置',
+                'feat-tag-3': '💧 智慧頻率',
+                'feat-tag-4': '🧘 4-7-8 箱式',
+                'feat-tag-5': '📈 動態圖表',
+                'feat-tag-6': '⚡ 0 額外功耗',
+                'feat-tag-7': '💡 Markdown',
+                'feat-tag-8': '📋 無感檢索',
+                'feat-tag-9': '🔐 金融級加密',
+                'feat-tag-10': '📁 懸浮貼邊',
+                'feat-tag-11': '💻 合蓋常亮'
+            },
+            'ja': {
+                'meta-title': 'MeowOut - あなたの健康的なコーディングを見守る走るドット絵の相棒',
+                'meta-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。アクティビティ検知、マインドフルネス呼吸法、メモ機能（Memos）、二要素認証（2FA）を搭載し、エンジニアの健康と効率をサポートします。',
+                'og-title': 'MeowOut - あなたの健康的なコーディングを見守る走るドット絵の相棒',
+                'og-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。',
+                'nav-features': '機能',
+                'nav-demo': 'オンラインデモ',
+                'nav-install': 'インストール',
+                'nav-download': 'ダウンロード',
+                'theme-dark': 'ダーク',
+                'theme-light': 'ライト',
+                'theme-system': 'システム',
+                'hero-badge': '✨ macOS 14.0+ ネイティブ対応',
+                'hero-title': '走るドット絵の相棒が<br>あなたの健康を見守る',
+                'hero-desc': 'MeowOutは、macOSネイティブのメニューバーアプリです。連続作業時間に応じて、定期的な休憩、水分補給、深呼吸を自動でリマインド・案内し、開発者の健康的なコーディングをサポートします。',
+                'hero-btn-download': '📦 アプリをダウンロード',
+                'hero-btn-demo': '🎮 オンラインデモを試す',
+                'hero_pill_water': '水分補給リマインダー',
+                'hero_pill_breath': 'マインドフルネス呼吸',
+                'hero_pill_kd': 'クイックフレーズ (Cmd+L)',
+                'features-title': '✨ 主な機能',
+                'features-subtitle': '長時間のデスクワークや高負荷な開発作業に携わるプロフェッショナルのための健康モニタリング',
+                'feat-pet-title': '多彩なドット絵ペット',
+                'feat-pet-desc': 'Toby（茶トラ）、Oreo（パンダ）、Pika（ピカ）などのミニマルなドット絵ペットをリアルタイムで切り替え可能。',
+                'feat-anti-title': '集中しすぎ防止アルゴリズム',
+                'feat-anti-desc': 'タイムロールバック：離席初期の離脱時間を自動控除。強制リセット：しっかりとした休憩閾値で作業サイクルをリフレッシュ。',
+                'feat-water-title': '充実の水分補給リマインダー',
+                'feat-water-desc': '「作業リズムに連動」または「カスタム時間間隔」の2モード。メニューバーで水分の進捗をパーセントや杯数でリアルタイム表示。',
+                'feat-breathe-title': 'マインドフルネス呼吸エクササイズ',
+                'feat-breathe-desc': '5分間の呼吸トレーニング（ボックス呼吸、4-7-8、腹式呼吸）を搭載。フルスクリーンアニメーションでリラックスを支援。',
+                'feat-dashboard-title': 'モダンな管理ダッシュボード',
+                'feat-dashboard-desc': 'SwiftUIで構築されたサイドバーナビゲーション。詳細な設定項目と「今日のタイムライン」履歴グラフを提供。',
+                'feat-perf-title': '優れたネイティブパフォーマンス',
+                'feat-perf-desc': 'Swift ObservationとAppKitのマルチウィンドウ連携、Canvas描画により、30FPSのなめらかな描画と低消費電力を両立。',
+                'feat-memos-title': 'Memos（アイデアメモ）',
+                'feat-memos-desc': 'Markdown対応、タイムライン・カレンダー表示、画像添付管理を備えたネイティブメモ機能。',
+                'feat-clip-title': 'クリップボード履歴',
+                'feat-clip-desc': 'テキスト・画像に対応した軽量なクリップボード管理。高速検索とショートカット操作でコピペ効率アップ。',
+                'feat-2fa-title': 'Toolbox 2FA',
+                'feat-2fa-desc': 'Keychainを利用した金融グレードの暗号化ストレージを備える安全・確実な2要素認証器（ワンタイムパスワード）。',
+                'feat-file-title': 'ネイティブファイルシェルフ',
+                'feat-file-desc': 'アプリ間のファイルドラッグ＆ドロップ用の一時保管ハブ。画像・テキスト・任意ファイルをすばやくやり取り。',
+                'feat-power-title': 'クラムシェル休眠防止',
+                'feat-power-desc': '外部ディスプレイ接続時のクラムシェル（カバー閉じ）休眠防止とスマートバッテリー保護機能を搭載。',
+                'demo-title': '🎮 インタラクティブWEBデモ',
+                'demo-desc': 'ダウンロード不要！下のシミュレーターでMeowOutのメニューバーと設定画面をお試しいただけます。',
+                'install-brew-title': '🍺 Homebrewでインストール（推奨）',
+                'install-brew-desc': 'MacにHomebrewがインストールされている場合は、公式Tapからワンタップでインストール・更新できます：',
+                'install-btn-copy': 'コマンドをコピー',
+                'install-btn-copied': 'コピーしました！',
+                'install-curl-title': '⚡️ ワンクリック高速インストール',
+                'install-curl-desc': 'ターミナルを開き、以下のワンクリック installer をコピー＆ペーストして実行してください：',
+                'install-dmg-desc': 'または、チップに合った最新Stableインストーラーを直接ダウンロード：',
+                'dmg-intel': 'Intel プロセッサ版',
+                'install-note': '⚠️ 注: 初回起動時に「開発元が未確認」と表示された場合は、ターミナルで `xattr -cr /Applications/MeowOut.app` を実行してください。',
+                'footer-copyright': '© 2026 MeowOut. MITライセンスでオープンソース公開中。',
+                'footer-repo': 'GitHub リポジトリ',
+                'footer-releases': 'リリースノート',
+                'footer-author': '制作者について',
+                'bento-pet-cat': '🐱 茶トラ Toby',
+                'bento-pet-panda': '🐼 パンダ Oreo',
+                'bento-pet-pika': '⚡ ピカ Pika',
+                'bento-pet-status-cat': '🏃 走って見守り中 · アクティビティ98%',
+                'bento-pet-status-panda': '🐾 竹林を散歩中 · 休憩まで12:00',
+                'bento-pet-status-pika': '⚡ フル充電完了 · 水分補給リマインダーON',
+                'bento-breath-guide': '4-7-8<br>ボックス呼吸',
+                'bento-breath-pill1': '⏱️ 45分作業 / 5分休憩',
+                'bento-breath-pill2': '🔄 スマートリセット',
+                'bento-memos-pill1': '仕様レビューメモ - メニューバーメモリ最適化',
+                'bento-memos-pill2': 'コードスニペット: Swift Observation',
+                'bento-memos-clip': 'クリップボード履歴',
+                'bento-2fa-label': 'AWS Production Root',
+                'bento-file-dropzone': '📥 画面端にファイルをドラッグして一時保管',
+                'bento-clamshell-label': '🖥️ クラムシェル休眠防止',
+                'bento-lock-label': '⌨️ キーボードロックモード',
+                'install_tab_brew': '🍺 Homebrew',
+                'install_tab_shell': '⚡️ ワンクリック Shell スクリプト',
+                'install_tab_dmg': '📦 DMG 直接ダウンロード',
+                'install_universal_dmg': ' 最新 MeowOut.dmg をダウンロード',
+                'install_all_releases': '📦 GitHub Releases ノート',
+                'widget_meow_msg1': 'ニャー~ こまめに水分補給と深呼吸をしてくださいね！',
+                'widget_meow_msg2': 'ストレッチの時間です！MeowOutがあなたの健康を見守ります 🐾',
+                'widget_meow_msg3': '今日も素晴らしいコーディングでした！元気に頑張りましょうニャ~',
+                'feat-tag-1': '✨ マルチスキン',
+                'feat-tag-2': '🔄 スマートリセット',
+                'feat-tag-3': '💧 スマートリマインド',
+                'feat-tag-4': '🧘 4-7-8 ボックス',
+                'feat-tag-5': '📈 リアルタイムグラフ',
+                'feat-tag-6': '⚡ 省電力設計',
+                'feat-tag-7': '💡 Markdown',
+                'feat-tag-8': '📋 高速検索',
+                'feat-tag-9': '🔐 金融暗号化',
+                'feat-tag-10': '📁 画面端スナップ',
+                'feat-tag-11': '💻 スリープ防止'
             }
         };
 
         let currentLang = localStorage.getItem('meowout-lang') || (navigator.language.startsWith('zh') ? 'zh-CN' : 'en');
+        let currentThemeSetting = localStorage.getItem('meowout-theme') || 'system';
         const htmlNode = document.documentElement;
+
+        const langLabels = {
+            'zh-CN': '中',
+            'en': 'EN',
+            'zh-TW': '繁',
+            'ja': '日'
+        };
+
+        // Theme Manager
+        function applyTheme(theme) {
+            currentThemeSetting = theme;
+            localStorage.setItem('meowout-theme', theme);
+            
+            let effectiveTheme = theme;
+            if (theme === 'system') {
+                effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            
+            document.documentElement.setAttribute('data-theme', effectiveTheme);
+
+            // Update Theme Dropdown option active states
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                if (opt.getAttribute('data-theme') === theme) {
+                    opt.classList.add('active');
+                } else {
+                    opt.classList.remove('active');
+                }
+            });
+
+            // Update Theme Header Button icon & label
+            const iconMap = { dark: '🌙', light: '☀️', system: '💻' };
+            const labelKeyMap = { dark: 'theme-dark', light: 'theme-light', system: 'theme-system' };
+            
+            const iconEl = document.getElementById('theme-icon');
+            const labelEl = document.getElementById('theme-label');
+            if (iconEl) iconEl.innerText = iconMap[theme] || '🌙';
+            if (labelEl) {
+                labelEl.setAttribute('data-i18n', labelKeyMap[theme] || 'theme-dark');
+                const lang = currentLang || 'zh-CN';
+                if (i18n[lang] && i18n[lang][labelKeyMap[theme]]) {
+                    labelEl.innerText = i18n[lang][labelKeyMap[theme]];
+                }
+            }
+
+            const mockupFrame = document.getElementById('promo-iframe');
+            if (mockupFrame && mockupFrame.contentWindow) {
+                mockupFrame.contentWindow.postMessage({ type: 'SET_THEME', theme: effectiveTheme }, '*');
+            }
+        }
+
+        // System color scheme change listener
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (currentThemeSetting === 'system') {
+                applyTheme('system');
+            }
+        });
         
         function setLanguage(lang) {
+            if (!i18n[lang]) lang = 'zh-CN';
             currentLang = lang;
             localStorage.setItem('meowout-lang', lang);
             htmlNode.setAttribute('lang', lang);
 
-            
             // Update Title and Meta tags
             document.title = i18n[lang]['meta-title'];
             document.querySelector('meta[name="description"]').setAttribute('content', i18n[lang]['meta-desc']);
@@ -1152,7 +2381,7 @@
             // Update DOM elements
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (i18n[lang][key]) {
+                if (i18n[lang] && i18n[lang][key]) {
                     el.innerHTML = i18n[lang][key];
                 }
             });
@@ -1167,21 +2396,57 @@
                     btn.innerText = window.i18nCopyCommandText;
                 }
             });
+
+            // Update Language Toggle Button label and Dropdown active state
+            const labelEl = document.getElementById('lang-label');
+            if (labelEl) labelEl.innerText = langLabels[lang] || 'EN';
+            
+            document.querySelectorAll('.lang-option').forEach(opt => {
+                if (opt.getAttribute('data-lang') === lang) opt.classList.add('active');
+                else opt.classList.remove('active');
+            });
+
+            // Refresh theme label for new language
+            applyTheme(currentThemeSetting);
+
+            // Sync with iframe mockup
+            const mockupFrame = document.getElementById('promo-iframe');
+            if (mockupFrame && mockupFrame.contentWindow) {
+                mockupFrame.contentWindow.postMessage({ type: 'SET_LANG', lang: lang }, '*');
+            }
         }
 
-        // Dropdown Logic
+        // Dropdown Event Listeners
         const langSwitcher = document.getElementById('lang-switcher-container');
         const langDropdown = document.getElementById('lang-dropdown');
         const langOptions = document.querySelectorAll('.lang-option');
 
-        document.getElementById('lang-toggle').addEventListener('click', (e) => {
-            e.stopPropagation();
-            langDropdown.classList.toggle('show');
-        });
+        const themeSwitcher = document.getElementById('theme-switcher-container');
+        const themeDropdown = document.getElementById('theme-dropdown');
+        const themeOptions = document.querySelectorAll('.theme-option');
+
+        if (document.getElementById('lang-toggle')) {
+            document.getElementById('lang-toggle').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (themeDropdown) themeDropdown.classList.remove('show');
+                langDropdown.classList.toggle('show');
+            });
+        }
+
+        if (document.getElementById('theme-toggle')) {
+            document.getElementById('theme-toggle').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (langDropdown) langDropdown.classList.remove('show');
+                themeDropdown.classList.toggle('show');
+            });
+        }
 
         document.addEventListener('click', (e) => {
-            if (!langSwitcher.contains(e.target)) {
+            if (langSwitcher && !langSwitcher.contains(e.target)) {
                 langDropdown.classList.remove('show');
+            }
+            if (themeSwitcher && !themeSwitcher.contains(e.target)) {
+                themeDropdown.classList.remove('show');
             }
         });
 
@@ -1193,24 +2458,173 @@
             });
         });
 
-        // Override setLanguage to also update dropdown active state
-        const originalSetLanguage = setLanguage;
-        setLanguage = function(lang) {
-            originalSetLanguage(lang);
-            document.getElementById('lang-label').innerText = lang === 'en' ? 'EN' : '中';
-            langOptions.forEach(opt => {
-                if(opt.getAttribute('data-lang') === lang) opt.classList.add('active');
-                else opt.classList.remove('active');
+        themeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const selectedTheme = option.getAttribute('data-theme');
+                applyTheme(selectedTheme);
+                themeDropdown.classList.remove('show');
             });
-            // Sync with iframe mockup
-            const mockupFrame = document.getElementById('promo-iframe');
-            if (mockupFrame && mockupFrame.contentWindow) {
-                mockupFrame.contentWindow.postMessage({ type: 'SET_LANG', lang: lang }, '*');
-            }
-        };
+        });
 
-        // Initialize language
+        // Web Audio API meow sound effect
+        function playMeowSound() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                
+                const now = ctx.currentTime;
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(1150, now + 0.09);
+                osc.frequency.exponentialRampToValueAtTime(750, now + 0.22);
+                
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.start(now);
+                osc.stop(now + 0.24);
+            } catch (e) {
+                // Ignore AudioContext error if interaction required
+            }
+        }
+
+        // Canvas Pixel Companion Widget Logic
+        let widgetBubbleTimeout = null;
+
+        function meowWidgetPet() {
+            const widget = document.getElementById('canvas-pet-widget');
+            const bubble = document.getElementById('pet-widget-bubble');
+            if (!widget || !bubble) return;
+
+            // Audio feedback
+            playMeowSound();
+
+            // Visual bounce feedback
+            widget.style.transform = 'scale(1.25)';
+            setTimeout(() => {
+                widget.style.transform = '';
+            }, 250);
+
+            // Random message selection from i18n
+            const msgKeys = ['widget_meow_msg1', 'widget_meow_msg2', 'widget_meow_msg3'];
+            const randomKey = msgKeys[Math.floor(Math.random() * msgKeys.length)];
+
+            bubble.setAttribute('data-i18n', randomKey);
+            const lang = currentLang || 'zh-CN';
+            if (i18n[lang] && i18n[lang][randomKey]) {
+                bubble.innerHTML = i18n[lang][randomKey];
+            }
+
+            bubble.classList.add('show');
+
+            if (widgetBubbleTimeout) clearTimeout(widgetBubbleTimeout);
+            widgetBubbleTimeout = setTimeout(() => {
+                bubble.classList.remove('show');
+            }, 4000);
+        }
+
+        function initPetWidgetCanvas() {
+            const canvas = document.getElementById('pet-widget-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let frameTick = 0;
+
+            function renderPixelCat() {
+                ctx.clearRect(0, 0, 64, 64);
+
+                const S = 4; // 16x16 grid scaled to 64x64 canvas
+                const step = Math.floor(frameTick / 4) % 4; // 4-frame animation cycle
+                const yBob = (step === 1 || step === 3) ? -1 : 0;
+                const tailShift = (step === 0 || step === 1) ? 0 : 1;
+                const isBlink = (frameTick % 40 >= 38);
+
+                const cOrange = '#ff8c00';
+                const cDarkOrange = '#d97706';
+                const cWhite = '#ffffff';
+                const cPink = '#f472b6';
+                const cDark = '#1e293b';
+
+                function p(x, y, color) {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x * S, (y + yBob) * S, S, S);
+                }
+
+                function rect(x, y, w, h, color) {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x * S, (y + yBob) * S, w * S, h * S);
+                }
+
+                // Ears
+                p(3, 2, cDarkOrange); p(4, 2, cPink); p(5, 3, cOrange);
+                p(12, 2, cDarkOrange); p(11, 2, cPink); p(10, 3, cOrange);
+
+                // Head
+                rect(3, 4, 10, 5, cOrange);
+                rect(2, 5, 12, 3, cOrange);
+
+                // Eyes
+                if (!isBlink) {
+                    p(4, 5, cDark); p(5, 5, cDark);
+                    p(10, 5, cDark); p(11, 5, cDark);
+                    p(4, 5, cWhite); p(10, 5, cWhite);
+                } else {
+                    p(4, 5, cDarkOrange); p(5, 5, cDarkOrange);
+                    p(10, 5, cDarkOrange); p(11, 5, cDarkOrange);
+                }
+
+                // Nose & Snout
+                p(7, 6, cPink); p(8, 6, cPink);
+                rect(6, 7, 4, 2, cWhite);
+
+                // Body
+                rect(3, 9, 10, 4, cOrange);
+                rect(5, 10, 6, 3, cWhite); // Belly
+
+                // Legs walking cycle
+                if (step === 0) {
+                    rect(3, 13, 2, 2, cOrange); rect(3, 14, 2, 1, cWhite);
+                    rect(7, 13, 2, 2, cOrange); rect(7, 14, 2, 1, cWhite);
+                    rect(11, 13, 2, 2, cOrange); rect(11, 14, 2, 1, cWhite);
+                } else if (step === 1) {
+                    rect(4, 13, 2, 2, cOrange); rect(4, 14, 2, 1, cWhite);
+                    rect(8, 13, 2, 2, cOrange); rect(8, 14, 2, 1, cWhite);
+                    rect(10, 13, 2, 2, cOrange); rect(10, 14, 2, 1, cWhite);
+                } else if (step === 2) {
+                    rect(4, 13, 2, 2, cOrange); rect(4, 14, 2, 1, cWhite);
+                    rect(6, 13, 2, 2, cOrange); rect(6, 14, 2, 1, cWhite);
+                    rect(11, 13, 2, 2, cOrange); rect(11, 14, 2, 1, cWhite);
+                } else {
+                    rect(3, 13, 2, 2, cOrange); rect(3, 14, 2, 1, cWhite);
+                    rect(9, 13, 2, 2, cOrange); rect(9, 14, 2, 1, cWhite);
+                }
+
+                // Tail
+                p(13 + tailShift, 8, cOrange);
+                p(14 + tailShift, 7, cOrange);
+                p(14 + tailShift, 6, cWhite);
+
+                frameTick++;
+            }
+
+            setInterval(renderPixelCat, 120);
+        }
+
+        // Initialize language, theme, and canvas pet widget on page load
         setLanguage(currentLang);
+        applyTheme(currentThemeSetting);
+        initPetWidgetCanvas();
     </script>
+
+    <!-- Canvas Pet Widget -->
+    <div class="canvas-pet-widget" id="canvas-pet-widget" onclick="meowWidgetPet()" title="MeowOut Companion">
+        <canvas id="pet-widget-canvas" width="64" height="64"></canvas>
+        <div class="pet-widget-bubble" id="pet-widget-bubble" data-i18n="widget_meow_msg1">喵~ 记得定期喝水和正念呼吸哦！</div>
+    </div>
 </body>
 </html>
