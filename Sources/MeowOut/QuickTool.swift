@@ -8,6 +8,7 @@ public enum BuiltInToolType: String, Codable, Equatable {
     case memosOpenBrowser
     case breathing
     case toolbox2FA
+    case fund
     
     public var icon: String {
         switch self {
@@ -18,6 +19,7 @@ public enum BuiltInToolType: String, Codable, Equatable {
         case .memosOpenBrowser: return "📖"
         case .breathing: return "🌬"
         case .toolbox2FA: return "🔑"
+        case .fund: return "📈"
         }
     }
     
@@ -30,6 +32,7 @@ public enum BuiltInToolType: String, Codable, Equatable {
         case .memosOpenBrowser: return I18n.localized("memos_action_open_memos", language: language)
         case .breathing: return I18n.localized("menu_breathing", language: language)
         case .toolbox2FA: return I18n.localized("menu_toolbox_2fa", language: language)
+        case .fund: return I18n.localized("fund_tool_name", language: language)
         }
     }
 }

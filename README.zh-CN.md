@@ -7,7 +7,7 @@
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/lang-简体中文-blue?style=flat-square" alt="简体中文"></a>
 </p>
 
-> 本翻译最后同步于 v1.6.0 (English README)
+> 本翻译最后同步于 v1.7.0 (English README)
 
 # MeowOut
 
@@ -33,7 +33,7 @@
   </a>
   &nbsp;
   <a href="https://github.com/huangy7/MeowOut/releases/latest">
-    <img src="https://img.shields.io/badge/📦_立即下载-MeowOut_v1.6.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
+    <img src="https://img.shields.io/badge/📦_立即下载-MeowOut_v1.7.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
   </a>
 </p>
 
@@ -55,6 +55,7 @@ MeowOut 是一款 macOS 原生菜单栏应用，用一只奔跑的像素宠物�
 | **KeyDrop & Launcher** | 快捷的文本片段管理器与长按触发的环形启动器，将最高频操作置于指尖。 |
 | **清洁模式 (Cleaning)** | 一键锁定键盘或屏幕输入，防止清洁时误触，并提供倒计时解锁机制。 |
 | **合盖防休眠与电池保护** | 支持合盖时不休眠，并提供自定义电量阈值保护，防止过度放电。 |
+| **自选基金看板 (Funds)** | 实时盘中估值追踪与自选基金管理，轻量浮窗一键唤出、支持隐私打码，精准计算持仓收益与市值。 |
 | **现代化管理面板** | 采用侧边栏导航架构，提供深度个性化的 **休息/饮水/行为/系统** 设置，以及详尽的 **今日回顾时间轴**。 |
 
 
@@ -128,6 +129,7 @@ Sources/MeowOut/
   Clipboard/                  # 原生剪贴板历史管理与视图模块
   Toolbox2FA/                 # 二步验证器核心模块与视图
   KeyDrop/                    # 文本片段管理器核心模块
+  Fund/                       # 实时自选基金与持仓管理模块
   SettingsView.swift          # 现代化侧边栏设置面板
   StatsView.swift             # 多维度健康统计页面
   TodayReviewView.swift       # 每日行为记录可视化时间轴

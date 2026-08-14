@@ -24,6 +24,7 @@ public enum SettingsNavigationTarget: Equatable {
     case update
     case permissions
     case memos
+    case fund
 }
 
 public struct SessionLog: Identifiable, Equatable {
@@ -50,6 +51,8 @@ public final class AppState {
     private static var areMemosShortcutHandlersRegistered = false
     @ObservationIgnored
     private static var isClipboardHistoryShortcutHandlerRegistered = false
+    @ObservationIgnored
+    private static var isFundShortcutHandlerRegistered = false
 
     public enum PetType: String, CaseIterable, Identifiable {
         case clawd = "Clawd"
@@ -271,6 +274,7 @@ public final class AppState {
         } else {
             KeyboardShortcuts.disable(.toggleClipboardHistoryPanel)
         }
+        Self.registerFundShortcutHandlerIfNeeded()
         configureLauncherTriggerMode()
     }
 
@@ -311,6 +315,17 @@ public final class AppState {
             }
         }
         isClipboardHistoryShortcutHandlerRegistered = true
+    }
+
+    private static func registerFundShortcutHandlerIfNeeded() {
+        guard !isFundShortcutHandlerRegistered else { return }
+
+        KeyboardShortcuts.onKeyDown(for: .toggleFundPanel) {
+            Task { @MainActor in
+                FundPanelController.shared.toggle()
+            }
+        }
+        isFundShortcutHandlerRegistered = true
     }
 
     // MARK: - Memos

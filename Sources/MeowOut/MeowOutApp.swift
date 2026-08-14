@@ -310,14 +310,17 @@ struct MeowOutApp: App {
                     QuickMemoPanelController.shared.configure(appState: appState)
                     MemosBrowserWindowController.shared.configure(appState: appState)
                     ClipboardPanelController.shared.configure(appState: appState)
+                    FundPanelController.shared.configure(appState: appState)
                     QueueProcessor.shared.start()
                     ClipboardMonitorService.shared.start()
                     ShelfService.shared.start(appState: appState)
+                    FundService.shared.start()
                 }
                 .onChange(of: appState.language) { _, _ in
                     // Force engine restart if language changes to pick up new strings
                     appDelegate.tryStartEngine()
                     ClipboardPanelController.shared.configure(appState: appState)
+                    FundPanelController.shared.configure(appState: appState)
                 }
         }
         .environment(appState)

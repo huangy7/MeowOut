@@ -72,6 +72,7 @@ struct SettingsView: View {
             SidebarItem(id: "clipboard", title: I18n.localized("settings_tab_clipboard", language: state.language), icon: "clipboard"),
             SidebarItem(id: "shelf", title: I18n.localized("settings_tab_shelf", language: state.language), icon: "tray.and.arrow.down"),
             SidebarItem(id: "quick_actions", title: I18n.localized("menu_quick_actions", language: state.language), icon: "bolt.fill"),
+            SidebarItem(id: "fund", title: I18n.localized("settings_tab_fund", language: state.language), icon: "chart.line.uptrend.xyaxis"),
             SidebarItem(id: "memos", title: "Memos", icon: "note.text"),
             SidebarItem(id: "permissions", title: I18n.localized("settings_tab_permissions", language: state.language), icon: "lock.shield"),
             SidebarItem(id: "system", title: I18n.localized("settings_section_system", language: state.language), icon: "gearshape", hasBadge: hasPendingUpdate),
@@ -115,6 +116,7 @@ struct SettingsView: View {
                             case "clipboard": ClipboardSettingsView(selectedTab: selectedClipboardSubTab)
                             case "shelf": ShelfSettingsView()
                             case "quick_actions": QuickActionsSettingsView(state: state)
+                            case "fund": FundSettingsView()
                             case "memos": MemosSettingsView(state: state)
                             case "permissions": permissionsCards
                             case "system": systemCards
@@ -147,6 +149,9 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SwitchToPermissionsTab"))) { _ in
             selectedTab = "permissions"
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenFundSettings"))) { _ in
+            selectedTab = "fund"
+        }
         .onAppear {
             clamshell.syncWithSystem()
             applyPendingNavigationTarget()
@@ -167,6 +172,9 @@ struct SettingsView: View {
             state.settingsNavigationTarget = nil
         case .memos:
             selectedTab = "memos"
+            state.settingsNavigationTarget = nil
+        case .fund:
+            selectedTab = "fund"
             state.settingsNavigationTarget = nil
         case nil:
             break
@@ -191,33 +199,25 @@ struct SettingsView: View {
     @ViewBuilder
     private var subTabBar: some View {
         switch selectedTab {
+        case "rest":
+            PillTabBar(items: restSubTabs.map { I18n.localized($0.key, language: state.language) },
+                       selection: subTabBinding(for: $selectedRestSubTab, tabs: restSubTabs))
         case "water":
             PillTabBar(items: waterSubTabs.map { I18n.localized($0.key, language: state.language) },
                        selection: subTabBinding(for: $selectedWaterSubTab, tabs: waterSubTabs))
         case "behavior":
             PillTabBar(items: behaviorSubTabs.map { I18n.localized($0.key, language: state.language) },
                        selection: subTabBinding(for: $selectedBehaviorSubTab, tabs: behaviorSubTabs))
+        case "clipboard":
+            PillTabBar(items: clipboardSubTabs.map { I18n.localized($0.key, language: state.language) },
+                       selection: subTabBinding(for: $selectedClipboardSubTab, tabs: clipboardSubTabs))
         case "system":
             let aboutTitle = I18n.localized("settings_subtab_about", language: state.language)
             PillTabBar(items: systemSubTabs.map { I18n.localized($0.key, language: state.language) },
                        badgeItems: UpdateChecker.shared.hasPendingUpdate ? [aboutTitle] : [],
                        selection: subTabBinding(for: $selectedSystemSubTab, tabs: systemSubTabs))
-        case "keydrop":
-            EmptyView()
-        case "clipboard":
-            PillTabBar(items: clipboardSubTabs.map { I18n.localized($0.key, language: state.language) },
-                       selection: subTabBinding(for: $selectedClipboardSubTab, tabs: clipboardSubTabs))
-        case "shelf":
-            EmptyView()
-        case "quick_actions":
-            EmptyView()
-        case "memos":
-            EmptyView()
-        case "permissions":
-            EmptyView()
         default:
-            PillTabBar(items: restSubTabs.map { I18n.localized($0.key, language: state.language) },
-                       selection: subTabBinding(for: $selectedRestSubTab, tabs: restSubTabs))
+            EmptyView()
         }
     }
 

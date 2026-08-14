@@ -100,6 +100,10 @@ public enum QuickToolActionResolver {
             return launchDescriptor(type: type, language: language) {
                 NotificationCenter.default.post(name: NSNotification.Name("OpenMeow2FAWindow"), object: nil)
             }
+        case .fund:
+            return launchDescriptor(type: type, language: language) {
+                FundPanelController.shared.toggle()
+            }
         }
     }
 

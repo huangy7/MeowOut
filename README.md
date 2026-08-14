@@ -31,7 +31,7 @@
   </a>
   &nbsp;
   <a href="https://github.com/huangy7/MeowOut/releases/latest">
-    <img src="https://img.shields.io/badge/📦_Download-MeowOut_v1.6.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
+    <img src="https://img.shields.io/badge/📦_Download-MeowOut_v1.7.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
   </a>
 </p>
 
@@ -53,6 +53,7 @@ MeowOut is a native macOS menu bar app where a running pixel pet reminds you to 
 | **KeyDrop & Launcher** | A quick text-snippet manager and a long-press radial launcher that put your most frequent actions at your fingertips. |
 | **Cleaning Mode** | One-click keyboard or screen input lock to prevent accidental keystrokes while cleaning, with a countdown unlock. |
 | **Clamshell Keep-Awake & Battery Protection** | Prevents sleep with the lid closed, with a customizable battery threshold to avoid over-discharge. |
+| **Self-Selected Funds** | Real-time valuation tracking for your favorite mutual funds, lightweight floating dashboard with privacy mode, and intuitive holding profit calculation. |
 | **Modern Management Panel** | A sidebar-navigation architecture offering deeply customizable **Rest / Hydration / Behavior / System** settings and a detailed **Today Review** timeline. |
 
 
@@ -126,6 +127,7 @@ Sources/MeowOut/
   Clipboard/                  # Native clipboard history module
   Toolbox2FA/                 # TOTP authenticator module & views
   KeyDrop/                    # Text-snippet manager module
+  Fund/                       # Real-time mutual fund tracking & portfolio management
   SettingsView.swift          # Modern sidebar settings panel
   StatsView.swift             # Multi-dimensional health statistics
   TodayReviewView.swift       # Daily activity timeline visualization
