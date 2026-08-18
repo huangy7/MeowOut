@@ -15,6 +15,8 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/huangy7/MeowOut?style=flat-square" alt="License"></a>
   <img src="https://img.shields.io/badge/platform-macOS%2014.0+-blue?style=flat-square" alt="Platform">
   <img src="https://img.shields.io/badge/Swift-5.9+-orange?style=flat-square" alt="Swift">
+  <a href="https://github.com/huangy7/MeowOut/releases"><img src="https://img.shields.io/github/downloads/huangy7/MeowOut/total?style=flat-square&color=success" alt="Downloads"></a>
+  <img src="https://komarev.com/ghpvc/?username=huangy7-MeowOut&label=Views&color=0071e3&style=flat-square" alt="Views">
 </p>
 
 <p align="center">
@@ -135,6 +137,15 @@ Sources/MeowOut/
   KeyboardCleaningService.swift # Keyboard cleaning mode logic
   ScreenCleaningService.swift   # Screen cleaning mode logic
 ```
+
+
+## 🤝 Contributors
+
+<p align="center">
+  <a href="https://github.com/huangy7/MeowOut/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=huangy7/MeowOut" alt="Contributors" />
+  </a>
+</p>
 
 
 ## ⚖️ License
