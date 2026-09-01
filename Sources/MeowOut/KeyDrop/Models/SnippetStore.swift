@@ -48,7 +48,16 @@ public class SnippetStore: ObservableObject {
             ]
         }
         
-        self.snippets = loadedSnippets
+        var seenIds = Set<UUID>()
+        var uniqueSnippets: [Snippet] = []
+        for var snippet in loadedSnippets {
+            if seenIds.contains(snippet.id) {
+                snippet.id = UUID()
+            }
+            seenIds.insert(snippet.id)
+            uniqueSnippets.append(snippet)
+        }
+        self.snippets = uniqueSnippets
         
         // Setup debounced save subscription
         saveSubject
@@ -118,6 +127,7 @@ public class SnippetStore: ObservableObject {
         
         if offset < filtered.count {
             let targetId = filtered[offset].id
+            if targetId == id { return }
             snippets.remove(at: sourceIndex)
             if let targetIndex = snippets.firstIndex(where: { $0.id == targetId }) {
                 snippets.insert(item, at: targetIndex)
@@ -125,15 +135,12 @@ public class SnippetStore: ObservableObject {
                 snippets.append(item)
             }
         } else {
-            if let lastId = filtered.last?.id {
-                snippets.remove(at: sourceIndex)
-                if let lastIndex = snippets.firstIndex(where: { $0.id == lastId }) {
-                    snippets.insert(item, at: lastIndex + 1)
-                } else {
-                    snippets.append(item)
-                }
+            guard let lastId = filtered.last?.id else { return }
+            if lastId == id { return }
+            snippets.remove(at: sourceIndex)
+            if let lastIndex = snippets.firstIndex(where: { $0.id == lastId }) {
+                snippets.insert(item, at: lastIndex + 1)
             } else {
-                snippets.remove(at: sourceIndex)
                 snippets.append(item)
             }
         }

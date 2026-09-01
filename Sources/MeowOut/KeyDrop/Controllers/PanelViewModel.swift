@@ -57,10 +57,14 @@ public class PanelViewModel: ObservableObject {
         return snippets[selectedIndex]
     }
     
+    public var selectedSnippetId: UUID? {
+        selectedSnippet?.id
+    }
+    
     public func reset() {
         searchText = ""
         selectedCategory = KeyDropConstants.categoryAll
-        selectIndex(0, scroll: true)
+        selectIndex(0, scroll: false)
     }
     
     public func moveSelection(up: Bool) {
@@ -76,7 +80,13 @@ public class PanelViewModel: ObservableObject {
     }
     
     public func selectIndex(_ index: Int, scroll: Bool) {
-        selectedIndex = index
+        let count = filteredSnippets.count
+        guard count > 0 else {
+            selectedIndex = 0
+            shouldScroll = false
+            return
+        }
+        selectedIndex = min(max(0, index), count - 1)
         shouldScroll = scroll
     }
     

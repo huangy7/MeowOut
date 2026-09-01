@@ -249,4 +249,124 @@ final class SnippetTests: XCTestCase {
         XCTAssertTrue(descZh.contains("常用语"))
         XCTAssertTrue(descEn.contains("phrase"))
     }
+    
+    @MainActor
+    func testPanelViewModelSelectionAndSelectedSnippetId() {
+        let store = SnippetStore.shared
+        let originalSnippets = store.snippets
+        defer { store.snippets = originalSnippets }
+        
+        let s1 = Snippet(title: "First", content: "1", category: "Test")
+        let s2 = Snippet(title: "Second", content: "2", category: "Test")
+        let s3 = Snippet(title: "Third", content: "3", category: "Test")
+        store.snippets = [s1, s2, s3]
+        
+        let viewModel = PanelViewModel()
+        viewModel.selectedCategory = "Test"
+        
+        // Initial selection should be index 0 (s1)
+        XCTAssertEqual(viewModel.selectedIndex, 0)
+        XCTAssertEqual(viewModel.selectedSnippetId, s1.id)
+        
+        // Move selection down
+        viewModel.moveSelection(up: false)
+        XCTAssertEqual(viewModel.selectedIndex, 1)
+        XCTAssertEqual(viewModel.selectedSnippetId, s2.id)
+        
+        // Move selection down again
+        viewModel.moveSelection(up: false)
+        XCTAssertEqual(viewModel.selectedIndex, 2)
+        XCTAssertEqual(viewModel.selectedSnippetId, s3.id)
+        
+        // Wrap around downwards
+        viewModel.moveSelection(up: false)
+        XCTAssertEqual(viewModel.selectedIndex, 0)
+        XCTAssertEqual(viewModel.selectedSnippetId, s1.id)
+        
+        // Wrap around upwards
+        viewModel.moveSelection(up: true)
+        XCTAssertEqual(viewModel.selectedIndex, 2)
+        XCTAssertEqual(viewModel.selectedSnippetId, s3.id)
+        
+        // Safe clamping on selectIndex
+        viewModel.selectIndex(99, scroll: false)
+        XCTAssertEqual(viewModel.selectedIndex, 2)
+        XCTAssertEqual(viewModel.selectedSnippetId, s3.id)
+        
+        viewModel.selectIndex(-5, scroll: false)
+        XCTAssertEqual(viewModel.selectedIndex, 0)
+        XCTAssertEqual(viewModel.selectedSnippetId, s1.id)
+        
+        // Empty list behavior
+        viewModel.searchText = "nonexistent_query_xyz"
+        XCTAssertTrue(viewModel.filteredSnippets.isEmpty)
+        XCTAssertNil(viewModel.selectedSnippetId)
+    }
+    
+    func testSnippetStoreDeduplicationOnLoad() async throws {
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let tempFileURL = tempDirectory.appendingPathComponent("MeowOutTests-dup-snippets-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: tempFileURL) }
+        
+        let duplicateUUID = UUID()
+        let snippet1 = Snippet(id: duplicateUUID, title: "Title 1", content: "Content 1")
+        let snippet2 = Snippet(id: duplicateUUID, title: "Title 2", content: "Content 2")
+        
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        let data = try encoder.encode([snippet1, snippet2])
+        try data.write(to: tempFileURL)
+        
+        let store = await SnippetStore(storageURL: tempFileURL)
+        let loaded = await store.snippets
+        
+        XCTAssertEqual(loaded.count, 2)
+        XCTAssertNotEqual(loaded[0].id, loaded[1].id, "Duplicate UUIDs must be deduplicated on load")
+        XCTAssertEqual(loaded[0].title, "Title 1")
+        XCTAssertEqual(loaded[1].title, "Title 2")
+    }
+    
+    func testSnippetStoreMoveSnippet() async throws {
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let tempFileURL = tempDirectory.appendingPathComponent("MeowOutTests-move-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: tempFileURL) }
+        
+        let store = await SnippetStore(storageURL: tempFileURL)
+        await MainActor.run {
+            store.snippets.removeAll()
+        }
+        
+        let s0 = Snippet(title: "Item 0", content: "0")
+        let s1 = Snippet(title: "Item 1", content: "1")
+        let s2 = Snippet(title: "Item 2", content: "2")
+        let s3 = Snippet(title: "Item 3", content: "3")
+        
+        await store.add(snippet: s0)
+        await store.add(snippet: s1)
+        await store.add(snippet: s2)
+        await store.add(snippet: s3)
+        
+        let initialList = await store.snippets
+        XCTAssertEqual(initialList.map(\.title), ["Item 0", "Item 1", "Item 2", "Item 3"])
+        
+        // Move Item 3 to index 0
+        await store.moveSnippet(id: s3.id, toOffset: 0, inFilteredList: initialList)
+        var current = await store.snippets
+        XCTAssertEqual(current.map(\.title), ["Item 3", "Item 0", "Item 1", "Item 2"])
+        
+        // Move Item 3 before Item 2 (offset 3)
+        await store.moveSnippet(id: s3.id, toOffset: 3, inFilteredList: current)
+        current = await store.snippets
+        XCTAssertEqual(current.map(\.title), ["Item 0", "Item 1", "Item 3", "Item 2"])
+        
+        // Move Item 3 to the very end (offset 4 == current.count)
+        await store.moveSnippet(id: s3.id, toOffset: current.count, inFilteredList: current)
+        current = await store.snippets
+        XCTAssertEqual(current.map(\.title), ["Item 0", "Item 1", "Item 2", "Item 3"])
+        
+        // Move Item 0 to the end (offset == filtered.count)
+        await store.moveSnippet(id: s0.id, toOffset: current.count, inFilteredList: current)
+        current = await store.snippets
+        XCTAssertEqual(current.map(\.title), ["Item 1", "Item 2", "Item 3", "Item 0"])
+    }
 }
