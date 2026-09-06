@@ -48,7 +48,22 @@ public class SnippetStore: ObservableObject {
             ]
         }
         
-        self.snippets = loadedSnippets
+        var seenIds = Set<UUID>()
+        var uniqueSnippets: [Snippet] = []
+        var hasDeduplicated = false
+        for var snippet in loadedSnippets {
+            if seenIds.contains(snippet.id) {
+                snippet.id = UUID()
+                hasDeduplicated = true
+            }
+            seenIds.insert(snippet.id)
+            uniqueSnippets.append(snippet)
+        }
+        self.snippets = uniqueSnippets
+        
+        if hasDeduplicated {
+            Self.saveToDisk(uniqueSnippets, to: storageURL)
+        }
         
         // Setup debounced save subscription
         saveSubject
@@ -113,29 +128,25 @@ public class SnippetStore: ObservableObject {
     }
     
     public func moveSnippet(id: UUID, toOffset offset: Int, inFilteredList filtered: [Snippet]) {
+        guard offset >= 0, !filtered.isEmpty else { return }
         guard let sourceIndex = snippets.firstIndex(where: { $0.id == id }) else { return }
         let item = snippets[sourceIndex]
         
         if offset < filtered.count {
             let targetId = filtered[offset].id
+            if targetId == id { return }
+            guard let targetIndex = snippets.firstIndex(where: { $0.id == targetId }) else { return }
+            if targetIndex == sourceIndex { return }
             snippets.remove(at: sourceIndex)
-            if let targetIndex = snippets.firstIndex(where: { $0.id == targetId }) {
-                snippets.insert(item, at: targetIndex)
-            } else {
-                snippets.append(item)
-            }
+            let newTargetIndex = snippets.firstIndex(where: { $0.id == targetId }) ?? snippets.count
+            snippets.insert(item, at: newTargetIndex)
         } else {
-            if let lastId = filtered.last?.id {
-                snippets.remove(at: sourceIndex)
-                if let lastIndex = snippets.firstIndex(where: { $0.id == lastId }) {
-                    snippets.insert(item, at: lastIndex + 1)
-                } else {
-                    snippets.append(item)
-                }
-            } else {
-                snippets.remove(at: sourceIndex)
-                snippets.append(item)
-            }
+            guard let lastId = filtered.last?.id else { return }
+            if lastId == id { return }
+            guard snippets.contains(where: { $0.id == lastId }) else { return }
+            snippets.remove(at: sourceIndex)
+            let newLastIndex = snippets.firstIndex(where: { $0.id == lastId }) ?? (snippets.count - 1)
+            snippets.insert(item, at: newLastIndex + 1)
         }
     }
 }

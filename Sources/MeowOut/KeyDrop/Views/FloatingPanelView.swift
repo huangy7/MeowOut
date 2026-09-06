@@ -69,7 +69,7 @@ struct FloatingPanelView: View {
             if snippets.isEmpty {
                 VStack {
                     Spacer()
-                    Text(store.snippets.isEmpty ? "尚无常用语，请在设置中添加" : "无匹配结果")
+                    Text(store.snippets.isEmpty ? I18n.localized("keydrop_panel_empty") : I18n.localized("keydrop_panel_no_matches"))
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
                     Spacer()
@@ -78,7 +78,7 @@ struct FloatingPanelView: View {
             } else {
                 ScrollViewReader { proxy in
                     ScrollView(showsIndicators: false) {
-                        LazyVStack(spacing: 6) {
+                        VStack(spacing: 6) {
                             ForEach(Array(snippets.enumerated()), id: \.element.id) { index, snippet in
                                 Button(action: {
                                     FloatingPanelController.shared.inject(snippet: snippet)
@@ -86,11 +86,11 @@ struct FloatingPanelView: View {
                                     SnippetRow(
                                         snippet: snippet,
                                         index: index,
-                                        isSelected: index == viewModel.selectedIndex
+                                        isSelected: snippet.id == viewModel.selectedSnippetId
                                     )
                                 }
                                 .buttonStyle(.plain)
-                                .id(index)
+                                .id(snippet.id)
                                 .contentShape(Rectangle())
                                 .onHover { hovering in
                                     if hovering {
@@ -100,83 +100,85 @@ struct FloatingPanelView: View {
                             }
                         }
                         .padding(8)
-                      }
-                      .onChange(of: viewModel.shouldScroll) { _, should in
-                          if should {
-                              withAnimation(.easeOut(duration: 0.1)) {
-                                  proxy.scrollTo(viewModel.selectedIndex, anchor: .center)
-                              }
-                              viewModel.shouldScroll = false
-                          }
-                      }
-                  }
-              }
-          }
-          .frame(width: 320, height: 400, alignment: .top)
-          .background(Color(nsColor: .windowBackgroundColor).opacity(0.1))
-      }
-  }
+                    }
+                    .onChange(of: viewModel.shouldScroll) { _, should in
+                        if should, let targetId = viewModel.selectedSnippetId {
+                            withAnimation(.easeOut(duration: 0.1)) {
+                                proxy.scrollTo(targetId, anchor: .center)
+                            }
+                            DispatchQueue.main.async {
+                                viewModel.shouldScroll = false
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .frame(width: 320, height: 400, alignment: .top)
+        .background(Color(nsColor: .windowBackgroundColor).opacity(0.1))
+    }
+}
 
-  struct SnippetRow: View {
-      let snippet: Snippet
-      let index: Int
-      let isSelected: Bool
-      
-      var body: some View {
-          HStack(spacing: 12) {
-              if index < 9 {
-                  Text("⌘\(index + 1)")
-                      .font(.system(size: 9, weight: .bold))
-                      .foregroundColor(isSelected ? .white.opacity(0.9) : .secondary.opacity(0.6))
-                      .frame(width: 22, height: 16)
-                      .background(
-                          RoundedRectangle(cornerRadius: 4)
-                              .fill(isSelected ? Color.white.opacity(0.2) : Color.primary.opacity(0.04))
-                      )
-              } else {
-                  Spacer().frame(width: 22)
-              }
-              
-              VStack(alignment: .leading, spacing: 3) {
-                  Text(snippet.title)
-                      .font(.system(size: 13, weight: .semibold))
-                      .foregroundColor(isSelected ? .white : .primary)
-                  
-                  Text(snippet.content)
-                      .font(.system(size: 11, weight: .regular))
-                      .foregroundColor(isSelected ? .white.opacity(0.85) : .secondary)
-                      .lineLimit(1)
-              }
-              
-              Spacer()
-              
-              if isSelected {
-                  Image(systemName: "return")
-                      .font(.system(size: 10, weight: .bold))
-                      .foregroundColor(.white.opacity(0.8))
-              }
-          }
-          .padding(.vertical, 8)
-          .padding(.horizontal, 12)
-          .background(
-              ZStack {
-                  if isSelected {
-                      LinearGradient(
-                          gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.85)]),
-                          startPoint: .topLeading,
-                          endPoint: .bottomTrailing
-                      )
-                      .cornerRadius(8)
-                      .shadow(color: Color.accentColor.opacity(0.25), radius: 4, x: 0, y: 2)
-                  } else {
-                      Color.clear
-                  }
-              }
-          )
-          .overlay(
-              RoundedRectangle(cornerRadius: 8)
-                  .stroke(isSelected ? Color.white.opacity(0.15) : Color.primary.opacity(0.02), lineWidth: 1)
-          )
-          .contentShape(Rectangle())
-      }
-  }
+struct SnippetRow: View {
+    let snippet: Snippet
+    let index: Int
+    let isSelected: Bool
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            if index < 9 {
+                Text("⌘\(index + 1)")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(isSelected ? .white.opacity(0.9) : .secondary.opacity(0.6))
+                    .frame(width: 22, height: 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(isSelected ? Color.white.opacity(0.2) : Color.primary.opacity(0.04))
+                    )
+            } else {
+                Spacer().frame(width: 22)
+            }
+            
+            VStack(alignment: .leading, spacing: 3) {
+                Text(snippet.title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(isSelected ? .white : .primary)
+                
+                Text(snippet.content)
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundColor(isSelected ? .white.opacity(0.85) : .secondary)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+            
+            if isSelected {
+                Image(systemName: "return")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white.opacity(0.8))
+            }
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(
+            ZStack {
+                if isSelected {
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.accentColor, Color.accentColor.opacity(0.85)]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .cornerRadius(8)
+                    .shadow(color: Color.accentColor.opacity(0.25), radius: 4, x: 0, y: 2)
+                } else {
+                    Color.clear
+                }
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isSelected ? Color.white.opacity(0.15) : Color.primary.opacity(0.02), lineWidth: 1)
+        )
+        .contentShape(Rectangle())
+    }
+}

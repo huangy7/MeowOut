@@ -233,6 +233,8 @@
 "keydrop_merge_warning_title" = "Merge Category";
 "keydrop_merge_btn" = "Confirm Merge";
 "keydrop_merge_warning_message" = "The target category already exists. Continuing will merge all snippets from the original category into the target category. Are you sure?";
+"keydrop_panel_empty" = "No snippets yet, add them in Settings";
+"keydrop_panel_no_matches" = "No matching results";
 
 
 "menu_keep_awake" = "Keep Awake";

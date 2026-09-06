@@ -3,10 +3,20 @@ import Combine
 
 @MainActor
 public class PanelViewModel: ObservableObject {
-    @Published public var searchText: String = ""
+    @Published public var searchText: String = "" {
+        didSet {
+            guard searchText != oldValue else { return }
+            selectIndex(0, scroll: false)
+        }
+    }
     @Published public var selectedIndex: Int = 0
     @Published public var shouldScroll: Bool = false
-    @Published public var selectedCategory: String = KeyDropConstants.categoryAll
+    @Published public var selectedCategory: String = KeyDropConstants.categoryAll {
+        didSet {
+            guard selectedCategory != oldValue else { return }
+            selectIndex(0, scroll: false)
+        }
+    }
     
     public var isPanelVisible: Bool = false {
         didSet {
@@ -24,6 +34,7 @@ public class PanelViewModel: ObservableObject {
         SnippetStore.shared.$snippets
             .sink { [weak self] _ in
                 guard let self = self else { return }
+                self.clampSelection()
                 if self.isPanelVisible {
                     self.objectWillChange.send()
                 } else {
@@ -31,6 +42,15 @@ public class PanelViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+    }
+    
+    private func clampSelection() {
+        let count = filteredSnippets.count
+        guard count > 0 else {
+            selectedIndex = 0
+            return
+        }
+        selectedIndex = min(max(0, selectedIndex), count - 1)
     }
     
     public var categories: [String] {
@@ -53,30 +73,39 @@ public class PanelViewModel: ObservableObject {
     
     public var selectedSnippet: Snippet? {
         let snippets = filteredSnippets
-        guard !snippets.isEmpty, selectedIndex >= 0, selectedIndex < snippets.count else { return nil }
-        return snippets[selectedIndex]
+        guard !snippets.isEmpty else { return nil }
+        let safeIndex = min(max(0, selectedIndex), snippets.count - 1)
+        return snippets[safeIndex]
+    }
+    
+    public var selectedSnippetId: UUID? {
+        selectedSnippet?.id
     }
     
     public func reset() {
         searchText = ""
         selectedCategory = KeyDropConstants.categoryAll
-        selectIndex(0, scroll: true)
+        selectIndex(0, scroll: false)
     }
     
     public func moveSelection(up: Bool) {
         let count = filteredSnippets.count
         guard count > 0 else { return }
-        var nextIndex = selectedIndex
-        if up {
-            nextIndex = (selectedIndex - 1 + count) % count
-        } else {
-            nextIndex = (selectedIndex + 1) % count
-        }
+        let normalizedIndex = min(max(0, selectedIndex), count - 1)
+        let nextIndex = up
+            ? (normalizedIndex - 1 + count) % count
+            : (normalizedIndex + 1) % count
         selectIndex(nextIndex, scroll: true)
     }
     
     public func selectIndex(_ index: Int, scroll: Bool) {
-        selectedIndex = index
+        let count = filteredSnippets.count
+        guard count > 0 else {
+            selectedIndex = 0
+            shouldScroll = false
+            return
+        }
+        selectedIndex = min(max(0, index), count - 1)
         shouldScroll = scroll
     }
     

@@ -15,6 +15,7 @@ struct SnippetManagerView: View {
     @State private var editTitle: String = ""
     @State private var editContent: String = ""
     @State private var editCategory: String = KeyDropConstants.categoryUncategorized
+    @State private var isUpdatingSelection: Bool = false
     
     // Category Alert State
     @State private var showingAddCategoryAlert = false
@@ -478,6 +479,8 @@ struct SnippetManagerView: View {
     private func selectSnippet(_ snippet: Snippet?) {
         // Save current changes first
         saveCurrentChanges()
+        isUpdatingSelection = true
+        defer { isUpdatingSelection = false }
         
         if let snippet = snippet {
             selectedSnippetId = snippet.id
@@ -493,6 +496,7 @@ struct SnippetManagerView: View {
     }
     
     private func saveCurrentChanges() {
+        guard !isUpdatingSelection else { return }
         guard let selectedId = selectedSnippetId,
               let original = store.snippets.first(where: { $0.id == selectedId }) else { return }
         
