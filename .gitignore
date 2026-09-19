@@ -47,4 +47,6 @@ release.sh
 MeowOut-*-universal.dmg
 MeowOut-*-arm64.dmg
 MeowOut-*-x86_64.dmg
+MeowOut-arm64.dmg
+MeowOut-x86_64.dmg
 

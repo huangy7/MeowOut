@@ -1173,6 +1173,21 @@
             transform: translateY(-2px);
         }
 
+        .dmg-btn-rec {
+            grid-column: span 2;
+            border: 1px solid var(--accent-orange);
+            background: var(--accent-orange-glow);
+        }
+
+        .dmg-btn-rec:hover {
+            border-color: var(--accent-orange);
+            box-shadow: 0 4px 24px var(--accent-orange-glow);
+        }
+
+        .dmg-btn-rec .dmg-title {
+            color: var(--accent-orange);
+        }
+
         .dmg-title {
             font-size: 14px;
             font-weight: 700;
@@ -1303,6 +1318,9 @@
             }
             .dmg-grid {
                 grid-template-columns: 1fr;
+            }
+            .dmg-btn-rec {
+                grid-column: span 1;
             }
             .footer-container {
                 flex-direction: column;
@@ -1662,7 +1680,7 @@
                     <div class="dmg-grid">
                         <a href="https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg" class="dmg-btn">
                             <span class="dmg-title" data-i18n="install_universal_dmg"> 下载最新 MeowOut.dmg</span>
-                            <span class="dmg-desc">Universal (Apple Silicon M1-M4 &amp; Intel)</span>
+                            <span class="dmg-desc" data-i18n="install_universal_note">通用版 · Apple Silicon &amp; Intel</span>
                         </a>
                         <a href="https://github.com/huangy7/MeowOut/releases/latest" class="dmg-btn" target="_blank" rel="noopener noreferrer">
                             <span class="dmg-title" data-i18n="install_all_releases">📦 GitHub Releases 发行日志</span>
@@ -1834,6 +1852,75 @@
                 header.style.boxShadow = 'none';
             }
         });
+
+        // ===== DMG 架构智能推荐 =====
+        // 发布产物使用固定文件名（MeowOut-arm64.dmg / MeowOut-x86_64.dmg），
+        // 因此 /releases/latest/download/<name> 是静态直链，无需调用 GitHub API（免限流）。
+        // 检测不到架构时不插入任何按钮，通用版入口保持可用。
+
+        /** 检测本机 CPU 架构：'arm' | 'intel' | null(未知) */
+        async function detectMacArchitecture() {
+            // Chromium 系：高熵 UA 数据最可靠
+            try {
+                const uaData = navigator.userAgentData;
+                if (uaData && typeof uaData.getHighEntropyValues === 'function') {
+                    const { architecture } = await uaData.getHighEntropyValues(['architecture']);
+                    if (architecture === 'arm') return 'arm';
+                    if (architecture === 'x86') return 'intel';
+                }
+            } catch (e) { /* 继续尝试兜底方案 */ }
+
+            // Safari 兜底：UA 恒为 Intel，改用 WebGL 渲染器字符串判断 Apple Silicon
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+                    const renderer = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+                    if (/Apple\s+(M\d|GPU)/i.test(renderer)) return 'arm';
+                }
+            } catch (e) { /* 无法判定 */ }
+
+            return null;
+        }
+
+        async function setupDmgRecommendation() {
+            const grid = document.querySelector('#install-tab-dmg .dmg-grid');
+            if (!grid) return;
+
+            const arch = await detectMacArchitecture();
+            if (!arch) return; // 未知架构：不推荐，保留通用版
+
+            const url = 'https://github.com/huangy7/MeowOut/releases/latest/download/'
+                + (arch === 'arm' ? 'MeowOut-arm64.dmg' : 'MeowOut-x86_64.dmg');
+
+            const lang = currentLang || 'zh-CN';
+            const dict = (typeof i18n !== 'undefined' && i18n[lang]) || i18n['zh-CN'];
+            const titleKey = arch === 'arm' ? 'install_rec_arm' : 'install_rec_intel';
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.className = 'dmg-btn dmg-btn-rec';
+            link.id = 'dmg-rec-btn';
+            // 注意：data-i18n 只挂在子 span 上——setLanguage 会对带该属性的元素整体重写 innerHTML
+
+            const title = document.createElement('span');
+            title.className = 'dmg-title';
+            title.dataset.i18n = titleKey;
+            title.textContent = dict[titleKey] || '';
+
+            const note = document.createElement('span');
+            note.className = 'dmg-desc';
+            note.dataset.i18n = 'install_rec_note';
+            note.textContent = dict['install_rec_note'] || '';
+
+            link.appendChild(title);
+            link.appendChild(note);
+            grid.insertBefore(link, grid.firstChild);
+        }
+
+        // 延迟到 load 之后执行：此时 i18n 字典与 currentLang 均已初始化
+        window.addEventListener('load', setupDmgRecommendation);
     </script>
 
     <!-- I18N & THEME SCRIPT -->
@@ -1921,6 +2008,10 @@
                 'install_tab_dmg': '📦 DMG 直接下载',
                 'install_universal_dmg': ' 下载最新 MeowOut.dmg',
                 'install_all_releases': '📦 GitHub Releases 发行日志',
+                'install_rec_arm': '⚡ 下载 Apple Silicon 版（推荐）',
+                'install_rec_intel': '⚡ 下载 Intel 版（推荐）',
+                'install_rec_note': '已检测到你的 Mac 架构 · 体积更小',
+                'install_universal_note': '通用版 · Apple Silicon & Intel',
                 'widget_meow_msg1': '喵~ 记得定期喝水和正念呼吸哦！',
                 'widget_meow_msg2': '伸个懒腰吧！MeowOut 守护你的职场健康 🐾',
                 'widget_meow_msg3': '今天代码写得非常棒！继续保持活力喵~',
@@ -2019,6 +2110,10 @@
                 'install_tab_dmg': '📦 Direct DMG Download',
                 'install_universal_dmg': ' Download Latest MeowOut.dmg',
                 'install_all_releases': '📦 GitHub Releases Log',
+                'install_rec_arm': '⚡ Download for Apple Silicon (Recommended)',
+                'install_rec_intel': '⚡ Download for Intel (Recommended)',
+                'install_rec_note': 'Detected your Mac architecture · Smaller download',
+                'install_universal_note': 'Universal · Apple Silicon & Intel',
                 'widget_meow_msg1': 'Meow~ Remember to drink water and take mindful breaths!',
                 'widget_meow_msg2': 'Time to stretch! MeowOut is protecting your health 🐾',
                 'widget_meow_msg3': 'Great job on your code today! Stay energized, meow~',
@@ -2117,6 +2212,10 @@
                 'install_tab_dmg': '📦 DMG 直接下載',
                 'install_universal_dmg': ' 下載最新 MeowOut.dmg',
                 'install_all_releases': '📦 GitHub Releases 發佈日誌',
+                'install_rec_arm': '⚡ 下載 Apple Silicon 版（推薦）',
+                'install_rec_intel': '⚡ 下載 Intel 版（推薦）',
+                'install_rec_note': '已偵測到你的 Mac 架構 · 體積更小',
+                'install_universal_note': '通用版 · Apple Silicon & Intel',
                 'widget_meow_msg1': '喵~ 記得定期喝水和正念呼吸哦！',
                 'widget_meow_msg2': '伸個懶腰吧！MeowOut 守護你的職場健康 🐾',
                 'widget_meow_msg3': '今天程式碼寫得非常棒！繼續保持活力喵~',
@@ -2226,7 +2325,11 @@
                 'feat-tag-8': '📋 無感檢索',
                 'feat-tag-9': '🔐 金融級加密',
                 'feat-tag-10': '📁 懸浮貼邊',
-                'feat-tag-11': '💻 合蓋常亮'
+                'feat-tag-11': '💻 合蓋常亮',
+                'install_rec_arm': '⚡ 下載 Apple Silicon 版（推薦）',
+                'install_rec_intel': '⚡ 下載 Intel 版（推薦）',
+                'install_rec_note': '已偵測到你的 Mac 架構 · 體積更小',
+                'install_universal_note': '通用版 · Apple Silicon & Intel',
             },
             'ja': {
                 'meta-title': 'MeowOut - あなたの健康的なコーディングを見守る走るドット絵の相棒',
@@ -2310,6 +2413,10 @@
                 'install_tab_dmg': '📦 DMG 直接ダウンロード',
                 'install_universal_dmg': ' 最新 MeowOut.dmg をダウンロード',
                 'install_all_releases': '📦 GitHub Releases ノート',
+                'install_rec_arm': '⚡ Apple Silicon 版をダウンロード（推奨）',
+                'install_rec_intel': '⚡ Intel 版をダウンロード（推奨）',
+                'install_rec_note': 'Mac のアーキテクチャを検出しました · より小さいサイズ',
+                'install_universal_note': 'ユニバーサル版 · Apple Silicon & Intel',
                 'widget_meow_msg1': 'ニャー~ こまめに水分補給と深呼吸をしてくださいね！',
                 'widget_meow_msg2': 'ストレッチの時間です！MeowOutがあなたの健康を見守ります 🐾',
                 'widget_meow_msg3': '今日も素晴らしいコーディングでした！元気に頑張りましょうニャ~',

@@ -20,15 +20,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release download ${{ github.event.release.tag_name }} \
-            -p "*-arm64.dmg" -p "*-x86_64.dmg" \
+            -p "MeowOut-arm64.dmg" -p "MeowOut-x86_64.dmg" \
             -R ${{ github.repository }}
 
       - name: Calculate SHA256 checksums
         id: calc_sha
         run: |
-          VERSION="${{ steps.get_version.outputs.version }}"
-          ARM_SHA=$(shasum -a 256 "MeowOut-${VERSION}-arm64.dmg" | awk '{print $1}')
-          INTEL_SHA=$(shasum -a 256 "MeowOut-${VERSION}-x86_64.dmg" | awk '{print $1}')
+          ARM_SHA=$(shasum -a 256 "MeowOut-arm64.dmg" | awk '{print $1}')
+          INTEL_SHA=$(shasum -a 256 "MeowOut-x86_64.dmg" | awk '{print $1}')
           echo "arm_sha=$ARM_SHA" >> $GITHUB_OUTPUT
           echo "intel_sha=$INTEL_SHA" >> $GITHUB_OUTPUT
 
