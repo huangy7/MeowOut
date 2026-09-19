@@ -22,11 +22,17 @@ final class MemoCacheTests: XCTestCase {
         let cache1 = MemoCache(storageURL: url)
         cache1.save(memos: [sampleMemo(id: "1"), sampleMemo(id: "2")])
 
-        try await Task.sleep(nanoseconds: 100_000_000)
+        var cache2 = MemoCache(storageURL: url)
+        for _ in 0..<20 {
+            if cache2.memos.count == 2 { break }
+            try await Task.sleep(nanoseconds: 50_000_000)
+            cache2 = MemoCache(storageURL: url)
+        }
 
-        let cache2 = MemoCache(storageURL: url)
         XCTAssertEqual(cache2.memos.count, 2)
-        XCTAssertEqual(cache2.memos[0].id, "1")
+        if cache2.memos.count >= 1 {
+            XCTAssertEqual(cache2.memos[0].id, "1")
+        }
     }
 
     func testMaxCacheSize() {

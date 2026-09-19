@@ -1,22 +1,29 @@
 import SwiftUI
 
+/// 子标签项:以稳定的 id 作为选中标识,title 仅用于展示
+struct PillTabItem: Identifiable, Hashable {
+    let id: String
+    let title: String
+}
+
 struct PillTabBar: View {
-    let items: [String]
+    let items: [PillTabItem]
     var badgeItems: Set<String> = []
     @Binding var selection: String
     @Namespace private var animation
 
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(items, id: \.self) { item in
+            ForEach(items) { item in
+                let isSelected = selection == item.id
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        selection = item
+                        selection = item.id
                     }
                 } label: {
                     HStack(spacing: 5) {
-                        Text(item)
-                        if badgeItems.contains(item) {
+                        Text(item.title)
+                        if badgeItems.contains(item.id) {
                             UpdateBadge()
                         }
                     }
@@ -25,16 +32,17 @@ struct PillTabBar: View {
                     .padding(.vertical, 6)
                     .contentShape(Rectangle())
                     .background {
-                        if selection == item {
+                        if isSelected {
                             Capsule()
-                                .fill(Color.white)
+                                .fill(Color(nsColor: .controlBackgroundColor))
                                 .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
                                 .matchedGeometryEffect(id: "pill", in: animation)
                         }
                     }
-                    .foregroundStyle(selection == item ? .primary : .secondary)
+                    .foregroundStyle(isSelected ? .primary : .secondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
         .padding(3)

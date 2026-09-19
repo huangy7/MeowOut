@@ -1,11 +1,10 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 Vorssaint
-
 import AppKit
 import SwiftUI
 
-/// A transparent strip that moves the whole panel when dragged. Used over the
-/// header and empty shelf space; tiles stay free to start item drags.
+/// 全局中转站面板透明拖拽把手
+///
+/// 覆盖在面板顶部与空白间隙区域，捕获鼠标拖拽手势并驱动整个悬浮窗口平移，
+/// 规避底层 AppKit 瓦片（Tile）与系统级外部文件拖拽交互发生事件冒泡冲突。
 struct WindowMoveHandle: NSViewRepresentable {
     var acceptsDrops = false
 

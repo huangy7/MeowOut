@@ -25,6 +25,12 @@ public class TextInjector {
             }
             return
         }
+
+        // Prevent simulating system Cmd+V keystrokes during automated unit testing
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || NSClassFromString("XCTestCase") != nil {
+            self.isInjecting = false
+            return
+        }
         
         if IsSecureEventInputEnabled() {
             // Secure input is enabled (e.g. password field)

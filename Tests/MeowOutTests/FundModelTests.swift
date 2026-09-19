@@ -131,7 +131,12 @@ final class FundModelTests: XCTestCase {
 
         await FundService.shared.refresh()
 
-        let funds = FundService.shared.funds
+        var funds = FundService.shared.funds
+        if funds.isEmpty {
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            await FundService.shared.refresh()
+            funds = FundService.shared.funds
+        }
         print("Fetched funds count:", funds.count)
         for f in funds {
             print("Fund code:", f.code, "name:", f.name, "netValue:", f.netValue, "estValue:", String(describing: f.estimatedValue), "change%:", f.changePercent)

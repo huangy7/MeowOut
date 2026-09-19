@@ -107,6 +107,14 @@ final class ActivityMonitor {
             idle = min(mouseMoved, leftMouseDown, rightMouseDown, scrollWheel, keyDown)
         }
         
+        if !appState.enableRestReminder {
+            if appState.currentState == .alerting || appState.currentState == .resting || appState.currentState == .overworking {
+                appState.currentState = .working
+                appState.restRemaining = 0
+                appState.flushStatsToDisk()
+            }
+        }
+        
         if appState.currentState == .paused || appState.currentState == .breathing || appState.currentState == .overworking || appState.currentState == .resting {
             if appState.currentState == .paused {
                 appState.pauseRemaining -= dt
@@ -178,13 +186,15 @@ final class ActivityMonitor {
         // 只要用户在动，标记为行走，具体的动画帧由 View 层的 Timer 驱动
         appState.isWalking = true
         
-        if appState.workElapsed >= appState.maxWorkTime {
-            appState.currentState = .resting
-            appState.restRemaining = appState.defaultRestTime
-            appState.flushStatsToDisk()
-        } else if appState.workElapsed >= appState.alertThreshold {
-            if !appState.warningDismissed {
-                appState.currentState = .alerting
+        if appState.enableRestReminder {
+            if appState.workElapsed >= appState.maxWorkTime {
+                appState.currentState = .resting
+                appState.restRemaining = appState.defaultRestTime
+                appState.flushStatsToDisk()
+            } else if appState.workElapsed >= appState.alertThreshold {
+                if !appState.warningDismissed {
+                    appState.currentState = .alerting
+                }
             }
         }
         

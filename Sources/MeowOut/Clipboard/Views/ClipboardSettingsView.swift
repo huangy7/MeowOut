@@ -6,8 +6,6 @@ struct ClipboardSettingsView: View {
     @Environment(AppState.self) private var appState
     @ObservedObject private var store = ClipboardHistoryStore.shared
 
-    let selectedTab: String
-
     @State private var ignoredApplications: [String] = []
     @State private var ignoredPasteboardTypes: [String] = []
     @State private var newIgnoredApplication = ""
@@ -25,17 +23,11 @@ struct ClipboardSettingsView: View {
     }
 
     var body: some View {
-        Group {
-            switch selectedTab {
-            case "storage":
-                storageCards
-            case "pinned":
-                pinnedCards
-            case "ignored":
-                ignoredCards
-            default:
-                generalCards
-            }
+        VStack(spacing: 20) {
+            generalGroup
+            storageGroup
+            pinnedGroup
+            ignoredGroup
         }
         .id(settingsRevision)
         .onAppear {
@@ -70,144 +62,99 @@ struct ClipboardSettingsView: View {
         }
     }
 
-    private var generalCards: some View {
-        Group {
-            SettingsCard(
-                icon: "clipboard",
-                iconColor: .green,
-                title: I18n.localized("clipboard_enabled", language: appState.language),
-                description: I18n.localized("clipboard_enabled_desc", language: appState.language)
-            ) {
-                VStack(spacing: 12) {
-                    settingsRow(I18n.localized("clipboard_enabled", language: appState.language)) {
-                        Toggle("", isOn: enabledBinding)
-                            .labelsHidden()
-                            .toggleStyle(.switch)
-                    }
-
-                    settingsRow(I18n.localized("clipboard_shortcut", language: appState.language)) {
-                        KeyboardShortcuts.Recorder(for: .toggleClipboardHistoryPanel)
-                            .disabled(!settings.isEnabled)
-                            .opacity(settings.isEnabled ? 1 : 0.45)
-                    }
-                }
+    private var generalGroup: some View {
+        SettingsGroup(I18n.localized("clipboard_tab_general", language: appState.language)) {
+            SettingsRow(I18n.localized("clipboard_enabled", language: appState.language),
+                        description: I18n.localized("clipboard_enabled_desc", language: appState.language)) {
+                Toggle("", isOn: enabledBinding)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
             }
-
-            SettingsCard(
-                icon: "arrowshape.turn.up.left",
-                iconColor: .purple,
-                title: I18n.localized("clipboard_behavior", language: appState.language),
-                description: nil
-            ) {
-                VStack(spacing: 12) {
-                    settingsRow(I18n.localized("clipboard_paste_automatically", language: appState.language)) {
-                        Toggle("", isOn: pasteAutomaticallyBinding)
-                            .labelsHidden()
-                            .toggleStyle(.switch)
-                    }
-
-                    settingsRow(I18n.localized("clipboard_accessibility_permission", language: appState.language)) {
-                        HStack(spacing: 10) {
-                            Label(
-                                isAccessibilityTrusted
-                                    ? I18n.localized("clipboard_accessibility_granted", language: appState.language)
-                                    : I18n.localized("clipboard_accessibility_missing", language: appState.language),
-                                systemImage: isAccessibilityTrusted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
-                            )
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(isAccessibilityTrusted ? Color.green : Color.orange)
-
-                            Button(I18n.localized("clipboard_request_accessibility", language: appState.language)) {
-                                requestAccessibilityPermission(prompt: true)
-                            }
-                            .disabled(isAccessibilityTrusted)
-                        }
-                    }
-
-                    settingsRow(I18n.localized("clipboard_paste_plain_text_by_default", language: appState.language)) {
-                        Toggle("", isOn: boolBinding(\.removeFormattingByDefault))
-                            .labelsHidden()
-                            .toggleStyle(.switch)
-                    }
-
-                    Text(I18n.localized("clipboard_paste_plain_text_help", language: appState.language))
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("clipboard_shortcut", language: appState.language)) {
+                KeyboardShortcuts.Recorder(for: .toggleClipboardHistoryPanel)
+                    .disabled(!settings.isEnabled)
+                    .opacity(settings.isEnabled ? 1 : 0.45)
             }
-        }
-    }
-
-    private var storageCards: some View {
-        Group {
-            SettingsCard(
-                icon: "tray.and.arrow.down",
-                iconColor: .orange,
-                title: I18n.localized("clipboard_record_types", language: appState.language),
-                description: nil
-            ) {
-                VStack(alignment: .leading, spacing: 10) {
-                    Toggle(I18n.localized("clipboard_record_files", language: appState.language), isOn: boolBinding(\.recordFiles))
-                    Toggle(I18n.localized("clipboard_record_images", language: appState.language), isOn: boolBinding(\.recordImages))
-                    Toggle(I18n.localized("clipboard_record_text", language: appState.language), isOn: recordTextBinding)
-                }
-                .toggleStyle(.checkbox)
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("clipboard_paste_automatically", language: appState.language)) {
+                Toggle("", isOn: pasteAutomaticallyBinding)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
             }
-
-            SettingsCard(
-                icon: "archivebox",
-                iconColor: .blue,
-                title: I18n.localized("clipboard_storage", language: appState.language),
-                description: nil
-            ) {
-                VStack(spacing: 12) {
-                    settingsRow(I18n.localized("clipboard_history_limit", language: appState.language)) {
-                        Stepper(value: intBinding(\.historyLimit), in: 1...999, step: 1) {
-                            Text("\(settings.historyLimit)")
-                                .frame(width: 54, alignment: .trailing)
-                                .monospacedDigit()
-                        }
-                    }
-
-                    settingsRow(I18n.localized("clipboard_sort_mode", language: appState.language)) {
-                        Picker("", selection: sortModeBinding) {
-                            Text(I18n.localized("clipboard_sort_last_copied", language: appState.language)).tag(ClipboardHistorySettings.SortMode.lastCopiedAt)
-                            Text(I18n.localized("clipboard_sort_first_copied", language: appState.language)).tag(ClipboardHistorySettings.SortMode.createdAt)
-                            Text(I18n.localized("clipboard_sort_copy_count", language: appState.language)).tag(ClipboardHistorySettings.SortMode.copyCount)
-                        }
-                        .labelsHidden()
-                        .frame(width: 170)
-                    }
-                }
-            }
-
-            SettingsCard(
-                icon: "trash",
-                iconColor: .pink,
-                title: I18n.localized("clipboard_management", language: appState.language),
-                description: nil
-            ) {
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("clipboard_accessibility_permission", language: appState.language)) {
                 HStack(spacing: 10) {
-                    Button(I18n.localized("clipboard_clear_unpinned", language: appState.language), role: .destructive) {
-                        showingClearUnpinnedConfirmation = true
-                    }
+                    Label(
+                        isAccessibilityTrusted
+                            ? I18n.localized("clipboard_accessibility_granted", language: appState.language)
+                            : I18n.localized("clipboard_accessibility_missing", language: appState.language),
+                        systemImage: isAccessibilityTrusted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
+                    )
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isAccessibilityTrusted ? Color.green : Color.orange)
 
-                    Button(I18n.localized("clipboard_clear_all", language: appState.language), role: .destructive) {
-                        showingClearAllConfirmation = true
+                    Button(I18n.localized("clipboard_request_accessibility", language: appState.language)) {
+                        requestAccessibilityPermission(prompt: true)
                     }
+                    .disabled(isAccessibilityTrusted)
                 }
+            }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("clipboard_paste_plain_text_by_default", language: appState.language),
+                        description: I18n.localized("clipboard_paste_plain_text_help", language: appState.language)) {
+                Toggle("", isOn: boolBinding(\.removeFormattingByDefault))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
             }
         }
     }
 
-    private var pinnedCards: some View {
-        SettingsCard(
-            icon: "pin",
-            iconColor: .purple,
-            title: I18n.localized("clipboard_tab_pinned", language: appState.language),
-            description: I18n.localized("clipboard_pinned_desc", language: appState.language)
-        ) {
+    private var storageGroup: some View {
+        SettingsGroup(I18n.localized("clipboard_tab_storage", language: appState.language)) {
+            SettingsRow(I18n.localized("clipboard_record_types", language: appState.language)) {
+                HStack(spacing: 8) {
+                    recordTypeChip(title: I18n.localized("clipboard_record_files", language: appState.language), isOn: boolBinding(\.recordFiles))
+                    recordTypeChip(title: I18n.localized("clipboard_record_images", language: appState.language), isOn: boolBinding(\.recordImages))
+                    recordTypeChip(title: I18n.localized("clipboard_record_text", language: appState.language), isOn: recordTextBinding)
+                }
+            }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("clipboard_history_limit", language: appState.language)) {
+                Stepper(value: intBinding(\.historyLimit), in: 1...999, step: 1) {
+                    Text("\(settings.historyLimit)")
+                        .frame(width: 54, alignment: .trailing)
+                        .monospacedDigit()
+                }
+            }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("clipboard_sort_mode", language: appState.language)) {
+                Picker("", selection: sortModeBinding) {
+                    Text(I18n.localized("clipboard_sort_last_copied", language: appState.language)).tag(ClipboardHistorySettings.SortMode.lastCopiedAt)
+                    Text(I18n.localized("clipboard_sort_first_copied", language: appState.language)).tag(ClipboardHistorySettings.SortMode.createdAt)
+                    Text(I18n.localized("clipboard_sort_copy_count", language: appState.language)).tag(ClipboardHistorySettings.SortMode.copyCount)
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .fixedSize()
+            }
+            SettingsRowDivider()
+            HStack(spacing: 10) {
+                Button(I18n.localized("clipboard_clear_unpinned", language: appState.language), role: .destructive) {
+                    showingClearUnpinnedConfirmation = true
+                }
+                Button(I18n.localized("clipboard_clear_all", language: appState.language), role: .destructive) {
+                    showingClearAllConfirmation = true
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+        }
+    }
+
+    private var pinnedGroup: some View {
+        SettingsGroup(I18n.localized("clipboard_tab_pinned", language: appState.language)) {
             if pinnedItems.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "pin.slash")
@@ -225,18 +172,14 @@ struct ClipboardSettingsView: View {
                         pinnedItemRow(item)
                     }
                 }
+                .padding(8)
             }
         }
     }
 
-    private var ignoredCards: some View {
-        Group {
-            SettingsCard(
-                icon: "app.badge",
-                iconColor: .red,
-                title: I18n.localized("clipboard_ignored_apps", language: appState.language),
-                description: nil
-            ) {
+    private var ignoredGroup: some View {
+        VStack(spacing: 20) {
+            SettingsGroup(I18n.localized("clipboard_ignored_apps", language: appState.language)) {
                 editableList(
                     placeholder: I18n.localized("clipboard_ignored_apps_placeholder", language: appState.language),
                     values: ignoredApplications,
@@ -244,39 +187,26 @@ struct ClipboardSettingsView: View {
                     add: addIgnoredApplication,
                     remove: removeIgnoredApplication
                 )
+                .padding(12)
             }
-
-            SettingsCard(
-                icon: "doc.badge.gearshape",
-                iconColor: .orange,
-                title: I18n.localized("clipboard_ignored_types", language: appState.language),
-                description: I18n.localized("clipboard_ignored_types_desc", language: appState.language)
-            ) {
-                editableList(
-                    placeholder: I18n.localized("clipboard_ignored_types_placeholder", language: appState.language),
-                    values: ignoredPasteboardTypes,
-                    newValue: $newIgnoredPasteboardType,
-                    add: addIgnoredPasteboardType,
-                    remove: removeIgnoredPasteboardType
-                )
-
-                Button(I18n.localized("clipboard_restore_ignored_types", language: appState.language)) {
-                    showingRestoreIgnoredTypesConfirmation = true
+            SettingsGroup(I18n.localized("clipboard_ignored_types", language: appState.language)) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(I18n.localized("clipboard_ignored_types_desc", language: appState.language))
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                    editableList(
+                        placeholder: I18n.localized("clipboard_ignored_types_placeholder", language: appState.language),
+                        values: ignoredPasteboardTypes,
+                        newValue: $newIgnoredPasteboardType,
+                        add: addIgnoredPasteboardType,
+                        remove: removeIgnoredPasteboardType
+                    )
+                    Button(I18n.localized("clipboard_restore_ignored_types", language: appState.language)) {
+                        showingRestoreIgnoredTypesConfirmation = true
+                    }
                 }
+                .padding(12)
             }
-        }
-    }
-
-    private func settingsRow<Content: View>(
-        _ title: String,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        HStack(alignment: .center, spacing: 12) {
-            Text(title)
-                .font(.system(size: 12, weight: .medium))
-                .frame(width: 150, alignment: .leading)
-            Spacer(minLength: 0)
-            content()
         }
     }
 
@@ -322,6 +252,22 @@ struct ClipboardSettingsView: View {
                 }
             }
         }
+    }
+
+    /// 记录类型胶囊开关：选中=accent 填充白字，未选=灰底
+    private func recordTypeChip(title: String, isOn: Binding<Bool>) -> some View {
+        Button(action: { isOn.wrappedValue.toggle() }) {
+            Text(title)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(isOn.wrappedValue ? Color.white : Color.primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 5)
+                .background(isOn.wrappedValue ? Color.accentColor : Color.primary.opacity(0.08))
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(isOn.wrappedValue ? .isSelected : [])
     }
 
     private func pinnedItemRow(_ item: ClipboardItem) -> some View {

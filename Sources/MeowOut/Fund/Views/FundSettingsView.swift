@@ -59,7 +59,7 @@ public struct FundSettingsView: View {
     public init() {}
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 20) {
             searchCard
             if !configStore.configs.isEmpty {
                 holdingsCard

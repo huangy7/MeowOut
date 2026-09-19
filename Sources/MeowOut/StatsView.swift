@@ -78,30 +78,17 @@ struct StatsView: View {
         .onAppear { refreshChartSnapshot() }
     }
 
-    private func subTabBinding(for selection: Binding<String>, tabs: [(id: String, key: String)]) -> Binding<String> {
-        Binding(
-            get: {
-                let currentId = selection.wrappedValue
-                let key = tabs.first { $0.id == currentId }?.key ?? tabs[0].key
-                return I18n.localized(key, language: state.language)
-            },
-            set: { newValue in
-                if let id = tabs.first(where: { I18n.localized($0.key, language: state.language) == newValue })?.id {
-                    selection.wrappedValue = id
-                }
-            }
-        )
+    private func pillItems(_ tabs: [(id: String, key: String)]) -> [PillTabItem] {
+        tabs.map { PillTabItem(id: $0.id, title: I18n.localized($0.key, language: state.language)) }
     }
 
     @ViewBuilder
     private var subTabBar: some View {
         switch selectedTab {
         case "logs":
-            PillTabBar(items: logsSubTabs.map { I18n.localized($0.key, language: state.language) },
-                       selection: subTabBinding(for: $selectedLogsSubTab, tabs: logsSubTabs))
+            PillTabBar(items: pillItems(logsSubTabs), selection: $selectedLogsSubTab)
         default:
-            PillTabBar(items: statsSubTabs.map { I18n.localized($0.key, language: state.language) },
-                       selection: subTabBinding(for: $selectedStatsSubTab, tabs: statsSubTabs))
+            PillTabBar(items: pillItems(statsSubTabs), selection: $selectedStatsSubTab)
         }
     }
 

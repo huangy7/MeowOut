@@ -51,20 +51,28 @@
 "settings_personality_strict" = "严厉";
 "settings_personality_tsundere" = "傲娇";
 "settings_personality_desc" = "改变宠物与你互动和交谈的方式。";
-"settings_pet_selection" = "选择宠物";
 "settings_cursor_chasing" = "启用光标追逐";
 "settings_cursor_chasing_desc" = "休息期间宠物会跟随你的鼠标。";
 "settings_global_scold" = "全局敲击警告";
 "settings_global_scold_desc" = "无论在任何应用中，只要敲击键盘，都会遭到小猫的责骂。需要辅助功能权限。";
 
 "settings_preview_title" = "行为预览";
-"settings_preview_desc" = "快速预览当前性格的小猫在预警和休息时的动画与台词表现。";
-"settings_preview_alerting" = "预览预警小猫";
-"settings_preview_resting" = "预览强制休息小猫";
+"settings_preview_desc" = "快速预览%@在预警和强制休息时的动画与台词表现。";
+"settings_preview_alerting" = "预警";
+"settings_preview_resting" = "强制休息";
 "settings_preview_stop" = "停止预览";
-"settings_section_system" = "系统";
 "settings_language" = "语言";
 "settings_language_system" = "跟随系统";
+"settings_appearance" = "外观";
+"settings_appearance_system" = "跟随系统";
+"settings_appearance_light" = "浅色";
+"settings_appearance_dark" = "深色";
+"settings_tab_memos" = "Memos";
+"settings_group_health" = "健康与宠物";
+"settings_group_tools" = "效率工具";
+"settings_group_data" = "数据记录";
+"settings_group_system" = "系统";
+"settings_update_badge_a11y" = "有可用更新";
 "settings_launch_at_login" = "登录时启动";
 "settings_launch_at_login_desc" = "登录时自动启动 MeowOut。";
 "stats_todays_goal" = "今日目标";
@@ -162,11 +170,6 @@
 "settings_tab_rest" = "休息提醒";
 "settings_tab_water" = "喝水提醒";
 
-"settings_subtab_goal" = "目标";
-"settings_subtab_durations" = "时长";
-"settings_subtab_alerts" = "提醒";
-"settings_subtab_general" = "常规";
-"settings_subtab_schedule" = "排程";
 "settings_subtab_pet" = "宠物";
 "settings_subtab_personality" = "性格";
 "settings_subtab_interactions" = "互动";
@@ -422,21 +425,18 @@
 "clipboard_enabled" = "启用剪贴板历史";
 "clipboard_enabled_desc" = "保留最近的剪贴板内容，方便快速复用。";
 "clipboard_shortcut" = "快捷键";
-"clipboard_storage" = "存储";
 "clipboard_history_limit" = "历史记录上限";
-"clipboard_record_types" = "记录内容";
 "clipboard_record_text" = "文本";
+"clipboard_record_types" = "记录类型";
 "clipboard_record_rich_text" = "富文本";
 "clipboard_record_images" = "图片";
 "clipboard_record_files" = "文件";
-"clipboard_behavior" = "行为";
 "clipboard_paste_automatically" = "自动粘贴";
 "clipboard_remove_formatting" = "默认移除格式";
 "clipboard_privacy" = "隐私";
 "clipboard_ignored_apps" = "忽略的应用 Bundle ID";
 "clipboard_ignored_types" = "忽略的剪贴板类型";
 "clipboard_restore_ignored_types" = "恢复默认忽略类型";
-"clipboard_management" = "管理";
 "clipboard_clear_unpinned" = "清除未固定历史";
 "clipboard_clear_all" = "清除全部历史";
 "clipboard_add" = "添加";
@@ -469,7 +469,6 @@
 "clipboard_accessibility_open_settings" = "打开系统设置";
 "clipboard_paste_plain_text_by_default" = "默认粘贴为纯文本";
 "clipboard_paste_plain_text_help" = "开启后，文本历史会尽量以纯文本写回剪贴板，去掉 RTF/HTML 样式。";
-"clipboard_pinned_desc" = "固定的剪贴板项目会在清理未固定历史时保留，并显示在普通项目前面。";
 "clipboard_no_pinned_items" = "暂无固定剪贴板项目";
 "clipboard_unpin" = "取消固定";
 "clipboard_copies" = "次复制";
@@ -492,7 +491,6 @@
 "clipboard_item_generic" = "剪贴板项目";
 
 // Advanced Power Settings
-"settings_subtab_power" = "高级电源";
 "power_clamshell_title" = "开启合盖不休眠";
 "power_clamshell_desc" = "此功能通过修改系统底层的 pmset disablesleep 配置项实现。";
 "power_clamshell_toggle" = "合盖不休眠";
@@ -503,7 +501,6 @@
 "power_clamshell_external_tip" = "此处已自动同步外部开启的状态。";
 "power_battery_title" = "低电量保护";
 "power_battery_desc" = "使用电池且电量低于设定值时，自动关闭防休眠以保护电池。设为 0 即为关闭该保护。";
-"power_battery_unit" = "电量: %lld%%";
 
 // Shelf
 "settings_tab_shelf" = "中转站";
@@ -579,3 +576,22 @@
 "fund_import_clipboard_empty" = "剪贴板中未检测到有效的基金 JSON 配置。";
 "fund_import_error" = "导入失败：%@";
 "fund_cancel" = "取消";
+
+/* Health & Rest */
+"settings_tab_health" = "健康作息";
+"settings_subtab_work_rest" = "工时休息";
+"settings_subtab_water" = "喝水提醒";
+"settings_subtab_daily_goals" = "每日目标";
+
+/* Tray Cards Customization */
+"rest_reminder_enabled" = "启用健康作息提醒";
+"rest_reminder_enabled_desc" = "开启后按设定间隔提醒休息与喝水；关闭后宠物静默不打扰，托盘亦不展示健康看板。";
+"quick_tools_enabled" = "在托盘中显示快捷操作";
+"quick_tools_enabled_desc" = "在菜单栏面板中展示防休眠、两步验证等快捷工具卡片。";
+
+/* Settings Value Presets */
+"settings_value_custom" = "自定义…";
+"settings_tab_general" = "通用";
+"settings_tab_power" = "电源";
+"unit_percent" = "%lld%%";
+"power_battery_off" = "关闭";

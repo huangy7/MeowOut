@@ -51,19 +51,27 @@
 "settings_personality_strict" = "Strict";
 "settings_personality_tsundere" = "Tsundere";
 "settings_personality_desc" = "Changes how the pet interacts and talks to you.";
-"settings_pet_selection" = "Select Pet";
 "settings_cursor_chasing" = "Enable Cursor Chasing";
 "settings_cursor_chasing_desc" = "The pet will follow your mouse during rest.";
 "settings_global_scold" = "Global Keyboard Scold";
 "settings_global_scold_desc" = "Pet will scold you if you type in any app during break. Requires Accessibility permission.";
 "settings_preview_title" = "Behavior Preview";
-"settings_preview_desc" = "Quickly preview the animations and dialogue of the current personality during alerting and resting phases.";
-"settings_preview_alerting" = "Preview Alerting Cat";
-"settings_preview_resting" = "Preview Resting Cat";
+"settings_preview_desc" = "Quickly preview how %@ animates and talks when alerting and resting.";
+"settings_preview_alerting" = "Alert";
+"settings_preview_resting" = "Forced Rest";
 "settings_preview_stop" = "Stop Preview";
-"settings_section_system" = "System";
 "settings_language" = "Language";
 "settings_language_system" = "System Default";
+"settings_appearance" = "Appearance";
+"settings_appearance_system" = "System";
+"settings_appearance_light" = "Light";
+"settings_appearance_dark" = "Dark";
+"settings_tab_memos" = "Memos";
+"settings_group_health" = "Health & Pet";
+"settings_group_tools" = "Productivity";
+"settings_group_data" = "Data & Records";
+"settings_group_system" = "System";
+"settings_update_badge_a11y" = "Update available";
 "settings_launch_at_login" = "Launch at Login";
 "settings_launch_at_login_desc" = "Start MeowOut automatically when you log in.";
 "stats_todays_goal" = "Today's Goal";
@@ -161,11 +169,6 @@
 "settings_tab_rest" = "Rest Reminder";
 "settings_tab_water" = "Water Reminder";
 
-"settings_subtab_goal" = "Goal";
-"settings_subtab_durations" = "Durations";
-"settings_subtab_alerts" = "Alerts";
-"settings_subtab_general" = "General";
-"settings_subtab_schedule" = "Schedule";
 "settings_subtab_pet" = "Pet";
 "settings_subtab_personality" = "Personality";
 "settings_subtab_interactions" = "Interactions";
@@ -420,21 +423,18 @@
 "clipboard_enabled" = "Enable Clipboard History";
 "clipboard_enabled_desc" = "Keep recent clipboard items for quick reuse.";
 "clipboard_shortcut" = "Shortcut";
-"clipboard_storage" = "Storage";
 "clipboard_history_limit" = "History Limit";
-"clipboard_record_types" = "Record Content";
 "clipboard_record_text" = "Text";
+"clipboard_record_types" = "Record Types";
 "clipboard_record_rich_text" = "Rich Text";
 "clipboard_record_images" = "Images";
 "clipboard_record_files" = "Files";
-"clipboard_behavior" = "Behavior";
 "clipboard_paste_automatically" = "Paste Automatically";
 "clipboard_remove_formatting" = "Remove Formatting by Default";
 "clipboard_privacy" = "Privacy";
 "clipboard_ignored_apps" = "Ignored App Bundle IDs";
 "clipboard_ignored_types" = "Ignored Pasteboard Types";
 "clipboard_restore_ignored_types" = "Restore Default Ignored Types";
-"clipboard_management" = "Management";
 "clipboard_clear_unpinned" = "Clear Unpinned History";
 "clipboard_clear_all" = "Clear All History";
 "clipboard_add" = "Add";
@@ -467,7 +467,6 @@
 "clipboard_accessibility_open_settings" = "Open System Settings";
 "clipboard_paste_plain_text_by_default" = "Paste as Plain Text by Default";
 "clipboard_paste_plain_text_help" = "When enabled, text history is copied back as plain text whenever possible.";
-"clipboard_pinned_desc" = "Pinned clipboard items are kept when clearing unpinned history and are shown before regular items.";
 "clipboard_no_pinned_items" = "No pinned clipboard items";
 "clipboard_unpin" = "Unpin";
 "clipboard_copies" = "copies";
@@ -490,7 +489,6 @@
 "clipboard_item_generic" = "Clipboard Item";
 
 // Advanced Power Settings
-"settings_subtab_power" = "Power";
 "power_clamshell_title" = "Clamshell Mode";
 "power_clamshell_desc" = "This feature works by modifying the system's underlying pmset disablesleep configuration.";
 "power_clamshell_toggle" = "Clamshell Mode";
@@ -501,7 +499,6 @@
 "power_clamshell_external_tip" = "Status synced from external configuration.";
 "power_battery_title" = "Battery Protection";
 "power_battery_desc" = "Automatically disable keep awake when on battery and below threshold. 0 means disabled.";
-"power_battery_unit" = "Battery: %lld%%";
 
 // Shelf
 "settings_tab_shelf" = "Shelf";
@@ -576,3 +573,22 @@
 "fund_import_clipboard_empty" = "No valid fund JSON configuration found in clipboard.";
 "fund_import_error" = "Import failed: %@";
 "fund_cancel" = "Cancel";
+
+/* Health & Rest */
+"settings_tab_health" = "Health & Rest";
+"settings_subtab_work_rest" = "Work & Rest";
+"settings_subtab_water" = "Hydration";
+"settings_subtab_daily_goals" = "Daily Goals";
+
+/* Tray Cards Customization */
+"rest_reminder_enabled" = "Enable Health & Rest Reminders";
+"rest_reminder_enabled_desc" = "Remind you to take breaks and stay hydrated on schedule. When disabled, pets remain calm and the dashboard card is hidden.";
+"quick_tools_enabled" = "Show Quick Actions in Menu";
+"quick_tools_enabled_desc" = "Display Keep-Awake, 2FA, and shortcuts card in the menu bar panel.";
+
+/* Settings Value Presets */
+"settings_value_custom" = "Custom…";
+"settings_tab_general" = "General";
+"settings_tab_power" = "Power";
+"unit_percent" = "%lld%%";
+"power_battery_off" = "Off";

@@ -1,9 +1,10 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 Vorssaint
-
 import AppKit
 import ImageIO
 
+/// 图像与文件缩略图生成器
+///
+/// 基于 CoreGraphics `CGImageSourceCreateThumbnailAtIndex` 进行硬解码下采样，
+/// 规避将超大原始位图直接装载至主显存，在拖拽暂存时实现超低内存占用与高保真渲染。
 enum ImageThumbnailer {
     static let defaultPointSize: CGFloat = 20
 

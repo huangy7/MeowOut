@@ -1,12 +1,10 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 Vorssaint
-
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Contents of the floating shelf panel: a header (a move handle plus actions)
-/// and the item tiles. Dropping onto the card adds items; the tiles themselves
-/// are AppKit, so they can drag several selected items out at once.
+/// 原生「文件中转站」悬浮面板视图
+///
+/// 呈现高保真毛玻璃卡片、头部拖拽把手以及暂存瓦片集合。支持多数据源拖拽暂存，
+/// 内部基于 AppKit 原生层承载高灵敏度的多项勾选与向外再拖拽分发。
 struct ShelfView: View {
     @EnvironmentObject private var shelf: ShelfService
     @Environment(AppState.self) private var appState
@@ -107,7 +105,7 @@ struct ShelfView: View {
         .buttonStyle(.plain)
         .foregroundStyle(.secondary)
         .onHover { closeButtonHovered = $0 }
-        .help(I18n.localized("menu_quit", language: appState.language)) // TODO: add specific close translation if needed
+        .help(I18n.localized("memos_action_close_window", language: appState.language))
     }
 
     private var bottomBar: some View {

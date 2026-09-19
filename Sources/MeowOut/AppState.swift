@@ -69,7 +69,7 @@ public final class AppState {
         }
     }
 
-    private enum Keys: String {
+    enum Keys: String {
         case workDurationMinutes
         case alertBeforeRestMinutes
         case restDurationMinutes
@@ -99,6 +99,9 @@ public final class AppState {
         case currentLauncherRingIndex
         case todayEscapeCount
         case useClassicTrayIcon
+        case enableRestReminder
+        case showQuickToolsCard
+        case appearanceMode
     }
 
     public enum LauncherTriggerMode: String, Codable, CaseIterable, Identifiable {
@@ -137,6 +140,18 @@ public final class AppState {
         }
     }
 
+    public enum AppearanceMode: String, CaseIterable, Identifiable {
+        case system, light, dark
+        public var id: String { rawValue }
+        public func displayName(currentLanguage: AppLanguage) -> String {
+            switch self {
+            case .system: return I18n.localized("settings_appearance_system", language: currentLanguage)
+            case .light: return I18n.localized("settings_appearance_light", language: currentLanguage)
+            case .dark: return I18n.localized("settings_appearance_dark", language: currentLanguage)
+            }
+        }
+    }
+
     public enum WaterReminderMode: String, CaseIterable, Identifiable {
         case followRhythm = "followRhythm"
         case custom = "custom"
@@ -167,6 +182,18 @@ public final class AppState {
         }
     }
 
+    public var appearanceMode: AppearanceMode {
+        get {
+            access(keyPath: \.appearanceMode)
+            return AppearanceMode(rawValue: UserDefaults.standard.string(forKey: Keys.appearanceMode.rawValue) ?? "system") ?? .system
+        }
+        set {
+            withMutation(keyPath: \.appearanceMode) {
+                UserDefaults.standard.set(newValue.rawValue, forKey: Keys.appearanceMode.rawValue)
+            }
+        }
+    }
+
     public var useClassicTrayIcon: Bool {
         get {
             access(keyPath: \.useClassicTrayIcon)
@@ -175,6 +202,45 @@ public final class AppState {
         set {
             withMutation(keyPath: \.useClassicTrayIcon) {
                 UserDefaults.standard.set(newValue, forKey: Keys.useClassicTrayIcon.rawValue)
+            }
+        }
+    }
+
+    public var enableRestReminder: Bool {
+        get {
+            access(keyPath: \.enableRestReminder)
+            return UserDefaults.standard.object(forKey: Keys.enableRestReminder.rawValue) as? Bool ?? true
+        }
+        set {
+            withMutation(keyPath: \.enableRestReminder) {
+                UserDefaults.standard.set(newValue, forKey: Keys.enableRestReminder.rawValue)
+                if !newValue {
+                    NotificationCenter.default.post(name: NSNotification.Name.dismissWaterReminderBubble, object: nil)
+                    if currentState == .alerting || currentState == .resting || currentState == .overworking {
+                        currentState = .working
+                        if Thread.isMainThread {
+                            MainActor.assumeIsolated {
+                                ScreenOverlayService.shared.stop()
+                            }
+                        } else {
+                            Task { @MainActor in
+                                ScreenOverlayService.shared.stop()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public var showQuickToolsCard: Bool {
+        get {
+            access(keyPath: \.showQuickToolsCard)
+            return UserDefaults.standard.object(forKey: Keys.showQuickToolsCard.rawValue) as? Bool ?? true
+        }
+        set {
+            withMutation(keyPath: \.showQuickToolsCard) {
+                UserDefaults.standard.set(newValue, forKey: Keys.showQuickToolsCard.rawValue)
             }
         }
     }
@@ -526,8 +592,7 @@ public final class AppState {
     public var waterCustomInterval: Int {
         get {
             access(keyPath: \.waterCustomInterval)
-            let val = UserDefaults.standard.integer(forKey: Keys.waterCustomInterval.rawValue)
-            return val != 0 ? val : 45
+            return (UserDefaults.standard.object(forKey: Keys.waterCustomInterval.rawValue) as? Int) ?? 45
         }
         set {
             withMutation(keyPath: \.waterCustomInterval) {
@@ -836,7 +901,17 @@ public final class AppState {
         }
     }
 
+    public func resetAllSettings() {
+        resetToDefaults()
+    }
+
     public func resetToDefaults() {
+        withMutation(keyPath: \.enableRestReminder) {
+            UserDefaults.standard.removeObject(forKey: Keys.enableRestReminder.rawValue)
+        }
+        withMutation(keyPath: \.showQuickToolsCard) {
+            UserDefaults.standard.removeObject(forKey: Keys.showQuickToolsCard.rawValue)
+        }
         withMutation(keyPath: \.workDurationMinutes) {
             UserDefaults.standard.removeObject(forKey: Keys.workDurationMinutes.rawValue)
         }
@@ -867,6 +942,9 @@ public final class AppState {
     }
 
     public func resetIntervalsToDefaults() {
+        withMutation(keyPath: \.enableRestReminder) {
+            UserDefaults.standard.removeObject(forKey: Keys.enableRestReminder.rawValue)
+        }
         withMutation(keyPath: \.workDurationMinutes) {
             UserDefaults.standard.removeObject(forKey: Keys.workDurationMinutes.rawValue)
         }
@@ -881,6 +959,18 @@ public final class AppState {
         }
         withMutation(keyPath: \.dailyWorkGoal) {
             UserDefaults.standard.removeObject(forKey: "dailyWorkGoal")
+        }
+        withMutation(keyPath: \.waterReminderEnabled) {
+            UserDefaults.standard.removeObject(forKey: Keys.waterReminderEnabled.rawValue)
+        }
+        withMutation(keyPath: \.waterReminderMode) {
+            UserDefaults.standard.removeObject(forKey: Keys.waterReminderMode.rawValue)
+        }
+        withMutation(keyPath: \.waterCustomInterval) {
+            UserDefaults.standard.removeObject(forKey: Keys.waterCustomInterval.rawValue)
+        }
+        withMutation(keyPath: \.dailyWaterGoal) {
+            UserDefaults.standard.removeObject(forKey: Keys.dailyWaterGoal.rawValue)
         }
     }
 
@@ -944,3 +1034,8 @@ extension AppState.PetType {
         }
     }
 }
+
+extension NSNotification.Name {
+    public static let dismissWaterReminderBubble = NSNotification.Name("DismissWaterReminderBubble")
+}
+

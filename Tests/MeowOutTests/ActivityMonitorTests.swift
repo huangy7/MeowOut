@@ -3,6 +3,20 @@ import XCTest
 
 @MainActor
 final class ActivityMonitorTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.enableRestReminder.rawValue)
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.workDurationMinutes.rawValue)
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.alertBeforeRestMinutes.rawValue)
+    }
+
+    override func tearDown() {
+        super.tearDown()
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.enableRestReminder.rawValue)
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.workDurationMinutes.rawValue)
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.alertBeforeRestMinutes.rawValue)
+    }
+
     func testThresholdTransitions() {
         let state = AppState()
         // Override for fast testing using the new persistent properties
@@ -167,5 +181,73 @@ final class ActivityMonitorTests: XCTestCase {
         // Transition back to working happens inside resting block, so isWalking is false on this tick
         XCTAssertFalse(state.isWalking)
     }
+
+    func testDisabledRestReminderDoesNotTriggerAlertOrRest() {
+        let state = AppState()
+        state.enableRestReminder = false
+        state.workDurationMinutes = 2
+        state.alertBeforeRestMinutes = 1
+        
+        let monitor = ActivityMonitor(appState: state)
+        
+        // Simulate 70s active work (would normally trigger alerting because 70 > 60)
+        monitor.tick(simulatedIdleTime: 0, dt: 70)
+        XCTAssertEqual(state.currentState, .working, "State must remain .working when rest reminder is disabled")
+        
+        // Simulate another 60s active work (total 130s, would normally trigger resting because 130 > 120)
+        monitor.tick(simulatedIdleTime: 0, dt: 60)
+        XCTAssertEqual(state.currentState, .working, "State must remain .working when rest reminder is disabled")
+        
+        // But workElapsed should still accumulate normally for daily stats
+        XCTAssertGreaterThanOrEqual(state.workElapsed, 130)
+    }
+
+    func testDynamicDisabledRestReminderConvergesToWorking() {
+        let state = AppState()
+        let monitor = ActivityMonitor(appState: state)
+        
+        // 1. Resting -> Working
+        state.enableRestReminder = true
+        state.currentState = .resting
+        state.restRemaining = 60
+        state.enableRestReminder = false
+        monitor.tick(simulatedIdleTime: 0, dt: 1)
+        XCTAssertEqual(state.currentState, .working)
+        
+        // Also verify convergence via tick directly when resting
+        state.currentState = .resting
+        state.restRemaining = 60
+        monitor.tick(simulatedIdleTime: 0, dt: 1)
+        XCTAssertEqual(state.currentState, .working)
+        XCTAssertEqual(state.restRemaining, 0)
+        
+        // 2. Overworking -> Working
+        state.enableRestReminder = true
+        state.currentState = .overworking
+        state.restRemaining = 60
+        state.enableRestReminder = false
+        monitor.tick(simulatedIdleTime: 0, dt: 1)
+        XCTAssertEqual(state.currentState, .working)
+        
+        // Also verify convergence via tick directly when overworking
+        state.currentState = .overworking
+        state.restRemaining = 60
+        monitor.tick(simulatedIdleTime: 0, dt: 1)
+        XCTAssertEqual(state.currentState, .working)
+        XCTAssertEqual(state.restRemaining, 0)
+        
+        // 3. Alerting -> Working
+        state.enableRestReminder = true
+        state.currentState = .alerting
+        state.enableRestReminder = false
+        monitor.tick(simulatedIdleTime: 0, dt: 1)
+        XCTAssertEqual(state.currentState, .working)
+        
+        // Also verify convergence via tick directly when alerting
+        state.currentState = .alerting
+        monitor.tick(simulatedIdleTime: 0, dt: 1)
+        XCTAssertEqual(state.currentState, .working)
+    }
 }
+
 

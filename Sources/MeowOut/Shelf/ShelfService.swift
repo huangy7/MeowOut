@@ -1,19 +1,14 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 Vorssaint
-
 import AppKit
 import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 import KeyboardShortcuts
 
-/// A floating "shelf" that holds files, images, text and links you drop on it,
-/// to drag back out into any app later. It's summoned at the cursor by a global
-/// shortcut or, optionally, by shaking the mouse mid-drag. Items live
-/// only while the app runs.
+/// 原生「文件中转站」全局悬浮服务控制器
 ///
-/// No permissions required: the shortcut is a Carbon hot key, and the shake
-/// detector is a passive global mouse monitor.
+/// 管理临时文件、图像、文本及超链接的拖拽暂存与再分发。支持通过全局 Carbon 热键
+/// 或拖拽中途鼠标微摇晃（Passive Mouse Monitoring）即时在光标处呼出高层级悬浮面板。
+/// 暂存数据驻留在独立沙盒缓存中，应用退出或面板清空时自动完成内存与磁盘资源回收。
 final class ShelfService: ObservableObject {
     static let shared = ShelfService()
     var appState: AppState!
@@ -94,17 +89,16 @@ final class ShelfService: ObservableObject {
     }
 
     private let tempDir: URL = {
-        let id = Bundle.main.bundleIdentifier ?? "com.vorssaint.utils"
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.huangy.MeowOut"
         let dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("VorssaintShelf", isDirectory: true)
-            .appendingPathComponent(id, isDirectory: true)
+            .appendingPathComponent("MeowOutShelf", isDirectory: true)
+            .appendingPathComponent(bundleID, isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }()
 
     private init() {
         cleanTemporaryFiles()
-        cleanLegacyTemporaryFiles()
     }
 
     var isVisible: Bool { panel?.isVisible == true }
@@ -861,18 +855,6 @@ final class ShelfService: ObservableObject {
                                                         includingPropertiesForKeys: nil) else { return }
         for url in entries where isShelfTemporaryFile(url) {
             try? fm.removeItem(at: url)
-        }
-    }
-
-    private func cleanLegacyTemporaryFiles() {
-        let legacyDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("VorssaintShelf", isDirectory: true)
-        guard legacyDir != tempDir,
-              let entries = try? FileManager.default.contentsOfDirectory(at: legacyDir,
-                                                                         includingPropertiesForKeys: nil)
-        else { return }
-        for url in entries where url.pathExtension.lowercased() == "png" {
-            try? FileManager.default.removeItem(at: url)
         }
     }
 

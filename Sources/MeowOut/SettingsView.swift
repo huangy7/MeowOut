@@ -10,128 +10,68 @@ struct SettingsView: View {
     @State private var isAwaitingAccessibilityForKeyDrop = false
     @State private var accessibilityStatus = AXIsProcessTrusted()
     @State private var selectedTab: String = "rest"
-    
+
     @ObservedObject private var clamshell = ClamshellManager.shared
     @AppStorage("batteryProtectionThreshold") private var batteryProtectionThreshold = 0
+    @AppStorage("showSystemMonitorCard") private var showSystemMonitorCard = true
 
-    // Sub-tab selection identifiers
-    @State private var selectedRestSubTab: String = "goal"
-    @State private var selectedWaterSubTab: String = "general"
-    @State private var selectedBehaviorSubTab: String = "pet"
-    @State private var selectedSystemSubTab: String = "general"
-    @State private var selectedClipboardSubTab: String = "general"
-
-    private var restSubTabs: [(id: String, key: String)] {
-        [
-            ("goal", "settings_subtab_goal"),
-            ("durations", "settings_subtab_durations"),
-            ("alerts", "settings_subtab_alerts")
-        ]
-    }
-
-    private var waterSubTabs: [(id: String, key: String)] {
-        [
-            ("general", "settings_subtab_general"),
-            ("schedule", "settings_subtab_schedule"),
-            ("goal", "settings_subtab_goal")
-        ]
-    }
-
-    private var behaviorSubTabs: [(id: String, key: String)] {
-        [
-            ("pet", "settings_subtab_pet"),
-            ("personality", "settings_subtab_personality"),
-            ("interactions", "settings_subtab_interactions")
-        ]
-    }
-
-    private var systemSubTabs: [(id: String, key: String)] {
-        [
-            ("general", "settings_subtab_general"),
-            ("power", "settings_subtab_power"),
-            ("about", "settings_subtab_about")
-        ]
-    }
-
-    private var clipboardSubTabs: [(id: String, key: String)] {
-        [
-            ("general", "clipboard_tab_general"),
-            ("storage", "clipboard_tab_storage"),
-            ("pinned", "clipboard_tab_pinned"),
-            ("ignored", "clipboard_tab_ignored")
-        ]
-    }
-
-    private var sidebarItems: [SidebarItem] {
+    private var sidebarSections: [SidebarSection] {
         let hasPendingUpdate = UpdateChecker.shared.hasPendingUpdate
+        let lang = state.language
         return [
-            SidebarItem(id: "rest", title: I18n.localized("settings_tab_rest", language: state.language), icon: "timer"),
-            SidebarItem(id: "water", title: I18n.localized("settings_tab_water", language: state.language), icon: "drop.fill"),
-            SidebarItem(id: "behavior", title: I18n.localized("settings_section_behavior", language: state.language), icon: "cat.circle"),
-            SidebarItem(id: "keydrop", title: I18n.localized("settings_tab_keydrop", language: state.language), icon: "keyboard"),
-            SidebarItem(id: "clipboard", title: I18n.localized("settings_tab_clipboard", language: state.language), icon: "clipboard"),
-            SidebarItem(id: "shelf", title: I18n.localized("settings_tab_shelf", language: state.language), icon: "tray.and.arrow.down"),
-            SidebarItem(id: "quick_actions", title: I18n.localized("menu_quick_actions", language: state.language), icon: "bolt.fill"),
-            SidebarItem(id: "fund", title: I18n.localized("settings_tab_fund", language: state.language), icon: "chart.line.uptrend.xyaxis"),
-            SidebarItem(id: "memos", title: "Memos", icon: "note.text"),
-            SidebarItem(id: "permissions", title: I18n.localized("settings_tab_permissions", language: state.language), icon: "lock.shield"),
-            SidebarItem(id: "system", title: I18n.localized("settings_section_system", language: state.language), icon: "gearshape", hasBadge: hasPendingUpdate),
+            SidebarSection(id: "health", title: I18n.localized("settings_group_health", language: lang), items: [
+                SidebarItem(id: "rest", title: I18n.localized("settings_tab_health", language: lang), icon: "heart.text.square", iconColor: .pink),
+                SidebarItem(id: "behavior", title: I18n.localized("settings_section_behavior", language: lang), icon: "cat.circle", iconColor: .orange),
+            ]),
+            SidebarSection(id: "tools", title: I18n.localized("settings_group_tools", language: lang), items: [
+                SidebarItem(id: "keydrop", title: I18n.localized("settings_tab_keydrop", language: lang), icon: "keyboard", iconColor: .indigo),
+                SidebarItem(id: "clipboard", title: I18n.localized("settings_tab_clipboard", language: lang), icon: "clipboard", iconColor: .green),
+                SidebarItem(id: "shelf", title: I18n.localized("settings_tab_shelf", language: lang), icon: "tray.and.arrow.down", iconColor: .cyan),
+                SidebarItem(id: "quick_actions", title: I18n.localized("menu_quick_actions", language: lang), icon: "bolt.fill", iconColor: .yellow),
+            ]),
+            SidebarSection(id: "data", title: I18n.localized("settings_group_data", language: lang), items: [
+                SidebarItem(id: "fund", title: I18n.localized("settings_tab_fund", language: lang), icon: "chart.line.uptrend.xyaxis", iconColor: .red),
+                SidebarItem(id: "memos", title: I18n.localized("settings_tab_memos", language: lang), icon: "note.text", iconColor: .purple),
+            ]),
+            SidebarSection(id: "system", title: I18n.localized("settings_group_system", language: lang), items: [
+                SidebarItem(id: "general", title: I18n.localized("settings_tab_general", language: lang), icon: "gearshape", iconColor: Color(nsColor: .systemGray)),
+                SidebarItem(id: "power", title: I18n.localized("settings_tab_power", language: lang), icon: "bolt.circle", iconColor: .teal),
+                SidebarItem(id: "permissions", title: I18n.localized("settings_tab_permissions", language: lang), icon: "lock.shield", iconColor: .blue),
+                SidebarItem(id: "about", title: I18n.localized("settings_subtab_about", language: lang), icon: "info.circle", iconColor: .brown, hasBadge: hasPendingUpdate),
+            ]),
         ]
     }
 
     var body: some View {
         HStack(spacing: 0) {
-            SidebarTabBar(items: sidebarItems, selection: $selectedTab)
+            SidebarTabBar(sections: sidebarSections, selection: $selectedTab)
             Divider()
-            
-            VStack(alignment: .leading, spacing: 0) {
-                // Second level: Pill Tabs
-                HStack {
-                    subTabBar
-                    Spacer()
-                    if selectedTab == "rest" {
-                        Button(action: {
-                            state.resetIntervalsToDefaults()
-                        }) {
-                            Image(systemName: "arrow.counterclockwise")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(.secondary)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 20) {
+                    Group {
+                        switch selectedTab {
+                        case "behavior": behaviorCards
+                        case "keydrop": keyDropCards
+                        case "clipboard": ClipboardSettingsView()
+                        case "shelf": ShelfSettingsView()
+                        case "quick_actions": QuickActionsSettingsView(state: state)
+                        case "fund": FundSettingsView()
+                        case "memos": MemosSettingsView(state: state)
+                        case "permissions": permissionsCards
+                        case "general": generalCards
+                        case "power": powerCards
+                        case "about": aboutCards
+                        default: restCards
                         }
-                        .buttonStyle(.plain)
-                        .help(I18n.localized("settings_restore_defaults", language: state.language))
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 20)
-                .padding(.bottom, 16)
-                
-                // Third level: Card List
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 16) {
-                        Group {
-                            switch selectedTab {
-                            case "water": waterCards
-                            case "behavior": behaviorCards
-                            case "keydrop": keyDropCards
-                            case "clipboard": ClipboardSettingsView(selectedTab: selectedClipboardSubTab)
-                            case "shelf": ShelfSettingsView()
-                            case "quick_actions": QuickActionsSettingsView(state: state)
-                            case "fund": FundSettingsView()
-                            case "memos": MemosSettingsView(state: state)
-                            case "permissions": permissionsCards
-                            case "system": systemCards
-                            default: restCards
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
-                }
+                .padding(.vertical, 20)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: 580, height: 550)
-        .background(VisualEffectView().ignoresSafeArea())
+        .frame(minWidth: 620, idealWidth: 660, minHeight: 560, idealHeight: 580)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willBecomeActiveNotification)) { _ in
             let trusted = AXIsProcessTrusted()
             accessibilityStatus = trusted
@@ -164,8 +104,7 @@ struct SettingsView: View {
     private func applyPendingNavigationTarget() {
         switch state.settingsNavigationTarget {
         case .update:
-            selectedTab = "system"
-            selectedSystemSubTab = "about"
+            selectedTab = "about"
             state.settingsNavigationTarget = nil
         case .permissions:
             selectedTab = "permissions"
@@ -181,310 +120,298 @@ struct SettingsView: View {
         }
     }
 
-    private func subTabBinding(for selection: Binding<String>, tabs: [(id: String, key: String)]) -> Binding<String> {
-        Binding(
-            get: {
-                let currentId = selection.wrappedValue
-                let key = tabs.first { $0.id == currentId }?.key ?? tabs[0].key
-                return I18n.localized(key, language: state.language)
-            },
-            set: { newValue in
-                if let id = tabs.first(where: { I18n.localized($0.key, language: state.language) == newValue })?.id {
-                    selection.wrappedValue = id
-                }
-            }
-        )
-    }
-
-    @ViewBuilder
-    private var subTabBar: some View {
-        switch selectedTab {
-        case "rest":
-            PillTabBar(items: restSubTabs.map { I18n.localized($0.key, language: state.language) },
-                       selection: subTabBinding(for: $selectedRestSubTab, tabs: restSubTabs))
-        case "water":
-            PillTabBar(items: waterSubTabs.map { I18n.localized($0.key, language: state.language) },
-                       selection: subTabBinding(for: $selectedWaterSubTab, tabs: waterSubTabs))
-        case "behavior":
-            PillTabBar(items: behaviorSubTabs.map { I18n.localized($0.key, language: state.language) },
-                       selection: subTabBinding(for: $selectedBehaviorSubTab, tabs: behaviorSubTabs))
-        case "clipboard":
-            PillTabBar(items: clipboardSubTabs.map { I18n.localized($0.key, language: state.language) },
-                       selection: subTabBinding(for: $selectedClipboardSubTab, tabs: clipboardSubTabs))
-        case "system":
-            let aboutTitle = I18n.localized("settings_subtab_about", language: state.language)
-            PillTabBar(items: systemSubTabs.map { I18n.localized($0.key, language: state.language) },
-                       badgeItems: UpdateChecker.shared.hasPendingUpdate ? [aboutTitle] : [],
-                       selection: subTabBinding(for: $selectedSystemSubTab, tabs: systemSubTabs))
-        default:
-            EmptyView()
-        }
-    }
-
     @ViewBuilder
     private var restCards: some View {
-        if selectedRestSubTab == "goal" {
-            SettingsCard(
-                icon: "target",
-                iconColor: .orange,
-                title: I18n.localized("stats_todays_goal", language: state.language),
-                description: I18n.localizedFormat("stats_setting_goal", language: state.language, Int64(state.dailyWorkGoal))
-            ) {
-                settingSlider(value: Binding(get: { Double(state.dailyWorkGoal) }, set: { state.dailyWorkGoal = Int($0) }), in: 4...12, step: 1, unit: "unit_hours")
+        VStack(spacing: 20) {
+        // 分组 1：工时休息
+        HStack {
+            Text(I18n.localized("settings_subtab_work_rest", language: state.language))
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button(action: { state.resetIntervalsToDefaults() }) {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
             }
-        } else if selectedRestSubTab == "durations" {
-            VStack(spacing: 16) {
-                SettingsCard(
-                    icon: "timer",
-                    iconColor: .blue,
-                    title: I18n.localized("settings_work_duration", language: state.language),
-                    description: I18n.localized("settings_work_duration_desc", language: state.language)
-                ) {
-                    settingSlider(value: Binding(get: { Double(state.workDurationMinutes) }, set: { state.workDurationMinutes = Int($0) }), in: 15...120, step: 5, unit: "unit_minutes_short")
-                }
-
-                SettingsCard(
-                    icon: "clock.fill",
-                    iconColor: .green,
-                    title: I18n.localized("settings_rest_duration", language: state.language),
-                    description: I18n.localized("settings_rest_duration_desc", language: state.language)
-                ) {
-                    settingSlider(value: Binding(get: { Double(state.restDurationMinutes) }, set: { state.restDurationMinutes = Int($0) }), in: 1...30, step: 1, unit: "unit_minutes_short")
-                }
-
-                SettingsCard(
-                    icon: "arrow.clockwise",
-                    iconColor: .purple,
-                    title: I18n.localized("settings_rest_to_reset", language: state.language),
-                    description: I18n.localized("settings_rest_to_reset_desc", language: state.language)
-                ) {
-                    settingSlider(value: Binding(get: { Double(state.restToResetMinutes) }, set: { state.restToResetMinutes = Int($0) }), in: 2...30, step: 1, unit: "unit_minutes_short")
-                }
-            }
-        } else if selectedRestSubTab == "alerts" {
-            SettingsCard(
-                icon: "bell.badge.fill",
-                iconColor: .red,
-                title: I18n.localized("settings_alert_notice", language: state.language),
-                description: I18n.localized("settings_alert_notice_desc", language: state.language)
-            ) {
-                settingSlider(value: Binding(get: { Double(state.alertBeforeRestMinutes) }, set: { state.alertBeforeRestMinutes = Int($0) }), in: 1...15, step: 1, unit: "unit_minutes_short")
-            }
+            .buttonStyle(.plain)
+            .help(I18n.localized("settings_restore_defaults", language: state.language))
+            .accessibilityLabel(I18n.localized("settings_restore_defaults", language: state.language))
         }
-    }
-
-    @ViewBuilder
-    private var waterCards: some View {
-        switch selectedWaterSubTab {
-        case "general":
-            SettingsCard(icon: "drop.fill", iconColor: .blue, title: I18n.localized("water_settings_enabled", language: state.language), description: nil) {
-                Toggle(isOn: $state.waterReminderEnabled) {
-                    Text(I18n.localized("water_settings_enabled", language: state.language))
-                }
-                .toggleStyle(.switch)
+        .padding(.horizontal, 12)
+        SettingsGroup {
+            SettingsRow(I18n.localized("rest_reminder_enabled", language: state.language),
+                        description: I18n.localized("rest_reminder_enabled_desc", language: state.language)) {
+                Toggle("", isOn: $state.enableRestReminder)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
             }
-        case "schedule":
-            VStack(spacing: 16) {
-                SettingsCard(icon: "clock.fill", iconColor: .cyan, title: I18n.localized("water_settings_mode", language: state.language), description: nil) {
+
+            Group {
+                SettingsRowDivider()
+                PresetValueRow(title: I18n.localized("settings_work_duration", language: state.language),
+                               description: I18n.localized("settings_work_duration_desc", language: state.language),
+                               value: $state.workDurationMinutes,
+                               preset: .workDuration,
+                               unitKey: "unit_minutes_short",
+                               language: state.language)
+                SettingsRowDivider()
+                PresetValueRow(title: I18n.localized("settings_rest_duration", language: state.language),
+                               description: I18n.localized("settings_rest_duration_desc", language: state.language),
+                               value: $state.restDurationMinutes,
+                               preset: .restDuration,
+                               unitKey: "unit_minutes_short",
+                               language: state.language)
+                SettingsRowDivider()
+                PresetValueRow(title: I18n.localized("settings_alert_notice", language: state.language),
+                               description: I18n.localized("settings_alert_notice_desc", language: state.language),
+                               value: $state.alertBeforeRestMinutes,
+                               preset: .alertBefore,
+                               unitKey: "unit_minutes_short",
+                               language: state.language)
+                SettingsRowDivider()
+                PresetValueRow(title: I18n.localized("settings_rest_to_reset", language: state.language),
+                               description: I18n.localized("settings_rest_to_reset_desc", language: state.language),
+                               value: $state.restToResetMinutes,
+                               preset: .restToReset,
+                               unitKey: "unit_minutes_short",
+                               language: state.language)
+            }
+            .disabled(!state.enableRestReminder)
+            .opacity(state.enableRestReminder ? 1.0 : 0.5)
+        }
+
+        // 分组 2：喝水提醒
+        SettingsGroup(I18n.localized("settings_subtab_water", language: state.language)) {
+            SettingsRow(I18n.localized("water_settings_enabled", language: state.language)) {
+                Toggle("", isOn: $state.waterReminderEnabled)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+            }
+
+            Group {
+                SettingsRowDivider()
+                SettingsRow(I18n.localized("water_settings_mode", language: state.language)) {
                     Picker("", selection: $state.waterReminderMode) {
                         Text(I18n.localized("water_settings_mode_rhythm", language: state.language)).tag(AppState.WaterReminderMode.followRhythm)
                         Text(I18n.localized("water_settings_mode_custom", language: state.language)).tag(AppState.WaterReminderMode.custom)
                     }
                     .pickerStyle(.segmented)
+                    .fixedSize()
                 }
 
                 if state.waterReminderMode == .custom {
-                    SettingsCard(icon: "timer", iconColor: .blue, title: I18n.localized("water_settings_interval", language: state.language), description: nil) {
-                        settingSlider(value: Binding(get: { Double(state.waterCustomInterval) }, set: { state.waterCustomInterval = Int($0) }), in: 15...120, step: 5, unit: "unit_minutes_short")
-                    }
+                    SettingsRowDivider()
+                    PresetValueRow(title: I18n.localized("water_settings_interval", language: state.language),
+                                   value: $state.waterCustomInterval,
+                                   preset: .waterInterval,
+                                   unitKey: "unit_minutes_short",
+                                   language: state.language)
                 }
             }
-        case "goal":
-            SettingsCard(icon: "target", iconColor: .orange, title: I18n.localized("water_settings_goal", language: state.language), description: nil) {
-                settingSlider(value: Binding(get: { Double(state.dailyWaterGoal) }, set: { state.dailyWaterGoal = Int($0) }), in: 4...20, step: 1, unit: "unit_cups")
-            }
-        default:
-            EmptyView()
+            .disabled(!state.waterReminderEnabled)
+            .opacity(state.waterReminderEnabled ? 1.0 : 0.5)
         }
+        .disabled(!state.enableRestReminder)
+        .opacity(state.enableRestReminder ? 1.0 : 0.5)
+
+        // 分组 3：每日目标
+        SettingsGroup(I18n.localized("settings_subtab_daily_goals", language: state.language)) {
+            PresetValueRow(title: I18n.localized("stats_todays_goal", language: state.language),
+                           value: $state.dailyWorkGoal,
+                           preset: .dailyWorkGoal,
+                           unitKey: "unit_hours",
+                           language: state.language)
+            SettingsRowDivider()
+            PresetValueRow(title: I18n.localized("water_settings_goal", language: state.language),
+                           value: $state.dailyWaterGoal,
+                           preset: .dailyWaterGoal,
+                           unitKey: "unit_cups",
+                           language: state.language)
+        }
+        }
+        .animation(.easeInOut(duration: 0.2), value: state.enableRestReminder)
     }
 
     @ViewBuilder
     private var behaviorCards: some View {
-        switch selectedBehaviorSubTab {
-        case "pet":
-            SettingsCard(icon: "pawprint.fill", iconColor: .orange, title: I18n.localized("settings_pet_selection", language: state.language), description: nil) {
-                petSelectionGrid
-            }
-        case "personality":
-            SettingsCard(icon: "person.text.rectangle", iconColor: .purple, title: I18n.localized("settings_personality", language: state.language), description: I18n.localized("settings_personality_desc", language: state.language)) {
+        // 分组 1：宠物
+        SettingsGroup(I18n.localized("settings_subtab_pet", language: state.language)) {
+            petSelectionGrid
+                .padding(12)
+        }
+
+        // 分组 2：性格
+        SettingsGroup(I18n.localized("settings_subtab_personality", language: state.language)) {
+            SettingsRow(I18n.localized("settings_personality", language: state.language),
+                        description: I18n.localized("settings_personality_desc", language: state.language)) {
                 Picker("", selection: $state.selectedPersonality) {
                     Text(I18n.localized("settings_personality_gentle", language: state.language)).tag(PetPersonality.gentle)
                     Text(I18n.localized("settings_personality_strict", language: state.language)).tag(PetPersonality.strict)
                     Text(I18n.localized("settings_personality_tsundere", language: state.language)).tag(PetPersonality.tsundere)
                 }
                 .pickerStyle(.segmented)
+                .fixedSize()
             }
-        case "interactions":
-            VStack(spacing: 16) {
-                SettingsCard(icon: "hand.tap", iconColor: .blue, title: I18n.localized("settings_cursor_chasing", language: state.language), description: I18n.localized("settings_cursor_chasing_desc", language: state.language)) {
-                    Toggle(isOn: $state.enableCursorChasing) {
-                        Text(I18n.localized("settings_cursor_chasing", language: state.language))
-                    }
+        }
+
+        // 分组 3：交互
+        SettingsGroup(I18n.localized("settings_subtab_interactions", language: state.language)) {
+            SettingsRow(I18n.localized("settings_cursor_chasing", language: state.language),
+                        description: I18n.localized("settings_cursor_chasing_desc", language: state.language)) {
+                Toggle("", isOn: $state.enableCursorChasing)
+                    .labelsHidden()
                     .toggleStyle(.switch)
-                }
-
-                SettingsCard(icon: "keyboard", iconColor: .red, title: I18n.localized("settings_global_scold", language: state.language), description: I18n.localized("settings_global_scold_desc", language: state.language)) {
-                    globalScoldToggle
-                }
-
-                SettingsCard(icon: "eye", iconColor: .green, title: I18n.localized("settings_preview_title", language: state.language), description: I18n.localized("settings_preview_desc", language: state.language)) {
-                    previewButtons
-                }
             }
-        default:
-            EmptyView()
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("settings_global_scold", language: state.language),
+                        description: I18n.localized("settings_global_scold_desc", language: state.language)) {
+                Toggle("", isOn: globalScoldBinding)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+            }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("settings_preview_title", language: state.language),
+                        description: I18n.localizedFormat("settings_preview_desc", language: state.language, I18n.localized(state.selectedPet.localizationKey, language: state.language))) {
+                previewButtons
+            }
         }
     }
 
     @ViewBuilder
-    private var systemCards: some View {
-        switch selectedSystemSubTab {
-        case "general":
-            VStack(spacing: 16) {
-                SettingsCard(icon: "character.bubble", iconColor: .blue, title: I18n.localized("settings_language", language: state.language), description: nil) {
-                    Picker("", selection: $state.language) {
-                        ForEach(AppState.AppLanguage.allCases) { lang in
-                            Text(lang.displayName(currentLanguage: state.language)).tag(lang)
-                        }
+    private var generalCards: some View {
+        SettingsGroup {
+            SettingsRow(I18n.localized("settings_language", language: state.language)) {
+                Picker("", selection: $state.language) {
+                    ForEach(AppState.AppLanguage.allCases) { lang in
+                        Text(lang.displayName(currentLanguage: state.language)).tag(lang)
                     }
-                    .pickerStyle(.segmented)
                 }
-
-                SettingsCard(icon: "arrow.right.circle", iconColor: .green, title: I18n.localized("settings_launch_at_login", language: state.language), description: I18n.localized("settings_launch_at_login_desc", language: state.language)) {
-                    Toggle(isOn: Binding(
-                        get: { launchManager.isLaunchAtLoginEnabled },
-                        set: { launchManager.toggleLaunchAtLogin(enabled: $0) }
-                    )) {
-                        Text(I18n.localized("settings_launch_at_login", language: state.language))
-                    }
-                    .toggleStyle(.switch)
-                }
-
-                SettingsCard(
-                    icon: "cat",
-                    iconColor: .gray,
-                    title: I18n.localized("settings_classic_tray_icon", language: state.language),
-                    description: I18n.localized("settings_classic_tray_icon_desc", language: state.language)
-                ) {
-                    Toggle(isOn: $state.useClassicTrayIcon) {
-                        Text(I18n.localized("settings_classic_tray_icon", language: state.language))
-                    }
-                    .toggleStyle(.switch)
-                }
+                .pickerStyle(.segmented)
+                .fixedSize()
             }
-        case "power":
-            powerCards
-        case "about":
-            VStack(spacing: 24) {
-                let version = Bundle.main.appVersion
-                
-                VStack(spacing: 8) {
-                    if let appIcon = NSImage(named: "AppIcon") {
-                        Image(nsImage: appIcon)
-                            .resizable()
-                            .frame(width: 80, height: 80)
-                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("settings_appearance", language: state.language)) {
+                Picker("", selection: $state.appearanceMode) {
+                    ForEach(AppState.AppearanceMode.allCases) { mode in
+                        Text(mode.displayName(currentLanguage: state.language)).tag(mode)
                     }
-                    
-                    Text("MeowOut")
-                        .font(.title2)
-                        .bold()
-                    
-                    Text("\(I18n.localizedFormat("settings_version", language: state.language, version)) (\(currentGitCommit))")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    
-                    Text(I18n.localized("settings_about_description", language: state.language))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, 4)
                 }
-                .padding(.top, 16)
-                
-                updateCard
+                .pickerStyle(.segmented)
+                .fixedSize()
             }
-        default:
-            EmptyView()
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("settings_launch_at_login", language: state.language),
+                        description: I18n.localized("settings_launch_at_login_desc", language: state.language)) {
+                Toggle("", isOn: Binding(
+                    get: { launchManager.isLaunchAtLoginEnabled },
+                    set: { launchManager.toggleLaunchAtLogin(enabled: $0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("settings_classic_tray_icon", language: state.language),
+                        description: I18n.localized("settings_classic_tray_icon_desc", language: state.language)) {
+                Toggle("", isOn: $state.useClassicTrayIcon)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+            }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("settings_system_monitor_card_title", language: state.language),
+                        description: I18n.localized("settings_system_monitor_card_desc", language: state.language)) {
+                Toggle("", isOn: $showSystemMonitorCard)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+            }
         }
     }
 
     @ViewBuilder
     private var powerCards: some View {
-        VStack(spacing: 16) {
-            SettingsCard(
-                icon: "display",
-                iconColor: .blue,
-                title: I18n.localized("power_clamshell_title", language: state.language),
-                description: nil,
-                tip: I18n.localized("power_clamshell_desc", language: state.language)
-            ) {
-                HStack {
-                    Toggle(isOn: Binding(
-                        get: { clamshell.isEnabledGlobally },
-                        set: { newValue in
-                            if !SudoersManager.isConfigured() {
-                                showSudoersNSAlert(pendingValue: newValue)
-                            } else {
-                                clamshell.setClamshellMode(enabled: newValue)
-                            }
+        SettingsGroup {
+            SettingsRow(I18n.localized("power_clamshell_title", language: state.language),
+                        description: I18n.localized("power_clamshell_desc", language: state.language)) {
+                Toggle("", isOn: Binding(
+                    get: { clamshell.isEnabledGlobally },
+                    set: { newValue in
+                        if !SudoersManager.isConfigured() {
+                            showSudoersNSAlert(pendingValue: newValue)
+                        } else {
+                            clamshell.setClamshellMode(enabled: newValue)
                         }
-                    )) {
-                        Text(I18n.localized("power_clamshell_toggle", language: state.language))
                     }
-                    .toggleStyle(.switch)
-                    
-                    if clamshell.isExternallyEnabled {
-                        InlineTipButton(
-                            tip: I18n.localized("power_clamshell_external_tip", language: state.language),
-                            iconColor: .orange
-                        )
-                    }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+
+            if clamshell.isExternallyEnabled {
+                SettingsRowDivider()
+                HStack(alignment: .top, spacing: 6) {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(.orange)
+                        .font(.system(size: 11))
+                    Text(I18n.localized("power_clamshell_external_tip", language: state.language))
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
             }
-            
-            SettingsCard(
-                icon: "battery.100.bolt",
-                iconColor: .green,
-                title: I18n.localized("power_battery_title", language: state.language),
-                description: I18n.localized("power_battery_desc", language: state.language)
-            ) {
-                settingSlider(
-                    value: Binding(get: { Double(batteryProtectionThreshold) }, set: { batteryProtectionThreshold = Int($0) }),
-                    in: 0...50,
-                    step: 5,
-                    unit: "power_battery_unit"
-                )
-            }
+
+            SettingsRowDivider()
+            PresetValueRow(title: I18n.localized("power_battery_title", language: state.language),
+                           description: I18n.localized("power_battery_desc", language: state.language),
+                           value: $batteryProtectionThreshold,
+                           preset: .batteryThreshold,
+                           unitKey: "unit_percent",
+                           zeroLabelKey: "power_battery_off",
+                           language: state.language)
         }
     }
 
     @ViewBuilder
-    private var updateCard: some View {
-        let checker = UpdateChecker.shared
-        SettingsCard(
-            icon: "arrow.clockwise.circle",
-            iconColor: .blue,
-            title: I18n.localized("settings_check_updates", language: state.language),
-            description: checker.lastCheckedAt.map { date in
-                let formatter = DateFormatter()
-                formatter.dateStyle = .short
-                formatter.timeStyle = .short
-                return I18n.localizedFormat("settings_update_last_checked", language: state.language, formatter.string(from: date))
+    private var aboutCards: some View {
+        VStack(spacing: 8) {
+            if let appIcon = NSImage(named: "AppIcon") {
+                Image(nsImage: appIcon)
+                    .resizable()
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
-        ) {
-            VStack(alignment: .leading, spacing: 12) {
-                switch checker.status {
+            Text("MeowOut")
+                .font(.title2)
+                .bold()
+            Text("\(I18n.localizedFormat("settings_version", language: state.language, Bundle.main.appVersion)) (\(currentGitCommit))")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Text(I18n.localized("settings_about_description", language: state.language))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 16)
+
+        SettingsGroup(I18n.localized("settings_check_updates", language: state.language)) {
+            updateContent
+                .padding(12)
+        }
+    }
+
+    @ViewBuilder
+    private var updateContent: some View {
+        let checker = UpdateChecker.shared
+        VStack(alignment: .leading, spacing: 12) {
+            if let lastChecked = checker.lastCheckedAt {
+                Text(I18n.localizedFormat("settings_update_last_checked", language: state.language, lastCheckedFormatter.string(from: lastChecked)))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            switch checker.status {
                 case .checking:
                     HStack {
                         ProgressView().controlSize(.small)
@@ -567,10 +494,16 @@ struct SettingsView: View {
                         checkButton
                     }
                 }
-            }
         }
     }
-    
+
+    private var lastCheckedFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter
+    }
+
     private func showSudoersNSAlert(pendingValue: Bool) {
         let alert = NSAlert()
         alert.messageText = I18n.localized("power_clamshell_alert_title", language: state.language)
@@ -602,16 +535,6 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
-    private func settingSlider(value: Binding<Double>, in range: ClosedRange<Double>, step: Double, unit: String) -> some View {
-        VStack(alignment: .trailing, spacing: 4) {
-            Text(I18n.localizedFormat(unit, language: state.language, Int64(value.wrappedValue)))
-                .font(.system(size: 12, weight: .bold, design: .monospaced))
-                .foregroundStyle(.orange)
-            Slider(value: value, in: range, step: step)
-        }
-    }
-
-    @ViewBuilder
     private var petSelectionGrid: some View {
         LazyVGrid(
             columns: [GridItem(.adaptive(minimum: 70, maximum: 70), spacing: 16)],
@@ -619,44 +542,47 @@ struct SettingsView: View {
             spacing: 16
         ) {
             ForEach(AppState.PetType.allCases) { pet in
-                VStack {
-                    ZStack(alignment: .top) {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(state.selectedPet == pet ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.1))
-                            .frame(width: 70, height: 70)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(state.selectedPet == pet ? Color.accentColor : Color.clear, lineWidth: 2)
-                            )
-
-                        Group {
-                            switch pet {
-                            case .clawd: ClawdView(pose: .rest, height: 36)
-                            case .panda: PandaView(pose: .rest, height: 36)
-                            case .pika: PikaView(pose: .rest, height: 36)
-                            }
-                        }
-                        .padding(.top, 12)
-                    }
-
-                    Text(I18n.localized(pet.localizationKey, language: state.language))
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(state.selectedPet == pet ? .primary : .secondary)
-                }
-                .onTapGesture {
+                Button {
                     withAnimation(.spring(response: 0.3)) {
                         state.selectedPet = pet
                     }
+                } label: {
+                    VStack {
+                        ZStack(alignment: .top) {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(state.selectedPet == pet ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.1))
+                                .frame(width: 70, height: 70)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(state.selectedPet == pet ? Color.accentColor : Color.clear, lineWidth: 2)
+                                )
+
+                            Group {
+                                switch pet {
+                                case .clawd: ClawdView(pose: .rest, height: 36)
+                                case .panda: PandaView(pose: .rest, height: 36)
+                                case .pika: PikaView(pose: .rest, height: 36)
+                                }
+                            }
+                            .padding(.top, 12)
+                        }
+
+                        Text(I18n.localized(pet.localizationKey, language: state.language))
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(state.selectedPet == pet ? .primary : .secondary)
+                    }
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(I18n.localized(pet.localizationKey, language: state.language))
+                .accessibilityAddTraits(state.selectedPet == pet ? .isSelected : [])
             }
         }
         .padding(.horizontal, 2)
         .padding(.vertical, 2)
     }
 
-    @ViewBuilder
-    private var globalScoldToggle: some View {
-        Toggle(isOn: Binding(
+    private var globalScoldBinding: Binding<Bool> {
+        Binding(
             get: { state.enableGlobalKeyboardScold && accessibilityStatus },
             set: { newValue in
                 if newValue {
@@ -676,15 +602,11 @@ struct SettingsView: View {
                     isAwaitingAccessibility = false
                 }
             }
-        )) {
-            Text(I18n.localized("settings_global_scold", language: state.language))
-        }
-        .toggleStyle(.switch)
+        )
     }
 
-    @ViewBuilder
-    private var keyDropToggle: some View {
-        Toggle(isOn: Binding(
+    private var keyDropBinding: Binding<Bool> {
+        Binding(
             get: { state.keyDropEnabled && accessibilityStatus },
             set: { newValue in
                 if newValue {
@@ -704,49 +626,30 @@ struct SettingsView: View {
                     isAwaitingAccessibilityForKeyDrop = false
                 }
             }
-        )) {
-            Text(I18n.localized("keydrop_enabled", language: state.language))
-        }
-        .toggleStyle(.switch)
+        )
     }
 
     @ViewBuilder
     private var keyDropCards: some View {
-        VStack(spacing: 16) {
-            SettingsCard(
-                icon: "keyboard",
-                iconColor: .purple,
-                title: I18n.localized("keydrop_enabled", language: state.language),
-                description: I18n.localized("keydrop_enabled_desc", language: state.language)
-            ) {
-                keyDropToggle
+        SettingsGroup {
+            SettingsRow(I18n.localized("keydrop_enabled", language: state.language),
+                        description: I18n.localized("keydrop_enabled_desc", language: state.language)) {
+                Toggle("", isOn: keyDropBinding)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
             }
-
-            SettingsCard(
-                icon: "command",
-                iconColor: .blue,
-                title: I18n.localized("keydrop_shortcut", language: state.language),
-                description: I18n.localized("keydrop_shortcut_desc", language: state.language)
-            ) {
-                HStack {
-                    Spacer()
-                    KeyboardShortcuts.Recorder(for: .togglePanel)
-                }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("keydrop_shortcut", language: state.language),
+                        description: I18n.localized("keydrop_shortcut_desc", language: state.language)) {
+                KeyboardShortcuts.Recorder(for: .togglePanel)
             }
-
-            SettingsCard(
-                icon: "square.and.pencil",
-                iconColor: .orange,
-                title: I18n.localized("keydrop_manage_title", language: state.language),
-                description: I18n.localized("keydrop_manage_desc", language: state.language)
-            ) {
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        NotificationCenter.default.post(name: NSNotification.Name("OpenSnippetManagerWindow"), object: nil)
-                    }) {
-                        Text(I18n.localized("keydrop_open_manager_btn", language: state.language))
-                    }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("keydrop_manage_title", language: state.language),
+                        description: I18n.localized("keydrop_manage_desc", language: state.language)) {
+                Button(action: {
+                    NotificationCenter.default.post(name: NSNotification.Name("OpenSnippetManagerWindow"), object: nil)
+                }) {
+                    Text(I18n.localized("keydrop_open_manager_btn", language: state.language))
                 }
             }
         }
@@ -754,54 +657,56 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var permissionsCards: some View {
-        SettingsCard(
-            icon: "lock.shield",
-            iconColor: accessibilityStatus ? .green : .red,
-            title: I18n.localized("accessibility_card_title", language: state.language),
-            description: I18n.localized("accessibility_card_desc", language: state.language)
-        ) {
-            VStack(alignment: .leading, spacing: 12) {
+        SettingsGroup {
+            SettingsRow(I18n.localized("accessibility_card_title", language: state.language),
+                        description: I18n.localized("accessibility_card_desc", language: state.language)) {
                 HStack(spacing: 8) {
                     Circle()
                         .fill(accessibilityStatus ? Color.green : Color.red)
                         .frame(width: 8, height: 8)
-                    Text(accessibilityStatus ? I18n.localized("accessibility_status_granted", language: state.language) : I18n.localized("accessibility_status_denied", language: state.language))
+                    Text(accessibilityStatus
+                         ? I18n.localized("accessibility_status_granted", language: state.language)
+                         : I18n.localized("accessibility_status_denied", language: state.language))
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(accessibilityStatus ? .green : .red)
                 }
-                
-                if !accessibilityStatus {
-                    Button(action: {
-                        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-                        _ = AXIsProcessTrustedWithOptions(options)
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }) {
-                        Text(I18n.localized("accessibility_auth_btn", language: state.language))
-                            .font(.system(size: 13, weight: .semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(Color.accentColor)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
+            }
+
+            if !accessibilityStatus {
+                SettingsRowDivider()
+                Button(action: {
+                    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+                    _ = AXIsProcessTrustedWithOptions(options)
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                        NSWorkspace.shared.open(url)
                     }
-                    .buttonStyle(.plain)
+                }) {
+                    Text(I18n.localized("accessibility_auth_btn", language: state.language))
+                        .font(.system(size: 13, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
                 }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
             }
         }
     }
 
     @ViewBuilder
     private var previewButtons: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             if state.isPreviewing {
                 Button(action: {
                     CatOverlayController.shared.stopPreview()
                 }) {
                     Text(I18n.localized("settings_preview_stop", language: state.language))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
+                        .font(.system(size: 12, weight: .medium))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
                         .background(Color.red.opacity(0.1))
                         .cornerRadius(8)
                         .foregroundStyle(.red)
@@ -812,8 +717,9 @@ struct SettingsView: View {
                     CatOverlayController.shared.previewAlerting()
                 }) {
                     Text(I18n.localized("settings_preview_alerting", language: state.language))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
+                        .font(.system(size: 12, weight: .medium))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
                         .background(Color.accentColor.opacity(0.1))
                         .cornerRadius(8)
                 }
@@ -823,8 +729,9 @@ struct SettingsView: View {
                     CatOverlayController.shared.previewResting()
                 }) {
                     Text(I18n.localized("settings_preview_resting", language: state.language))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
+                        .font(.system(size: 12, weight: .medium))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
                         .background(Color.accentColor.opacity(0.1))
                         .cornerRadius(8)
                 }
@@ -832,17 +739,6 @@ struct SettingsView: View {
             }
         }
     }
-}
-
-struct VisualEffectView: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.blendingMode = .behindWindow
-        view.state = .active
-        view.material = .sidebar
-        return view
-    }
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }
 
 struct MarkdownReleaseNotesView: View {
@@ -900,38 +796,39 @@ struct MarkdownReleaseNotesView: View {
 
 struct QuickActionsSettingsView: View {
     @Bindable var state: AppState
-    
+
     var body: some View {
-        VStack(spacing: 16) {
-            // Card 1: Original Quick Actions Menu Settings
-            SettingsCard(
-                icon: "bolt.fill",
-                iconColor: .orange,
-                title: I18n.localized("menu_quick_actions", language: state.language),
-                description: I18n.localized("quick_actions_settings_desc", language: state.language)
-            ) {
-                QuickActionsListEditor(state: state)
+        VStack(spacing: 20) {
+            SettingsGroup {
+                SettingsRow(I18n.localized("quick_tools_enabled", language: state.language),
+                            description: I18n.localized("quick_tools_enabled_desc", language: state.language)) {
+                    Toggle("", isOn: $state.showQuickToolsCard)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                }
             }
-            
-            // Card 2: Launcher Trigger Settings
-            SettingsCard(
-                icon: "keyboard",
-                iconColor: .blue,
-                title: I18n.localized("launcher_settings_title", language: state.language),
-                description: nil
-            ) {
+
+            SettingsGroup(I18n.localized("menu_quick_actions", language: state.language)) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(I18n.localized("quick_actions_settings_desc", language: state.language))
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                    QuickActionsListEditor(state: state)
+                }
+                .padding(12)
+            }
+            .disabled(!state.showQuickToolsCard)
+            .opacity(state.showQuickToolsCard ? 1.0 : 0.5)
+
+            SettingsGroup(I18n.localized("launcher_settings_title", language: state.language)) {
                 LauncherTriggerSettingsView(state: state)
+                    .padding(12)
             }
-            
-            // Card 3: Launcher Rings Layout Config
+
             if state.launcherEnabled {
-                SettingsCard(
-                    icon: "circle.circle",
-                    iconColor: .purple,
-                    title: I18n.localized("launcher_ring_editor_title", language: state.language),
-                    description: nil
-                ) {
+                SettingsGroup(I18n.localized("launcher_ring_editor_title", language: state.language)) {
                     LauncherRingsEditorView(state: state)
+                        .padding(12)
                 }
             }
         }
@@ -949,8 +846,11 @@ struct QuickActionsListEditor: View {
                     HStack {
                         if case .builtIn(let type) = tool {
                             Text("\(type.icon) \(type.localizedName(language: state.language))")
-                        } else if case .appShortcut(_, let name, _, _) = tool {
-                            Text("📱 \(name)")
+                        } else if case .appShortcut(_, let name, let path, _) = tool {
+                            HStack(spacing: 8) {
+                                AppIconView(path: path)
+                                Text(name)
+                            }
                         }
                         
                         Spacer()
@@ -1360,11 +1260,13 @@ struct LauncherRingsEditorView: View {
                     Button(action: {
                         appendTool(tool, to: ringId)
                     }) {
-                        HStack {
+                        HStack(spacing: 6) {
                             if case .builtIn(let type) = tool {
                                 Text("\(type.icon) \(type.localizedName(language: state.language))")
-                            } else if case .appShortcut(_, let name, _, _) = tool {
-                                Text("🚀 \(name)")
+                            } else if case .appShortcut(_, let name, let path, _) = tool {
+                                AppIconView(path: path)
+                                    .frame(width: 16, height: 16)
+                                Text(name)
                             }
                             Spacer()
                         }
@@ -1373,14 +1275,15 @@ struct LauncherRingsEditorView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                
+
                 Divider()
-                
+
                 Button(action: {
                     addExternalApp(to: ringId)
                 }) {
-                    HStack {
-                        Text("➕ \(I18n.localized("quick_actions_add_app", language: state.language))")
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.app")
+                        Text(I18n.localized("quick_actions_add_app", language: state.language))
                         Spacer()
                     }
                     .font(.system(size: 11))
@@ -1434,28 +1337,6 @@ struct LauncherRingsEditorView: View {
                     appendTool(newTool, to: ringId)
                 }
             }
-        }
-    }
-}
-
-struct InlineTipButton: View {
-    let tip: String
-    var iconColor: Color = .secondary
-    @State private var showTipPopover = false
-
-    var body: some View {
-        Button(action: { showTipPopover.toggle() }) {
-            Image(systemName: "info.circle")
-                .foregroundColor(iconColor)
-                .font(.system(size: 12))
-        }
-        .buttonStyle(.plain)
-        .popover(isPresented: $showTipPopover, arrowEdge: .bottom) {
-            Text(tip)
-                .font(.system(size: 12))
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(12)
-                .frame(maxWidth: 220)
         }
     }
 }

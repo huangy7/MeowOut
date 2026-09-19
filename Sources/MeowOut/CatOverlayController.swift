@@ -73,6 +73,12 @@ public final class CatOverlayController {
         self.escapeHatch = EscapeHatch(appState: appState)
         self.waterReminderController = WaterReminderController(appState: appState, petState: petState)
 
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.dismissWaterReminderBubble, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.waterReminderController?.dismissBubble()
+            }
+        }
+
         NotificationCenter.default.addObserver(forName: NSNotification.Name("TriggerEscapeHatch"), object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.petState.isEscaping = true
@@ -136,7 +142,7 @@ public final class CatOverlayController {
             _ = appState.currentState
             _ = petState.updateInteraction
             _ = petState.isBubbleLocked
-        } onChange: {
+        } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.evaluateState()
@@ -152,7 +158,7 @@ public final class CatOverlayController {
     private func startUpdateObservation() {
         withObservationTracking {
             _ = UpdateChecker.shared.status
-        } onChange: {
+        } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 self?.handleUpdateStatusChanged()
                 self?.startUpdateObservation()
@@ -266,11 +272,15 @@ public final class CatOverlayController {
         withObservationTracking {
             _ = self.appState?.currentState
             _ = self.appState?.enableGlobalKeyboardScold
+            _ = self.appState?.enableRestReminder
             _ = self.appState?.isBreathingActive
             _ = self.petState.isBubbleLocked
-        } onChange: {
+        } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
+                if self.appState?.enableRestReminder == false {
+                    self.waterReminderController?.dismissBubble()
+                }
                 // When breathing becomes active, clear the bubble exactly once
                 if self.appState?.isBreathingActive == true {
                     self.petState.bubbleVisible = false

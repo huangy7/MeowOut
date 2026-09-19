@@ -12,9 +12,8 @@ final class TextInjectorTests: XCTestCase {
     }
     
     func testTextInjectorSafeExitWhenUntrusted() {
-        // In unit test environment, AXIsProcessTrusted() is typically false.
-        // We verify that calling inject completes and resets the isInjecting state
-        // (meaning it does not lock up or crash).
+        // In unit test environment, TextInjector safely exits early without
+        // modifying system pasteboard or simulating keystrokes.
         let injector = TextInjector.shared
         
         let expectation = XCTestExpectation(description: "Injection execution or early exit completed")
@@ -22,7 +21,7 @@ final class TextInjectorTests: XCTestCase {
         injector.inject(text: "Hello World", title: "Test Snippet")
         
         // Wait briefly to ensure the background queue completes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             expectation.fulfill()
         }
         

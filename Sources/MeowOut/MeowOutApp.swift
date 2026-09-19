@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 import MemosKit
 
 @MainActor
@@ -289,8 +290,18 @@ struct MeowOutApp: App {
     @State private var appState = AppState()
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("isQuickToolsExpanded") private var isQuickToolsExpanded = false
+    @AppStorage("showSystemMonitorCard") private var showSystemMonitorCard = true
     @State private var isHoveredToggle = false
     @ObservedObject private var clamshell = ClamshellManager.shared
+
+    /// 外观模式对应的 SwiftUI ColorScheme 覆盖(nil = 跟随系统)
+    private var colorSchemeOverride: ColorScheme? {
+        switch appState.appearanceMode {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
 
     var body: some Scene {
         MenuBarExtra {
@@ -298,11 +309,19 @@ struct MeowOutApp: App {
                 menuContent
             }
             .frame(width: 280)
-            .background(MenuVisualEffectView().ignoresSafeArea())
+            // 外观模式切换时强制重建内容树（preferredColorScheme 不会动态传播到已存在的面板窗口）
+            .id(appState.appearanceMode)
+            .background {
+                MenuVisualEffectView()
+                    .ignoresSafeArea()
+            }
+            // MenuBarExtra 面板窗口的 colorScheme 环境不一定跟随 NSApp.appearance,需显式覆盖
+            .preferredColorScheme(colorSchemeOverride)
         } label: {
             TrayIconView(appState: appState)
                 .background(WindowOpener())
                 .onAppear {
+                    applyAppearanceMode(appState.appearanceMode)
                     appDelegate.appState = appState
                     appDelegate.tryStartEngine()
                     appState.initializeKeyboardShortcuts()
@@ -322,6 +341,9 @@ struct MeowOutApp: App {
                     ClipboardPanelController.shared.configure(appState: appState)
                     FundPanelController.shared.configure(appState: appState)
                 }
+                .onChange(of: appState.appearanceMode) { _, newMode in
+                    applyAppearanceMode(newMode)
+                }
         }
         .environment(appState)
         .menuBarExtraStyle(.window)
@@ -329,7 +351,7 @@ struct MeowOutApp: App {
         Window(I18n.localized("settings_window_title", language: appState.language), id: "settings") {
             SettingsView(state: appState)
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
         .environment(appState)
 
         Window(I18n.localized("settings_tab_statistics", language: appState.language), id: "statistics") {
@@ -366,70 +388,69 @@ struct MeowOutApp: App {
     private var menuContent: some View {
         VStack(spacing: 8) {
             // Card 1: Dashboard & Pause Controls
-            MenuDashboardCard(appState: appState)
+            if appState.enableRestReminder {
+                MenuDashboardCard(appState: appState)
+            }
+            
+            // Card 1.5: System Monitor
+            if showSystemMonitorCard {
+                SystemMonitorCardView(appState: appState)
+            }
             
             // Card 2: Tools & Shortcuts
-            VStack(spacing: 12) {
-                HStack(spacing: 8) {
-                    let topTools = Array(appState.quickTools.prefix(2))
-                    if topTools.isEmpty {
-                        Text(I18n.localized("menu_shortcuts_empty", language: appState.language))
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    } else {
-                        ForEach(topTools) { tool in
-                            renderToolTile(tool)
-                        }
-                        if topTools.count < 2 {
-                            Spacer()
-                        }
-                    }
-                }
-                
-                if appState.quickTools.count > 2 {
-                    if isQuickToolsExpanded {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
-                            let remainingTools = Array(appState.quickTools.dropFirst(2))
-                            ForEach(remainingTools) { tool in
-                                renderSmallToolTile(tool)
+            if appState.showQuickToolsCard {
+                VStack(spacing: 12) {
+                    HStack(spacing: 8) {
+                        let topTools = Array(appState.quickTools.prefix(2))
+                        if topTools.isEmpty {
+                            Text(I18n.localized("menu_shortcuts_empty", language: appState.language))
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        } else {
+                            ForEach(topTools) { tool in
+                                renderToolTile(tool)
+                            }
+                            if topTools.count < 2 {
+                                Spacer()
                             }
                         }
                     }
                     
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            isQuickToolsExpanded.toggle()
+                    if appState.quickTools.count > 2 {
+                        if isQuickToolsExpanded {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+                                let remainingTools = Array(appState.quickTools.dropFirst(2))
+                                ForEach(remainingTools) { tool in
+                                    renderSmallToolTile(tool)
+                                }
+                            }
                         }
-                    } label: {
-                        HStack {
-                            Spacer()
-                            Text(isQuickToolsExpanded ? "^ 收起" : "v 展开快捷应用")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.primary.opacity(0.6))
-                            Spacer()
+                        
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                isQuickToolsExpanded.toggle()
+                            }
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text(isQuickToolsExpanded ? "^ 收起" : "v 展开快捷应用")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.primary.opacity(0.6))
+                                Spacer()
+                            }
+                            .padding(.vertical, 6)
+                            .background(Color.primary.opacity(isHoveredToggle ? 0.08 : 0.04))
+                            .cornerRadius(6)
+                            .contentShape(Rectangle())
                         }
-                        .padding(.vertical, 6)
-                        .background(Color.primary.opacity(isHoveredToggle ? 0.08 : 0.04))
-                        .cornerRadius(6)
-                        .contentShape(Rectangle())
+                        .buttonStyle(.plain)
+                        .onHover { h in isHoveredToggle = h }
                     }
-                    .buttonStyle(.plain)
-                    .onHover { h in isHoveredToggle = h }
                 }
+                .padding(12)
+                .menuCardStyle()
             }
-            .padding(12)
-            .background(
-                colorScheme == .dark
-                    ? Color.black.opacity(0.25)
-                    : Color.white.opacity(0.85)
-            )
-            .cornerRadius(14)
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
-            )
-            .shadow(color: Color.black.opacity(0.04), radius: 5, x: 0, y: 1.5)
             
 
             // Card 4: System Actions
@@ -454,17 +475,7 @@ struct MeowOutApp: App {
                     NSApplication.shared.terminate(nil)
                 }
             }
-            .background(
-                colorScheme == .dark
-                    ? Color.black.opacity(0.25)
-                    : Color.white.opacity(0.85)
-            )
-            .cornerRadius(14)
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
-            )
-            .shadow(color: Color.black.opacity(0.04), radius: 5, x: 0, y: 1.5)
+            .menuCardStyle()
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
@@ -531,12 +542,23 @@ struct MeowOutApp: App {
 
     private func dismissMenu() {
         NSApp.windows.forEach { window in
-            if window.styleMask.contains(.nonactivatingPanel) && 
-               window.isVisible && 
+            if window.styleMask.contains(.nonactivatingPanel) &&
+               window.isVisible &&
                abs(window.frame.width - 280) < 2 {
                 window.orderOut(nil)
             }
         }
+    }
+
+    /// 应用全局外观模式(跟随系统 / 浅色 / 深色)
+    private func applyAppearanceMode(_ mode: AppState.AppearanceMode) {
+        switch mode {
+        case .system: NSApp.appearance = nil
+        case .light: NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark: NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
+        // MenuBarExtra 面板窗口不继承 NSApp.appearance，需显式同步
+        MenuVisualEffectView.syncPanelAppearance(mode)
     }
 }
 
@@ -688,6 +710,9 @@ struct MenuRowButton: View {
         .onHover { hovering in
             isHovered = hovering
         }
+        .accessibilityLabel(hasBadge
+                            ? "\(title), \(I18n.localized("settings_update_badge_a11y"))"
+                            : title)
     }
     
     private func dismissMenu() {
@@ -850,17 +875,7 @@ struct MenuDashboardCard: View {
         .onAppear {
             appState.checkAndResetWaterIfNewDay()
         }
-        .background(
-            colorScheme == .dark
-                ? Color.black.opacity(0.25)
-                : Color.white.opacity(0.85)
-        )
-        .cornerRadius(14)
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
-        )
-        .shadow(color: Color.black.opacity(0.04), radius: 5, x: 0, y: 1.5)
+        .menuCardStyle()
     }
     
     private func pause(minutes: Int) {
@@ -928,15 +943,80 @@ struct CircularProgressView: View {
     }
 }
 
+struct MenuCardModifier: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        let isDark = colorScheme == .dark
+
+        return content
+            .background(isDark ? Color.white.opacity(0.09) : Color.white.opacity(0.5))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Color.white.opacity(isDark ? 0.12 : 0.35), lineWidth: 0.5)
+            )
+    }
+}
+
+extension View {
+    func menuCardStyle() -> some View {
+        modifier(MenuCardModifier())
+    }
+}
+
 struct MenuVisualEffectView: NSViewRepresentable {
+    /// 面板窗口弱引用：MenuBarExtra 面板窗口不继承 NSApp.appearance，
+    /// 外观模式切换时需要通过它显式同步（见 applyAppearanceMode）。
+    static weak var panelWindow: NSWindow?
+
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.blendingMode = .behindWindow
         view.state = .active
         view.material = .popover
+        DispatchQueue.main.async {
+            if let window = view.window {
+                window.isOpaque = false
+                window.backgroundColor = .clear
+                Self.panelWindow = window
+                Self.applyAppearance(to: window)
+            } else {
+            }
+        }
         return view
     }
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        DispatchQueue.main.async {
+            if let window = nsView.window {
+                window.isOpaque = false
+                window.backgroundColor = .clear
+                Self.panelWindow = window
+                Self.applyAppearance(to: window)
+            }
+        }
+    }
+
+    /// 外观模式对应的 NSAppearance（nil = 跟随系统）
+    static func nsAppearance(for mode: AppState.AppearanceMode) -> NSAppearance? {
+        switch mode {
+        case .light: return NSAppearance(named: .aqua)
+        case .dark: return NSAppearance(named: .darkAqua)
+        case .system: return nil
+        }
+    }
+
+    /// 外观模式切换时由 applyAppearanceMode 调用，显式同步面板窗口
+    static func syncPanelAppearance(_ mode: AppState.AppearanceMode) {
+        guard let window = panelWindow else { return }
+        window.appearance = nsAppearance(for: mode)
+    }
+
+    /// MenuBarExtra 的面板窗口不一定继承 NSApp.appearance,显式同步当前外观模式
+    private static func applyAppearance(to window: NSWindow) {
+        let mode = AppState.AppearanceMode(rawValue: UserDefaults.standard.string(forKey: "appearanceMode") ?? "system") ?? .system
+        window.appearance = nsAppearance(for: mode)
+    }
 }
 
 struct AppIconView: View {

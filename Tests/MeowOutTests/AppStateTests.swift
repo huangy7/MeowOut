@@ -143,4 +143,81 @@ final class AppStateTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "launcherEnabled")
         UserDefaults.standard.removeObject(forKey: "launcherTriggerMode")
     }
+
+    func testTrayCardsCustomizationSettingsPersistence() {
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.enableRestReminder.rawValue)
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.showQuickToolsCard.rawValue)
+        defer {
+            UserDefaults.standard.removeObject(forKey: AppState.Keys.enableRestReminder.rawValue)
+            UserDefaults.standard.removeObject(forKey: AppState.Keys.showQuickToolsCard.rawValue)
+        }
+
+        let state = AppState()
+        
+        // Default values should be true
+        XCTAssertTrue(state.enableRestReminder)
+        XCTAssertTrue(state.showQuickToolsCard)
+        
+        // Set to false and verify persistence
+        state.enableRestReminder = false
+        XCTAssertFalse(state.enableRestReminder)
+        
+        state.showQuickToolsCard = false
+        XCTAssertFalse(state.showQuickToolsCard)
+        
+        // Test across instances
+        let state2 = AppState()
+        XCTAssertFalse(state2.enableRestReminder)
+        XCTAssertFalse(state2.showQuickToolsCard)
+
+        // Test state2.resetToDefaults() restores them to true
+        state2.resetToDefaults()
+        XCTAssertTrue(state2.enableRestReminder)
+        XCTAssertTrue(state2.showQuickToolsCard)
+
+        // Also test resetAllSettings() restores them to true
+        state2.enableRestReminder = false
+        state2.showQuickToolsCard = false
+        state2.resetAllSettings()
+        XCTAssertTrue(state2.enableRestReminder)
+        XCTAssertTrue(state2.showQuickToolsCard)
+
+        // Test resetIntervalsToDefaults() restores enableRestReminder to true
+        state2.enableRestReminder = false
+        state2.resetIntervalsToDefaults()
+        XCTAssertTrue(state2.enableRestReminder)
+
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.enableRestReminder.rawValue)
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.showQuickToolsCard.rawValue)
+    }
+    
+    func testEnableRestReminderAutoConvergence() {
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.enableRestReminder.rawValue)
+        defer {
+            UserDefaults.standard.removeObject(forKey: AppState.Keys.enableRestReminder.rawValue)
+        }
+
+        let state = AppState()
+        
+        // 1. Test .alerting -> .working
+        state.enableRestReminder = true
+        state.currentState = .alerting
+        state.enableRestReminder = false
+        XCTAssertEqual(state.currentState, .working)
+        
+        // 2. Test .resting -> .working
+        state.enableRestReminder = true
+        state.currentState = .resting
+        state.enableRestReminder = false
+        XCTAssertEqual(state.currentState, .working)
+
+        // 3. Test .overworking -> .working
+        state.enableRestReminder = true
+        state.currentState = .overworking
+        state.enableRestReminder = false
+        XCTAssertEqual(state.currentState, .working)
+
+        UserDefaults.standard.removeObject(forKey: AppState.Keys.enableRestReminder.rawValue)
+    }
 }
+

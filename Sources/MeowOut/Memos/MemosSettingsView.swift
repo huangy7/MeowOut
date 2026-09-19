@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import KeyboardShortcuts
 import MemosKit
 
@@ -20,7 +21,7 @@ struct MemosSettingsView: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             serverConnectionCard
             shortcutCard
             entryCard
@@ -41,7 +42,7 @@ struct MemosSettingsView: View {
 
     @ViewBuilder
     private var serverConnectionCard: some View {
-        SettingsCard(icon: "server.rack", iconColor: .blue, title: I18n.localized("memos_settings_server", language: appState.language), description: nil) {
+        SettingsGroup(I18n.localized("memos_settings_server", language: appState.language)) {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text(I18n.localized("memos_settings_server_address", language: appState.language))
@@ -70,6 +71,7 @@ struct MemosSettingsView: View {
                     statusView
                 }
             }
+            .padding(12)
         }
     }
 
@@ -94,25 +96,20 @@ struct MemosSettingsView: View {
 
     @ViewBuilder
     private var shortcutCard: some View {
-        SettingsCard(icon: "command", iconColor: .orange, title: I18n.localized("memos_settings_shortcuts", language: appState.language), description: nil) {
-            VStack(spacing: 12) {
-                HStack {
-                    Text(I18n.localized("memos_settings_quick_capture", language: appState.language))
-                    Spacer()
-                    KeyboardShortcuts.Recorder(for: .toggleMemosQuickCapture)
-                }
-                HStack {
-                    Text(I18n.localized("memos_settings_open_browser", language: appState.language))
-                    Spacer()
-                    KeyboardShortcuts.Recorder(for: .toggleMemosBrowserWindow)
-                }
+        SettingsGroup(I18n.localized("memos_settings_shortcuts", language: appState.language)) {
+            SettingsRow(I18n.localized("memos_settings_quick_capture", language: appState.language)) {
+                KeyboardShortcuts.Recorder(for: .toggleMemosQuickCapture)
+            }
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("memos_settings_open_browser", language: appState.language)) {
+                KeyboardShortcuts.Recorder(for: .toggleMemosBrowserWindow)
             }
         }
     }
 
     @ViewBuilder
     private var entryCard: some View {
-        SettingsCard(icon: "rectangle.on.rectangle", iconColor: .purple, title: I18n.localized("memos_settings_entry", language: appState.language), description: nil) {
+        SettingsGroup(I18n.localized("memos_settings_entry", language: appState.language)) {
             HStack(spacing: 12) {
                 Button {
                     NotificationCenter.default.post(name: .showMemosBrowserWindow, object: nil)
@@ -126,12 +123,13 @@ struct MemosSettingsView: View {
                     Label(I18n.localized("memos_settings_quick_capture_short", language: appState.language), systemImage: "square.and.pencil")
                 }
             }
+            .padding(12)
         }
     }
 
     @ViewBuilder
     private var syncStatusCard: some View {
-        SettingsCard(icon: "arrow.triangle.2.circlepath", iconColor: .green, title: I18n.localized("memos_settings_sync_status", language: appState.language), description: nil) {
+        SettingsGroup(I18n.localized("memos_settings_sync_status", language: appState.language)) {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(I18n.localizedFormat("memos_status_sync_indicator", language: appState.language, pendingCount))
@@ -155,6 +153,7 @@ struct MemosSettingsView: View {
                 }
                 .disabled(pendingCount == 0 || isSyncing)
             }
+            .padding(12)
         }
     }
 

@@ -21,6 +21,7 @@ public final class WaterReminderController {
     /// Called every tick — checks custom-mode timer and shows bubble if due
     public func tick() {
         guard let state = appState else { return }
+        guard state.enableRestReminder else { return }
         guard state.waterReminderEnabled else { return }
         guard state.currentState != .resting else { return }
         guard state.currentState == .working || state.currentState == .alerting else { return }
@@ -39,7 +40,7 @@ public final class WaterReminderController {
 
     /// Show water reminder bubble (followRhythm mode calls this directly from updateDialogue)
     public func showBubble() {
-        guard let state = appState else { return }
+        guard let state = appState, state.enableRestReminder else { return }
         petState.bubbleText = I18n.localized("water_reminder_text", language: state.language)
         petState.showWaterButton = true
         petState.bubbleVisible = true
@@ -51,6 +52,15 @@ public final class WaterReminderController {
             self.petState.bubbleVisible = false
             self.petState.showWaterButton = false
         }
+    }
+
+    /// Dismiss the water reminder bubble immediately
+    public func dismissBubble() {
+        guard petState.showWaterButton || waterBubbleDismissTask != nil else { return }
+        waterBubbleDismissTask?.cancel()
+        waterBubbleDismissTask = nil
+        petState.bubbleVisible = false
+        petState.showWaterButton = false
     }
 
     /// Called when user clicks +1 on water bubble
