@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MeowOut - 一只奔跑的像素伴侣，守护你的职场健康</title>
     <!-- Meta Descriptions for SEO -->
-    <meta name="description" content="MeowOut 是一款 macOS 原生菜单栏应用，用可爱的像素宠物提醒您定时休息与喝水。精准检测活跃状态，防沉迷呼吸练习，提供闪念胶囊(Memos)与双因素验证(2FA)功能，呵护每一位开发者的职场健康与效率。">
-    <meta name="keywords" content="MeowOut, macOS App, 像素宠物, 喝水提醒, 强制休息, 职场健康, 正念练习, 闪念胶囊, Memos, 2FA, 开发者工具">
+    <meta name="description" content="MeowOut 是一款 macOS 原生菜单栏应用，用可爱的像素宠物提醒您定时休息与喝水。精准检测活跃状态，防沉迷呼吸练习，提供闪念胶囊(Memos)、双因素验证(2FA)与系统状态监控功能，呵护每一位开发者的职场健康与效率。">
+    <meta name="keywords" content="MeowOut, macOS App, 像素宠物, 喝水提醒, 强制休息, 职场健康, 正念练习, 闪念胶囊, Memos, 2FA, 系统状态监控, 开发者工具">
     <meta name="author" content="huangy7">
     
     <!-- Open Graph for Social Sharing -->
     <meta property="og:title" content="MeowOut - 一只奔跑的像素伴侣，守护你的职场健康">
-    <meta property="og:description" content="MeowOut 是一款 macOS 原生菜单栏应用，用可爱的像素宠物提醒您定时休息与喝水。">
+    <meta property="og:description" content="MeowOut 是一款 macOS 原生菜单栏应用，用可爱的像素宠物提醒您定时休息与喝水，并实时监控 CPU、内存、网络与电池状态。">
     <meta property="og:image" content="./.github/assets/promo_poster.png">
     <meta property="og:url" content="https://github.com/huangy7/MeowOut">
     <meta property="og:type" content="website">
@@ -1512,14 +1512,14 @@
                 <p data-i18n="feat-breathe-desc">集成 5 分钟呼吸训练模块（支持箱式、4-7-8、腹式呼吸），全屏沉浸式交互引导，练习数据自动同步至健康时间回顾。</p>
             </div>
 
-            <!-- Card 5: 📊 现代化管理面板 -->
+            <!-- Card 5: ⚙️ 原生系统设置界面 -->
             <div class="feature-card" style="--badge-bg: rgba(99, 102, 241, 0.12); --badge-border: rgba(99, 102, 241, 0.3); --spotlight-color: rgba(99, 102, 241, 0.15);">
                 <div class="feature-card-header">
                     <div class="feature-icon-badge">📊</div>
                     <span class="feature-tag-badge" data-i18n="feat-tag-5">📈 动态图表</span>
                 </div>
-                <h3 data-i18n="feat-dashboard-title">现代化管理面板</h3>
-                <p data-i18n="feat-dashboard-desc">基于 SwiftUI 构建的侧边栏导航面板，提供深度个性化的设置选项，以及详尽直观的“今日回顾时间轴”和历史统计图表。</p>
+                <h3 data-i18n="feat-dashboard-title">原生系统设置界面</h3>
+                <p data-i18n="feat-dashboard-desc">设置窗口重构为 macOS 系统设置风格：侧栏彩色分组导航搭配分组卡片布局，滑杆升级为数值预设菜单，并内置「今日回顾」时间轴与历史统计图表。</p>
             </div>
 
             <!-- Card 6: ⚡️ 原生极佳性能 -->
@@ -1572,14 +1572,14 @@
                 <p data-i18n="feat-file-desc">跨应用文件拖拽的中转枢纽。支持图片、文本、任意文件格式临时寄存与快速分发，彻底告别频繁切换窗口的烦恼。</p>
             </div>
 
-            <!-- Card 11: 💻 合盖防休眠 -->
+            <!-- Card 11: 🔋 电源与系统监控 -->
             <div class="feature-card" style="--badge-bg: rgba(244, 63, 94, 0.12); --badge-border: rgba(244, 63, 94, 0.3); --spotlight-color: rgba(244, 63, 94, 0.15);">
                 <div class="feature-card-header">
-                    <div class="feature-icon-badge">💻</div>
+                    <div class="feature-icon-badge">🔋</div>
                     <span class="feature-tag-badge" data-i18n="feat-tag-11">💻 合盖常亮</span>
                 </div>
-                <h3 data-i18n="feat-power-title">合盖防休眠</h3>
-                <p data-i18n="feat-power-desc">支持自定义外接显示器合盖不休眠机制，并集成了智能电池保护，全方位提升 Mac 工作流体验并延长硬件寿命。</p>
+                <h3 data-i18n="feat-power-title">电源与系统监控</h3>
+                <p data-i18n="feat-power-desc">支持外接显示器合盖不休眠与智能电池保护；菜单栏面板采用毛玻璃通透设计，实时展示 CPU、内存、网络与电池状态，全方位掌控 Mac 健康。</p>
             </div>
 
             <!-- Card 12: 📈 自选基金看板 -->
@@ -1841,9 +1841,9 @@
         const i18n = {
             'zh-CN': {
                 'meta-title': 'MeowOut - 一只奔跑的像素伴侣，守护你的职场健康',
-                'meta-desc': 'MeowOut 是一款 macOS 原生菜单栏应用，用可爱的像素宠物提醒您定时休息与喝水。精准检测活跃状态，防沉迷呼吸练习，提供闪念胶囊(Memos)与双因素验证(2FA)功能，呵护每一位开发者的职场健康与效率。',
+                'meta-desc': 'MeowOut 是一款 macOS 原生菜单栏应用，用可爱的像素宠物提醒您定时休息与喝水。精准检测活跃状态，防沉迷呼吸练习，提供闪念胶囊(Memos)、双因素验证(2FA)与系统状态监控功能，呵护每一位开发者的职场健康与效率。',
                 'og-title': 'MeowOut - 一只奔跑的像素伴侣，守护你的职场健康',
-                'og-desc': 'MeowOut 是一款 macOS 原生菜单栏应用，用可爱的像素宠物提醒您定时休息与喝水。',
+                'og-desc': 'MeowOut 是一款 macOS 原生菜单栏应用，用可爱的像素宠物提醒您定时休息与喝水，并实时监控 CPU、内存、网络与电池状态。',
                 'nav-features': '特性',
                 'nav-demo': '在线试用',
                 'nav-install': '安装指南',
@@ -1869,8 +1869,8 @@
                 'feat-water-desc': '提供“跟随工作节奏”或“自定义时间间隔”双模式。在菜单栏实时以直观百分比或杯数显示饮水进度，保护你的肾脏健康。',
                 'feat-breathe-title': '正念呼吸练习',
                 'feat-breathe-desc': '集成 5 分钟呼吸训练模块（支持箱式、4-7-8、腹式呼吸），全屏沉浸式交互引导，练习数据自动同步至健康时间回顾。',
-                'feat-dashboard-title': '现代化管理面板',
-                'feat-dashboard-desc': '基于 SwiftUI 构建的侧边栏导航面板，提供深度个性化的设置选项，以及详尽直观的“今日回顾时间轴”和历史统计图表。',
+                'feat-dashboard-title': '原生系统设置界面',
+                'feat-dashboard-desc': '设置窗口重构为 macOS 系统设置风格：侧栏彩色分组导航搭配分组卡片布局，滑杆升级为数值预设菜单，并内置「今日回顾」时间轴与历史统计图表。',
                 'feat-perf-title': '原生极佳性能',
                 'feat-perf-desc': '完美适配 macOS 系统。采用 Swift Observation 状态机与 AppKit 多窗口底层协同机制，配合 Canvas 渲染，30FPS 完美兼顾功耗平衡。',
                 'feat-memos-title': 'Memos 闪念胶囊',
@@ -1881,8 +1881,8 @@
                 'feat-2fa-desc': '内置安全可靠的双因素验证器，支持多哈希算法，依托 Keychain 提供金融级加密存储。',
                 'feat-file-title': '原生文件中转站',
                 'feat-file-desc': '跨应用文件拖拽的中转枢纽。支持图片、文本、任意文件格式临时寄存与快速分发，彻底告别频繁切换窗口的烦恼。',
-                'feat-power-title': '合盖防休眠',
-                'feat-power-desc': '支持自定义外接显示器合盖不休眠机制，并集成了智能电池保护，全方位提升 Mac 工作流体验并延长硬件寿命。',
+                'feat-power-title': '电源与系统监控',
+                'feat-power-desc': '支持外接显示器合盖不休眠与智能电池保护；菜单栏面板采用毛玻璃通透设计，实时展示 CPU、内存、网络与电池状态，全方位掌控 Mac 健康。',
                 'feat-fund-title': '自选基金看板',
                 'feat-fund-desc': '支持实时盘中估值追踪、轻量浮窗快捷唤出与隐私打码，精准计算持仓收益与市值，随时掌控投资动态。',
                 'demo-title': '🎮 网页在线试用原型',
@@ -1939,9 +1939,9 @@
             },
             'en': {
                 'meta-title': 'MeowOut - A running pixel companion guarding your workplace health',
-                'meta-desc': 'MeowOut is a native macOS menu bar app that uses a cute pixel pet to remind you to take breaks and drink water. It accurately detects activity, provides mindful breathing exercises, Flash Capsules (Memos), and 2FA, caring for every developer\'s health and efficiency.',
+                'meta-desc': 'MeowOut is a native macOS menu bar app that uses a cute pixel pet to remind you to take breaks and drink water. It accurately detects activity, provides mindful breathing exercises, Flash Capsules (Memos), 2FA, and real-time system status monitoring, caring for every developer\'s health and efficiency.',
                 'og-title': 'MeowOut - A running pixel companion guarding your workplace health',
-                'og-desc': 'MeowOut is a native macOS menu bar app that uses a cute pixel pet to remind you to take breaks and drink water.',
+                'og-desc': 'MeowOut is a native macOS menu bar app that uses a cute pixel pet to remind you to take breaks and drink water, with real-time CPU, memory, network, and battery monitoring.',
                 'nav-features': 'Features',
                 'nav-demo': 'Live Demo',
                 'nav-install': 'Installation',
@@ -1967,8 +1967,8 @@
                 'feat-water-desc': 'Offers \'follow work rhythm\' or \'custom interval\' dual modes. Displays hydration progress in real-time as an intuitive percentage or cup count in the menu bar, protecting your kidney health.',
                 'feat-breathe-title': 'Mindful Breathing Exercises',
                 'feat-breathe-desc': 'Integrates a 5-minute breathing training module (supports box, 4-7-8, and diaphragmatic breathing) with full-screen immersive interactive guidance. Exercise data automatically syncs to your health time review.',
-                'feat-dashboard-title': 'Modern Management Dashboard',
-                'feat-dashboard-desc': 'A sidebar navigation panel built with SwiftUI, providing deeply personalized settings, along with a detailed and intuitive \'Today Review Timeline\' and historical statistical charts.',
+                'feat-dashboard-title': 'Native System Settings UI',
+                'feat-dashboard-desc': 'The settings window is redesigned in the macOS System Settings style: a sidebar with colorful grouped navigation, grouped cards, and preset menus replacing sliders, plus the "Today Review" timeline and historical stats charts.',
                 'feat-perf-title': 'Excellent Native Performance',
                 'feat-perf-desc': 'Perfectly adapted to macOS. Uses Swift Observation state machine and AppKit multi-window underlying coordination mechanism, combined with Canvas rendering, perfectly balancing 30FPS with power consumption.',
                 'feat-memos-title': 'Memos Flash Capsules',
@@ -1979,8 +1979,8 @@
                 'feat-2fa-desc': 'Built-in secure and reliable two-factor authenticator, supporting multiple hash algorithms, relying on Keychain to provide financial-grade encrypted storage.',
                 'feat-file-title': 'Native File Dropzone',
                 'feat-file-desc': 'A transit hub for cross-app file dragging. Supports temporary storage and fast distribution of images, text, and any file format, saying goodbye to the hassle of frequently switching windows.',
-                'feat-power-title': 'Clamshell Anti-Sleep',
-                'feat-power-desc': 'Supports a custom clamshell anti-sleep mechanism for external displays, and integrates smart battery protection to enhance workflow and extend your Mac\'s hardware lifespan.',
+                'feat-power-title': 'Power & System Monitor',
+                'feat-power-desc': 'Supports clamshell anti-sleep for external displays and smart battery protection. The frosted-glass menu bar panel shows live CPU, memory, network, and battery metrics, keeping your Mac\'s health in full view.',
                 'feat-fund-title': 'Self-Selected Funds',
                 'feat-fund-desc': 'Real-time intraday valuation tracking, lightweight floating dashboard with privacy masking, and accurate portfolio profit & market value calculation.',
                 'demo-title': '🎮 Web Interactive Prototype',
@@ -2037,9 +2037,9 @@
             },
             'zh-TW': {
                 'meta-title': 'MeowOut - 一隻奔跑的像素伴侶，守護你的職場健康',
-                'meta-desc': 'MeowOut 是一款 macOS 原生功能表欄應用，用可愛的像素寵物提醒您定時休息與喝水。精準檢測活躍狀態，防沉迷呼吸練習，提供閃念膠囊(Memos)與雙因素驗證(2FA)功能，呵護每一位開發者的職場健康與效率。',
+                'meta-desc': 'MeowOut 是一款 macOS 原生功能表欄應用，用可愛的像素寵物提醒您定時休息與喝水。精準檢測活躍狀態，防沉迷呼吸練習，提供閃念膠囊(Memos)、雙因素驗證(2FA)與系統狀態監控功能，呵護每一位開發者的職場健康與效率。',
                 'og-title': 'MeowOut - 一隻奔跑的像素伴侶，守護你的職場健康',
-                'og-desc': 'MeowOut 是一款 macOS 原生功能表欄應用，用可愛的像素寵物提醒您定時休息與喝水。',
+                'og-desc': 'MeowOut 是一款 macOS 原生功能表欄應用，用可愛的像素寵物提醒您定時休息與喝水，並即時監控 CPU、記憶體、網路與電池狀態。',
                 'nav-features': '特性',
                 'nav-demo': '線上試用',
                 'nav-install': '安裝指南',
@@ -2065,8 +2065,8 @@
                 'feat-water-desc': '提供“跟隨工作節奏”或“自訂時間間隔”雙模式。在功能表欄即時以直觀百分比或杯數顯示飲水進度，保護你的腎臟健康。',
                 'feat-breathe-title': '正念呼吸練習',
                 'feat-breathe-desc': '集成 5 分鐘呼吸訓練模組（支援箱式、4-7-8、腹式呼吸），全螢幕沉浸式互動引導，練習數據自動同步至健康時間回顧。',
-                'feat-dashboard-title': '現代化管理面板',
-                'feat-dashboard-desc': '基於 SwiftUI 構建的側邊欄導航面板，提供深度個性化的設定選項，以及詳盡直觀的“今日回顧時間軸”和歷史統計圖表。',
+                'feat-dashboard-title': '原生系統設定介面',
+                'feat-dashboard-desc': '設定視窗重構為 macOS 系統設定風格：側欄彩色分組導航搭配分組卡片佈局，滑桿升級為數值預設選單，並內置「今日回顧」時間軸與歷史統計圖表。',
                 'feat-perf-title': '原生極佳效能',
                 'feat-perf-desc': '完美適配 macOS 系統。採用 Swift Observation 狀態機與 AppKit 多視窗底層協同機制，配合 Canvas 渲染，30FPS 完美兼顧功耗平衡。',
                 'feat-memos-title': 'Memos 閃念膠囊',
@@ -2077,8 +2077,8 @@
                 'feat-2fa-desc': '內置安全可靠的雙因素驗證器，支援多雜湊演算法，依託 Keychain 提供金融級加密存儲。',
                 'feat-file-title': '原生檔案中轉站',
                 'feat-file-desc': '跨應用檔案拖拽的中轉樞紐。支援圖片、文字、任意檔案格式臨時寄存與快速分發，徹底告別頻繁切換視窗的煩惱。',
-                'feat-power-title': '合蓋防休眠',
-                'feat-power-desc': '支援自訂外接顯示器合蓋不休眠機制，並集成了智慧電池保護，全方位提升 Mac 工作流體驗並延長硬體壽命。',
+                'feat-power-title': '電源與系統監控',
+                'feat-power-desc': '支援外接顯示器合蓋不休眠與智慧電池保護；功能表欄面板採用毛玻璃通透設計，即時展示 CPU、記憶體、網路與電池狀態，全方位掌控 Mac 健康。',
                 'feat-fund-title': '自選基金看板',
                 'feat-fund-desc': '支援即時盤中估值追蹤、輕量浮窗快捷呼出與隱私遮蔽，精準計算持倉收益與市值，隨時掌控投資動態。',
                 'demo-title': '🎮 網頁線上試用原型',
@@ -2135,9 +2135,9 @@
             },
             'ja': {
                 'meta-title': 'MeowOut - あなたの健康的なコーディングを見守る走るドット絵の相棒',
-                'meta-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。アクティビティ検知、マインドフルネス呼吸法、メモ機能（Memos）、二要素認証（2FA）を搭載し、エンジニアの健康と効率をサポートします。',
+                'meta-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。アクティビティ検知、マインドフルネス呼吸法、メモ機能（Memos）、二要素認証（2FA）、システムステータス監視を搭載し、エンジニアの健康と効率をサポートします。',
                 'og-title': 'MeowOut - あなたの健康的なコーディングを見守る走るドット絵の相棒',
-                'og-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。',
+                'og-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促し、CPU・メモリ・ネットワーク・バッテリーをリアルタイム監視するmacOSネイティブメニューバーアプリです。',
                 'nav-features': '機能',
                 'nav-demo': 'オンラインデモ',
                 'nav-install': 'インストール',
@@ -2163,8 +2163,8 @@
                 'feat-water-desc': '「作業リズムに連動」または「カスタム時間間隔」の2モード。メニューバーで水分の進捗をパーセントや杯数でリアルタイム表示。',
                 'feat-breathe-title': 'マインドフルネス呼吸エクササイズ',
                 'feat-breathe-desc': '5分間の呼吸トレーニング（ボックス呼吸、4-7-8、腹式呼吸）を搭載。フルスクリーンアニメーションでリラックスを支援。',
-                'feat-dashboard-title': 'モダンな管理ダッシュボード',
-                'feat-dashboard-desc': 'SwiftUIで構築されたサイドバーナビゲーション。詳細な設定項目と「今日のタイムライン」履歴グラフを提供。',
+                'feat-dashboard-title': 'ネイティブシステム設定 UI',
+                'feat-dashboard-desc': '設定画面を macOS のシステム設定風に刷新。カラフルなサイドバーのグループナビゲーションとグループカード、スライダーに代わる数値プリセットメニューを採用し、「今日のタイムライン」と履歴統計グラフも内蔵。',
                 'feat-perf-title': '優れたネイティブパフォーマンス',
                 'feat-perf-desc': 'Swift ObservationとAppKitのマルチウィンドウ連携、Canvas描画により、30FPSのなめらかな描画と低消費電力を両立。',
                 'feat-memos-title': 'Memos（アイデアメモ）',
@@ -2175,8 +2175,8 @@
                 'feat-2fa-desc': 'Keychainを利用した金融グレードの暗号化ストレージを備える安全・確実な2要素認証器（ワンタイムパスワード）。',
                 'feat-file-title': 'ネイティブファイルシェルフ',
                 'feat-file-desc': 'アプリ間のファイルドラッグ＆ドロップ用の一時保管ハブ。画像・テキスト・任意ファイルをすばやくやり取り。',
-                'feat-power-title': 'クラムシェル休眠防止',
-                'feat-power-desc': '外部ディスプレイ接続時のクラムシェル（カバー閉じ）休眠防止とスマートバッテリー保護機能を搭載。',
+                'feat-power-title': '電源・システムモニター',
+                'feat-power-desc': '外部ディスプレイ接続時のクラムシェル休眠防止とスマートバッテリー保護に対応。すりガラス調のメニューバーパネルで CPU・メモリ・ネットワーク・バッテリーの状態をリアルタイム表示し、Mac の健康を一目で把握できます。',
                 'demo-title': '🎮 インタラクティブWEBデモ',
                 'demo-desc': 'ダウンロード不要！下のシミュレーターでMeowOutのメニューバーと設定画面をお試しいただけます。',
                 'install-brew-title': '🍺 Homebrewでインストール（推奨）',
@@ -2230,9 +2230,9 @@
             },
             'ja': {
                 'meta-title': 'MeowOut - あなたの健康的なコーディングを見守る走るドット絵の相棒',
-                'meta-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。アクティビティ検知、マインドフルネス呼吸法、メモ機能（Memos）、二要素認証（2FA）を搭載し、エンジニアの健康と効率をサポートします。',
+                'meta-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。アクティビティ検知、マインドフルネス呼吸法、メモ機能（Memos）、二要素認証（2FA）、システムステータス監視を搭載し、エンジニアの健康と効率をサポートします。',
                 'og-title': 'MeowOut - あなたの健康的なコーディングを見守る走るドット絵の相棒',
-                'og-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促すmacOSネイティブメニューバーアプリです。',
+                'og-desc': 'MeowOutは、かわいいドット絵のペットが定期的な休憩や水分補給を促し、CPU・メモリ・ネットワーク・バッテリーをリアルタイム監視するmacOSネイティブメニューバーアプリです。',
                 'nav-features': '機能',
                 'nav-demo': 'オンラインデモ',
                 'nav-install': 'インストール',
@@ -2258,8 +2258,8 @@
                 'feat-water-desc': '「作業リズムに連動」または「カスタム時間間隔」の2モード。メニューバーで水分の進捗をパーセントや杯数でリアルタイム表示。',
                 'feat-breathe-title': 'マインドフルネス呼吸エクササイズ',
                 'feat-breathe-desc': '5分間の呼吸トレーニング（ボックス呼吸、4-7-8、腹式呼吸）を搭載。フルスクリーンアニメーションでリラックスを支援。',
-                'feat-dashboard-title': 'モダンな管理ダッシュボード',
-                'feat-dashboard-desc': 'SwiftUIで構築されたサイドバーナビゲーション。詳細な設定項目と「今日のタイムライン」履歴グラフを提供。',
+                'feat-dashboard-title': 'ネイティブシステム設定 UI',
+                'feat-dashboard-desc': '設定画面を macOS のシステム設定風に刷新。カラフルなサイドバーのグループナビゲーションとグループカード、スライダーに代わる数値プリセットメニューを採用し、「今日のタイムライン」と履歴統計グラフも内蔵。',
                 'feat-perf-title': '優れたネイティブパフォーマンス',
                 'feat-perf-desc': 'Swift ObservationとAppKitのマルチウィンドウ連携、Canvas描画により、30FPSのなめらかな描画と低消費電力を両立。',
                 'feat-memos-title': 'Memos（アイデアメモ）',
@@ -2270,8 +2270,8 @@
                 'feat-2fa-desc': 'Keychainを利用した金融グレードの暗号化ストレージを備える安全・確実な2要素認証器（ワンタイムパスワード）。',
                 'feat-file-title': 'ネイティブファイルシェルフ',
                 'feat-file-desc': 'アプリ間のファイルドラッグ＆ドロップ用の一時保管ハブ。画像・テキスト・任意ファイルをすばやくやり取り。',
-                'feat-power-title': 'クラムシェル休眠防止',
-                'feat-power-desc': '外部ディスプレイ接続時のクラムシェル（カバー閉じ）休眠防止とスマートバッテリー保護機能を搭載。',
+                'feat-power-title': '電源・システムモニター',
+                'feat-power-desc': '外部ディスプレイ接続時のクラムシェル休眠防止とスマートバッテリー保護に対応。すりガラス調のメニューバーパネルで CPU・メモリ・ネットワーク・バッテリーの状態をリアルタイム表示し、Mac の健康を一目で把握できます。',
                 'feat-fund-title': 'リアルタイム投信ボード',
                 'feat-fund-desc': 'リアルタイムの基準価額予測、ワンタッチで呼び出せる軽量フローティング画面、プライバシー保護、保有損益・時価総額の自動計算に対応。',
                 'demo-title': '🎮 インタラクティブWEBデモ',

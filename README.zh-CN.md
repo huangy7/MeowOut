@@ -7,7 +7,7 @@
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/lang-简体中文-blue?style=flat-square" alt="简体中文"></a>
 </p>
 
-> 本翻译最后同步于 v1.7.0 (English README)
+> 本翻译最后同步于 main 分支 2026-09-19 (English README)
 
 # MeowOut
 
@@ -58,7 +58,8 @@ MeowOut 是一款 macOS 原生菜单栏应用，用一只奔跑的像素宠物�
 | **清洁模式 (Cleaning)** | 一键锁定键盘或屏幕输入，防止清洁时误触，并提供倒计时解锁机制。 |
 | **合盖防休眠与电池保护** | 支持合盖时不休眠，并提供自定义电量阈值保护，防止过度放电。 |
 | **自选基金看板 (Funds)** | 实时盘中估值追踪与自选基金管理，轻量浮窗一键唤出、支持隐私打码，精准计算持仓收益与市值。 |
-| **现代化管理面板** | 采用侧边栏导航架构，提供深度个性化的 **休息/饮水/行为/系统** 设置，以及详尽的 **今日回顾时间轴**。 |
+| **系统状态监控 (System Monitor)** | 毛玻璃通透的菜单栏面板，实时呈现 CPU / 内存 / 网络 / 电池指标，支持进程下钻、显著能耗排行，并与电池保护联动。 |
+| **现代化管理面板** | 采用 macOS 系统设置风格的分组界面，12 个侧栏分类搭配预设档位菜单调节数值，提供深度个性化的 **休息/饮水/行为/系统** 设置，以及详尽的 **今日回顾时间轴**。 |
 
 
 ## 🕰 监测逻辑说明
@@ -109,7 +110,7 @@ curl -L https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg 
 ```
 
 ## 🛠️ 技术栈
-- **UI 框架**: SwiftUI (现代侧边栏导航 + 响应式布局)
+- **UI 框架**: SwiftUI (系统设置风格的分组导航 + 响应式布局)
 - **底层架构**: AppKit (多窗口协同 + 全屏置顶遮罩)
 - **状态管理**: Swift Observation (@Observable)
 - **绘图引擎**: Canvas (高性能像素动画渲染，30FPS 功耗平衡)
@@ -132,7 +133,9 @@ Sources/MeowOut/
   Toolbox2FA/                 # 二步验证器核心模块与视图
   KeyDrop/                    # 文本片段管理器核心模块
   Fund/                       # 实时自选基金与持仓管理模块
-  SettingsView.swift          # 现代化侧边栏设置面板
+  SettingsView.swift          # macOS 系统设置风格的分组设置面板
+  Settings/                   # 设置分组组件 (SettingsGroup / PresetValueRow / ValuePreset)
+  SystemMonitor/              # 系统指标实时采样与监控卡片视图
   StatsView.swift             # 多维度健康统计页面
   TodayReviewView.swift       # 每日行为记录可视化时间轴
   LauncherView.swift          # 快捷环形启动器入口

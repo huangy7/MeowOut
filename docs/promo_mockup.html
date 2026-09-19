@@ -29,58 +29,76 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
 .dot-y { background: #ffbd2e; }
 .dot-g { background: #27c93f; }
 .win-title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 600; }
-/* SETTINGS WINDOW - LIGHT THEME */
-.win-settings { width: 580px; height: 510px; left: 340px; top: 90px; background: #f5f5f7; border: 0.5px solid rgba(0,0,0,0.12); }
-.win-settings .titlebar { background: rgba(236,236,240,0.9); border-bottom: 0.5px solid rgba(0,0,0,0.08); }
-.win-settings .win-title { color: #1d1d1f; }
+/* SETTINGS WINDOW - macOS SYSTEM SETTINGS STYLE */
+.win-settings { width: 600px; height: 520px; left: 330px; top: 84px; background: #242428; border: 0.5px solid rgba(255,255,255,0.12);
+  --st-titlebar: rgba(32,32,36,0.9); --st-sidebar: rgba(44,44,48,0.6); --st-content: #242428; --st-card: #333338; --st-menu: #3a3a40;
+  --st-text: #f2f2f7; --st-sub: #98989f; --st-sep: rgba(255,255,255,0.09); --st-hover: rgba(255,255,255,0.07); --st-ctrl: rgba(255,255,255,0.1); --st-segact: rgba(255,255,255,0.18); }
+:root[data-theme="light"] .win-settings { background: #f5f5f7; border: 0.5px solid rgba(0,0,0,0.12);
+  --st-titlebar: rgba(236,236,240,0.9); --st-sidebar: rgba(232,232,238,0.85); --st-content: #f2f2f5; --st-card: #ffffff; --st-menu: #ffffff;
+  --st-text: #1d1d1f; --st-sub: #86868b; --st-sep: rgba(0,0,0,0.07); --st-hover: rgba(0,0,0,0.05); --st-ctrl: rgba(0,0,0,0.05); --st-segact: #ffffff; }
+.win-settings .titlebar { background: var(--st-titlebar); border-bottom: 0.5px solid var(--st-sep); }
+.win-settings .win-title { color: var(--st-text); }
 .settings-body { display: flex; flex: 1; overflow: hidden; }
-.sidebar { width: 142px; background: rgba(232,232,238,0.9); border-right: 0.5px solid rgba(0,0,0,0.07); padding: 8px; display: flex; flex-direction: column; gap: 2px; }
-.sitem { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 7px; font-size: 12px; font-weight: 500; color: #1d1d1f; cursor: pointer; transition: background 0.15s; position: relative; }
-.sitem:hover { background: rgba(0,0,0,0.05); }
-.sitem.active { background: #0071e3; color: #fff; }
-.sitem .sicon { font-size: 14px; width: 16px; text-align: center; }
+.sidebar { width: 152px; background: var(--st-sidebar); border-right: 0.5px solid var(--st-sep); padding: 6px 8px 12px; display: flex; flex-direction: column; gap: 1px; overflow-y: auto; flex-shrink: 0; }
+.sgroup { font-size: 10px; font-weight: 700; color: var(--st-sub); padding: 10px 8px 3px; letter-spacing: 0.2px; }
+.sitem { display: flex; align-items: center; gap: 7px; padding: 4px 7px; border-radius: 7px; font-size: 12px; font-weight: 500; color: var(--st-text); cursor: pointer; transition: background 0.15s; position: relative; }
+.sitem:hover { background: var(--st-hover); }
+.sitem.active { background: #0A84FF; color: #fff; }
+.sic { width: 20px; height: 20px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; flex-shrink: 0; }
 .sbadge { position: absolute; right: 8px; width: 7px; height: 7px; background: #ff3b30; border-radius: 50%; }
-.scontent { flex: 1; background: #fff; display: flex; flex-direction: column; overflow: hidden; }
-.pill-wrap { padding: 14px 18px 8px; display: flex; justify-content: space-between; align-items: center; }
-.pill-bar { display: flex; background: rgba(0,0,0,0.05); padding: 3px; border-radius: 20px; gap: 0; }
-.pill { font-size: 11px; font-weight: 600; padding: 4px 13px; border-radius: 18px; color: #86868b; cursor: pointer; border: none; background: transparent; transition: color 0.15s; display: flex; align-items: center; gap: 4px; }
-.pill.active { color: #1d1d1f; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
-.tab-content { flex: 1; padding: 0 18px 16px; overflow-y: auto; display: none; }
+.hidden { display: none !important; }
+.scontent { flex: 1; background: var(--st-content); display: flex; flex-direction: column; overflow: hidden; }
+.tab-content { flex: 1; padding: 6px 16px 18px; overflow-y: auto; display: none; }
 .tab-content.show { display: block; animation: fadein 0.18s ease; }
-.sub-content { display: none; }
-.sub-content.show { display: block; }
-.scard { background: rgba(0,0,0,0.025); border: 0.5px solid rgba(0,0,0,0.07); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
-.scard-row { display: flex; align-items: center; gap: 12px; margin-bottom: 2px; }
-.icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-.card-texts { display: flex; flex-direction: column; gap: 1px; flex: 1; }
-.card-title { font-size: 13px; font-weight: 600; color: #1d1d1f; }
-.card-desc { font-size: 11px; color: #86868b; }
-.slider-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
-.slider-ctrl { flex: 1; -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(0,0,0,0.1); outline: none; cursor: pointer; }
-.slider-ctrl::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 0.5px solid rgba(0,0,0,0.15); box-shadow: 0 2px 5px rgba(0,0,0,0.18); cursor: pointer; }
-.slider-val { font-family: monospace; font-size: 12px; font-weight: 700; color: #ff7b00; min-width: 44px; text-align: right; }
+.grp-title { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; color: var(--st-sub); margin: 14px 6px 6px; }
+.grp-title:first-child { margin-top: 6px; }
+.grp-reset { border: none; background: none; font-size: 13px; cursor: pointer; color: var(--st-sub); padding: 1px 6px; border-radius: 6px; line-height: 1.2; transition: all 0.14s; }
+.grp-reset:hover { background: var(--st-hover); color: var(--st-text); }
+.gcard { background: var(--st-card); border: 0.5px solid var(--st-sep); border-radius: 10px; }
+.grow { display: flex; align-items: center; gap: 10px; padding: 8px 12px; min-height: 40px; position: relative; }
+.grow + .grow::after { content: ''; position: absolute; top: 0; left: 12px; right: 0; height: 0.5px; background: var(--st-sep); }
+.grow-texts { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.grow-title { font-size: 13px; font-weight: 600; color: var(--st-text); }
+.grow-desc { font-size: 11px; color: var(--st-sub); }
+.grow-col { flex-direction: column; align-items: stretch; }
+/* PRESET MENU (replaces sliders) */
+.preset { position: relative; flex-shrink: 0; }
+.preset-btn { display: flex; align-items: center; gap: 6px; background: var(--st-ctrl); border: none; border-radius: 7px; padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--st-text); cursor: pointer; font-family: 'Outfit', sans-serif; transition: background 0.14s; }
+.preset-btn:hover { background: var(--st-hover); }
+.pv-arrow { font-size: 8px; color: var(--st-sub); }
+.preset-menu { position: absolute; right: 0; top: calc(100% + 4px); background: var(--st-menu); border: 0.5px solid var(--st-sep); border-radius: 9px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 4px; display: none; flex-direction: column; min-width: 96px; max-height: 182px; overflow-y: auto; z-index: 60; }
+.preset.open .preset-menu { display: flex; }
+.preset-opt { border: none; background: none; text-align: left; font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 6px; cursor: pointer; color: var(--st-text); font-family: 'Outfit', sans-serif; }
+.preset-opt:hover { background: #0A84FF; color: #fff; }
+.kbd-cap { background: var(--st-ctrl); border-radius: 6px; padding: 3px 9px; font-size: 11px; font-weight: 700; color: var(--st-sub); letter-spacing: 0.5px; flex-shrink: 0; }
+.perm-ok { color: #30d158; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .mac-toggle { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
 .mac-toggle input { opacity: 0; width: 0; height: 0; }
-.tog-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(120,120,128,0.2); transition: .22s; border-radius: 20px; }
+.tog-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(120,120,128,0.25); transition: .22s; border-radius: 20px; }
 .tog-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background: white; transition: .22s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
 .mac-toggle input:checked + .tog-slider { background: #34c759; }
 .mac-toggle input:checked + .tog-slider:before { transform: translateX(16px); }
-.mac-seg { display: flex; background: rgba(0,0,0,0.05); padding: 2px; border-radius: 7px; width: 100%; }
-.seg-btn { flex: 1; background: none; border: none; color: #86868b; font-size: 11px; font-weight: 500; padding: 5px 0; border-radius: 5px; cursor: pointer; transition: all 0.14s; }
-.seg-btn.active { background: #fff; color: #1d1d1f; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.mac-seg { display: flex; background: rgba(120,120,128,0.14); padding: 2px; border-radius: 7px; width: 100%; }
+.mac-seg.inline { width: auto; flex-shrink: 0; }
+.mac-seg.inline .seg-btn { flex: none; padding: 4px 10px; }
+.seg-btn { flex: 1; background: none; border: none; color: var(--st-sub, #86868b); font-size: 11px; font-weight: 500; padding: 5px 0; border-radius: 5px; cursor: pointer; transition: all 0.14s; }
+.win-settings .seg-btn.active { background: var(--st-segact); color: var(--st-text); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
 /* PET GRID */
-.pet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 6px; }
-.pet-item { border: 1.5px solid transparent; background: rgba(0,0,0,0.02); border-radius: 12px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.18s; }
-.pet-item:hover { background: rgba(0,0,0,0.04); }
-.pet-item.sel { background: rgba(0,113,227,0.07); border-color: #0071e3; }
+.pet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pet-item { border: 1.5px solid transparent; background: var(--st-ctrl, rgba(0,0,0,0.03)); border-radius: 10px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.18s; }
+.win-settings .pet-item:hover { background: var(--st-hover); }
+.win-settings .pet-item.sel { background: rgba(10,132,255,0.12); border-color: #0A84FF; }
 .pet-item canvas { width: 56px; height: 40px; image-rendering: pixelated; }
-.pet-item span { font-size: 10px; font-weight: 600; color: #86868b; margin-top: 5px; }
-.pet-item.sel span { color: #0071e3; }
+.pet-item span { font-size: 10px; font-weight: 600; color: var(--st-sub, #86868b); margin-top: 5px; }
+.win-settings .pet-item.sel span { color: #0A84FF; }
 .mac-btn { border: none; padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.14s; }
-.btn-primary { background: #0071e3; color: #fff; }
-.btn-primary:hover { background: #0077ed; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn-primary { background: #0A84FF; color: #fff; }
+.btn-primary:hover { background: #2b95ff; }
 .btn-secondary { background: rgba(0,0,0,0.06); color: #1d1d1f; border: 0.5px solid rgba(0,0,0,0.1); }
 .btn-secondary:hover { background: rgba(0,0,0,0.09); }
+.win-settings .btn-secondary { background: var(--st-ctrl); color: var(--st-text); border: 0.5px solid var(--st-sep); }
+.win-settings .btn-secondary:hover { background: var(--st-hover); }
 .btn-orange { background: #ff7b00; color: #fff; }
 .btn-orange:hover { background: #ff8f1f; }
 /* BREATHING WINDOW - DARK */
@@ -105,46 +123,59 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
 .btn-breath.secondary:hover { background: rgba(255,255,255,0.16); }
 .breath-session-time { font-size: 12px; font-family: monospace; color: rgba(255,255,255,0.4); display: none; }
 /* TRAY POPOVER */
-.tray-pop { position: absolute; top: 33px; right: 10px; width: 284px; background: rgba(255,255,255,0.82); backdrop-filter: blur(28px) saturate(160%); border: 0.5px solid rgba(0,0,0,0.1); border-radius: 18px; box-shadow: 0 18px 44px rgba(0,0,0,0.28); padding: 12px; display: flex; flex-direction: column; gap: 9px; z-index: 99999; display: none; color: #1d1d1f; transform-origin: top right; }
+.tray-pop { position: absolute; top: 33px; right: 10px; width: 284px; max-height: 648px; overflow-y: auto; scrollbar-width: none; background: rgba(32,32,40,0.6); backdrop-filter: blur(44px) saturate(180%); -webkit-backdrop-filter: blur(44px) saturate(180%); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 18px; box-shadow: 0 18px 44px rgba(0,0,0,0.4); padding: 12px; flex-direction: column; gap: 9px; z-index: 99999; display: none; color: #f2f2f7; transform-origin: top right; }
+.tray-pop::-webkit-scrollbar { display: none; }
 .tray-pop.show { display: flex; animation: popIn 0.18s cubic-bezier(0.16,1,0.3,1); }
 @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.pop-card { background: #fff; border-radius: 12px; padding: 10px 12px; border: 0.5px solid rgba(0,0,0,0.05); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.pop-card { background: rgba(255,255,255,0.09); border-radius: 12px; padding: 10px 12px; border: 0.5px solid rgba(255,255,255,0.07); }
 .goal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .goal-title { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
-.goal-val { font-size: 11px; color: #86868b; font-weight: 600; }
+.goal-val { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; }
 .goal-progress { display: flex; align-items: center; gap: 12px; }
 .prog-bar-wrap { flex: 1; }
-.prog-bar { height: 6px; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden; }
+.prog-bar { height: 6px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; }
 .prog-fill { height: 100%; background: linear-gradient(90deg, #ff7b00, #ff9e47); border-radius: 3px; width: 17.5%; transition: width 0.4s; }
 .circ-wrap { position: relative; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .circ-wrap svg { position: absolute; width: 100%; height: 100%; transform: rotate(-90deg); }
-.circ-bg { fill: none; stroke: rgba(0,0,0,0.05); stroke-width: 5; }
+.circ-bg { fill: none; stroke: rgba(255,255,255,0.14); stroke-width: 5; }
 .circ-arc { fill: none; stroke: #ff7b00; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 119.38; stroke-dashoffset: 93; transition: stroke-dashoffset 0.4s; }
-.circ-txt { font-size: 9px; font-weight: 800; font-family: monospace; color: #1d1d1f; position: relative; z-index: 1; }
+.circ-txt { font-size: 9px; font-weight: 800; font-family: monospace; color: #f2f2f7; position: relative; z-index: 1; }
+/* SYSTEM STATUS CARD */
+.uptime-badge { font-size: 9px; font-weight: 700; color: #30d158; background: rgba(48,209,88,0.16); padding: 3px 8px; border-radius: 9px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.uptime-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #30d158; }
+.sys-list { display: flex; flex-direction: column; margin-top: 2px; }
+.sys-row { display: flex; align-items: center; gap: 7px; padding: 5px 4px; font-size: 11px; cursor: pointer; border-radius: 6px; transition: background 0.12s; }
+.sys-row:hover { background: rgba(255,255,255,0.06); }
+.sys-chev { color: rgba(255,255,255,0.35); font-size: 10px; width: 8px; }
+.sys-name { font-weight: 600; flex: 1; }
+.sys-val { font-family: 'Fira Code', monospace; font-size: 10px; font-weight: 500; }
+.sys-blue { color: #0A84FF; }
+.sys-orange { color: #FF9F0A; }
+.sys-green { color: #30D158; }
 .water-row { display: flex; align-items: center; justify-content: space-between; padding: 2px 12px; }
 .water-label { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
 .water-right { display: flex; align-items: center; gap: 8px; }
 .water-count { font-size: 13px; font-weight: 700; color: #0071e3; }
 .water-add { width: 18px; height: 18px; border-radius: 50%; background: #0071e3; color: #fff; border: none; cursor: pointer; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; transition: transform 0.12s; }
 .water-add:hover { transform: scale(1.15); }
-.pop-divider { height: 0.5px; background: rgba(0,0,0,0.08); margin: 1px 0; }
+.pop-divider { height: 0.5px; background: rgba(255,255,255,0.1); margin: 1px 0; }
 .pause-row { display: flex; justify-content: space-between; align-items: center; padding: 0 12px; }
 .pause-label { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .pause-btns { display: flex; gap: 4px; }
-.pbtn { background: rgba(0,0,0,0.05); border: none; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 7px; cursor: pointer; color: #1d1d1f; transition: background 0.14s; }
-.pbtn:hover, .pbtn.on { background: rgba(0,0,0,0.12); }
+.pbtn { background: rgba(255,255,255,0.1); border: none; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 7px; cursor: pointer; color: #f2f2f7; transition: background 0.14s; }
+.pbtn:hover, .pbtn.on { background: rgba(255,255,255,0.22); }
 .util-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.util-card { background: #fff; border-radius: 12px; padding: 10px; border: 0.5px solid rgba(0,0,0,0.05); box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; transition: all 0.16s; }
-.util-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+.util-card { background: rgba(255,255,255,0.09); border-radius: 12px; padding: 10px; border: 0.5px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; transition: all 0.16s; }
+.util-card:hover { transform: translateY(-1px); background: rgba(255,255,255,0.15); }
 .util-icon { font-size: 20px; }
-.util-name { font-size: 11px; font-weight: 700; color: #1d1d1f; }
-.util-status { font-size: 9px; color: #86868b; }
+.util-name { font-size: 11px; font-weight: 700; color: inherit; }
+.util-status { font-size: 9px; color: rgba(255,255,255,0.45); }
 .util-card.on .util-status { color: #34c759; font-weight: 700; }
 .pop-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.12s; }
-.pop-list-item:hover { background: rgba(0,0,0,0.04); }
+.pop-list-item:hover { background: rgba(255,255,255,0.08); }
 .pop-list-item .left { display: flex; align-items: center; gap: 9px; }
-.pop-list-item.exit { color: #ff3b30; }
-.chevron { color: #86868b; font-size: 10px; }
+.pop-list-item.exit { color: #ff453a; }
+.chevron { color: rgba(255,255,255,0.4); font-size: 10px; }
 /* COMPANION PET */
 .companion { position: absolute; bottom: 28px; left: 200px; width: 112px; height: 80px; cursor: pointer; z-index: 500; transition: left 0.1s linear; }
 .companion canvas { width: 112px; height: 80px; image-rendering: pixelated; display: block; }
@@ -182,15 +213,15 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
 @keyframes floatKey { 0% { opacity: 1; transform: scale(0.8) translateY(0); } 100% { opacity: 0; transform: scale(1.4) translateY(-90px); } }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 .util-mini-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
-.util-mini-btn { background: rgba(0,0,0,0.03); border-radius: 12px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: background 0.14s; gap: 6px; }
-.util-mini-btn:hover { background: rgba(0,0,0,0.06); }
+.util-mini-btn { background: rgba(255,255,255,0.08); border-radius: 12px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: background 0.14s; gap: 6px; }
+.util-mini-btn:hover { background: rgba(255,255,255,0.15); }
 .mini-icon { font-size: 20px; }
-.mini-label { font-size: 10px; font-weight: 700; color: #1d1d1f; }
+.mini-label { font-size: 10px; font-weight: 700; color: inherit; }
 .terminal-icon { background: #1d1d1f; border-radius: 6px; width: 28px; height: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
 .term-warn { color: #ffcc00; font-family: monospace; font-size: 5px; font-weight: bold; }
 .term-time { color: #fff; font-family: monospace; font-size: 7px; font-weight: bold; }
-.collapse-btn { background: rgba(0,0,0,0.06); border-radius: 8px; text-align: center; font-size: 11px; font-weight: 700; color: #64748b; cursor: pointer; padding: 8px 0; margin-top: 8px; transition: background 0.14s; display: flex; align-items: center; justify-content: center; gap: 4px; }
-.collapse-btn:hover { background: rgba(0,0,0,0.1); }
+.collapse-btn { background: rgba(255,255,255,0.09); border-radius: 8px; text-align: center; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.55); cursor: pointer; padding: 8px 0; margin-top: 8px; transition: background 0.14s; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.collapse-btn:hover { background: rgba(255,255,255,0.16); }
 .win-2fa { width: 340px; height: 500px; left: 100px; top: 120px; background: linear-gradient(135deg, #eaf4fc 0%, #f7eafc 100%); border: 0.5px solid rgba(0,0,0,0.1); display: none; }
 .win-2fa.show { display: flex; }
 .win-2fa .titlebar { background: transparent; border: none; padding-top: 8px; }
@@ -244,6 +275,29 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
 :root[data-theme="light"] .kd-hdr { color: #86868b; border-bottom: 0.5px solid rgba(0, 0, 0, 0.08); }
 :root[data-theme="light"] .kd-item { color: #1d1d1f; }
 :root[data-theme="light"] .kd-item:hover { background: #0071e3; color: #ffffff; }
+
+/* LIGHT THEME FOR TRAY POPOVER */
+:root[data-theme="light"] .tray-pop { background: rgba(255,255,255,0.55); border: 0.5px solid rgba(0,0,0,0.08); box-shadow: 0 18px 44px rgba(0,0,0,0.16); color: #1d1d1f; }
+:root[data-theme="light"] .pop-card { background: rgba(255,255,255,0.5); border: 0.5px solid rgba(0,0,0,0.04); }
+:root[data-theme="light"] .goal-val { color: #86868b; }
+:root[data-theme="light"] .prog-bar { background: rgba(0,0,0,0.06); }
+:root[data-theme="light"] .circ-bg { stroke: rgba(0,0,0,0.06); }
+:root[data-theme="light"] .circ-txt { color: #1d1d1f; }
+:root[data-theme="light"] .pop-divider { background: rgba(0,0,0,0.08); }
+:root[data-theme="light"] .pbtn { background: rgba(0,0,0,0.05); color: #1d1d1f; }
+:root[data-theme="light"] .pbtn:hover, :root[data-theme="light"] .pbtn.on { background: rgba(0,0,0,0.12); }
+:root[data-theme="light"] .util-card { background: rgba(255,255,255,0.5); border: 0.5px solid rgba(0,0,0,0.04); }
+:root[data-theme="light"] .util-card:hover { background: rgba(255,255,255,0.72); }
+:root[data-theme="light"] .util-status { color: #86868b; }
+:root[data-theme="light"] .util-mini-btn { background: rgba(255,255,255,0.45); }
+:root[data-theme="light"] .util-mini-btn:hover { background: rgba(255,255,255,0.65); }
+:root[data-theme="light"] .pop-list-item:hover { background: rgba(0,0,0,0.04); }
+:root[data-theme="light"] .pop-list-item.exit { color: #ff3b30; }
+:root[data-theme="light"] .chevron { color: #86868b; }
+:root[data-theme="light"] .collapse-btn { background: rgba(255,255,255,0.5); color: #64748b; }
+:root[data-theme="light"] .collapse-btn:hover { background: rgba(255,255,255,0.7); }
+:root[data-theme="light"] .sys-row:hover { background: rgba(0,0,0,0.04); }
+:root[data-theme="light"] .sys-chev { color: rgba(0,0,0,0.3); }
 </style>
 
 <!-- Vercel Web Analytics -->
@@ -301,6 +355,18 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
           </div>
         </div>
       </div>
+      <div class="pop-card">
+        <div class="goal-head">
+          <span class="goal-title"><span style="margin-right:5px">&#x1F4BB;</span><span data-i18n="tray_sys">系统状态</span></span>
+          <span class="uptime-badge"><span data-i18n="tray_uptime">已开机 1 天 2 时</span></span>
+        </div>
+        <div class="sys-list">
+          <div class="sys-row"><span class="sys-chev">&#x203A;</span><span class="sys-name">CPU</span><span class="sys-val sys-blue">45.0%</span></div>
+          <div class="sys-row"><span class="sys-chev">&#x203A;</span><span class="sys-name" data-i18n="sys_mem">内存</span><span class="sys-val sys-orange">13.1 GB / 16.0 GB</span></div>
+          <div class="sys-row"><span class="sys-chev">&#x203A;</span><span class="sys-name" data-i18n="sys_net">网络</span><span class="sys-val"><span class="sys-blue">&#x2193; 44 KB/s</span>&nbsp; <span class="sys-green">&#x2191; 8 KB/s</span></span></div>
+          <div class="sys-row"><span class="sys-chev">&#x203A;</span><span class="sys-name" data-i18n="sys_bat">电池</span><span class="sys-val">&#x26A1;100%</span></div>
+        </div>
+      </div>
       <div class="pop-card water-row">
         <span class="water-label"><span style="margin-right:5px">&#x1F4A7;</span><span data-i18n="tray_water">今日喝水</span></span>
         <div class="water-right">
@@ -319,11 +385,11 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
       </div>
       <div class="pop-divider"></div>
       <div class="util-grid">
-        <div class="util-card" id="card-caffeine" style="padding: 16px 10px; gap: 8px; background: rgba(0,0,0,0.03); border: none; box-shadow: none;">
+        <div class="util-card" id="card-caffeine" style="padding: 16px 10px; gap: 8px;">
           <span class="util-icon" style="font-size: 26px;">&#x2615;</span>
           <span class="util-name" style="font-size: 13px;" data-i18n="tray_caffeine">防休眠</span>
         </div>
-        <div class="util-card" id="card-2fa" style="padding: 16px 10px; gap: 8px; background: rgba(0,0,0,0.03); border: none; box-shadow: none;">
+        <div class="util-card" id="card-2fa" style="padding: 16px 10px; gap: 8px;">
           <span class="util-icon" style="font-size: 26px;">&#x1F511;</span>
           <span class="util-name" style="font-size: 13px;" data-i18n="tray_2fa">两步验证</span>
         </div>
@@ -361,7 +427,7 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
     </div>
 
     <!-- CODE EDITOR WINDOW -->
-    <div class="win win-code focused" id="win-code">
+    <div class="win win-code" id="win-code">
       <div class="titlebar">
         <div class="dots"><span class="dot dot-r" onclick="closeWin('win-code')"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
         <div class="win-title">MeowOutApp.swift</div>
@@ -383,7 +449,7 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
     </div>
 
     <!-- SETTINGS WINDOW -->
-    <div class="win win-settings" id="win-settings">
+    <div class="win win-settings focused" id="win-settings">
       <div class="titlebar">
         <div class="dots"><span class="dot dot-r" onclick="closeWin('win-settings')"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
         <div class="win-title" data-i18n="win_settings">MeowOut 设置</div>
@@ -391,98 +457,82 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
       <div class="settings-body">
         <!-- SIDEBAR -->
         <div class="sidebar">
-          <div class="sitem active" data-tab="tab-rest"><span class="sicon">&#x23F0;</span> <span data-i18n="sb_rest">休息提醒</span></div>
-          <div class="sitem" data-tab="tab-water"><span class="sicon">&#x1F4A7;</span> <span data-i18n="sb_water">喝水提醒</span></div>
-          <div class="sitem" data-tab="tab-pet"><span class="sicon">&#x1F408;</span> <span data-i18n="sb_pet">宠物行为</span></div>
-          <div class="sitem" data-tab="tab-kd"><span class="sicon">&#x2328;</span> <span data-i18n="sb_kd">常用语</span></div>
-          <div class="sitem" data-tab="tab-quick-actions"><span class="sicon">&#x26A1;</span> <span data-i18n="sb_quick">快捷操作</span></div>
-          <div class="sitem" data-tab="tab-memos"><span class="sicon">&#x1F4DD;</span> <span data-i18n="sb_memos">Memos</span></div>
-          <div class="sitem" data-tab="tab-clipboard"><span class="sicon">&#x1F4CB;</span> <span data-i18n="sb_clip">剪贴板</span></div>
-          <div class="sitem" data-tab="tab-perm"><span class="sicon">&#x1F6E1;</span> <span data-i18n="sb_perm">安全与权限</span></div>
-          <div class="sitem" data-tab="tab-sys"><span class="sicon">&#x2699;</span> <span data-i18n="sb_sys">系统</span><span class="sbadge hidden" id="sys-badge"></span></div>
+          <div class="sgroup" data-i18n="sg_health">健康与宠物</div>
+          <div class="sitem active" data-tab="tab-health"><span class="sic" style="background:#EC4899;">&#x2665;</span> <span data-i18n="sb_health">健康作息</span></div>
+          <div class="sitem" data-tab="tab-pet"><span class="sic" style="background:#F97316;">&#x1F43E;</span> <span data-i18n="sb_pet">宠物行为</span></div>
+          <div class="sgroup" data-i18n="sg_tools">效率工具</div>
+          <div class="sitem" data-tab="tab-kd"><span class="sic" style="background:#6366F1;">&#x2328;</span> <span data-i18n="sb_kd">常用语</span></div>
+          <div class="sitem" data-tab="tab-clipboard"><span class="sic" style="background:#22C55E;">&#x1F4CB;</span> <span data-i18n="sb_clip">剪贴板</span></div>
+          <div class="sitem" data-tab="tab-transfer"><span class="sic" style="background:#06B6D4;">&#x21C4;</span> <span data-i18n="sb_transfer">中转站</span></div>
+          <div class="sitem" data-tab="tab-quick-actions"><span class="sic" style="background:#EAB308;">&#x26A1;</span> <span data-i18n="sb_quick">快捷操作</span></div>
+          <div class="sgroup" data-i18n="sg_data">数据记录</div>
+          <div class="sitem" data-tab="tab-fund"><span class="sic" style="background:#EF4444;">&#x1F4C8;</span> <span data-i18n="sb_fund">基金管理</span></div>
+          <div class="sitem" data-tab="tab-memos"><span class="sic" style="background:#A855F7;">&#x1F4DD;</span> <span data-i18n="sb_memos">Memos</span></div>
+          <div class="sgroup" data-i18n="sg_system">系统</div>
+          <div class="sitem" data-tab="tab-general"><span class="sic" style="background:#8E8E93;">&#x2699;</span> <span data-i18n="sb_general">通用</span></div>
+          <div class="sitem" data-tab="tab-power"><span class="sic" style="background:#14B8A6;">&#x1F50B;</span> <span data-i18n="sb_power">电源</span></div>
+          <div class="sitem" data-tab="tab-perm"><span class="sic" style="background:#3B82F6;">&#x1F6E1;</span> <span data-i18n="sb_perm">安全与权限</span></div>
+          <div class="sitem" data-tab="tab-about"><span class="sic" style="background:#A2845E;">&#x2139;</span> <span data-i18n="sb_about">关于</span><span class="sbadge hidden" id="sys-badge"></span></div>
         </div>
         <!-- CONTENT -->
         <div class="scontent">
-          <!-- REST TAB -->
-          <div class="tab-content show" id="tab-rest">
-            <div class="pill-wrap">
-              <div class="pill-bar" data-tab="tab-rest">
-                <button class="pill" data-sub="rest-goal" data-i18n="pill_goal">目标</button>
-                <button class="pill active" data-sub="rest-dur" data-i18n="pill_dur">时长</button>
-                <button class="pill" data-sub="rest-alert" data-i18n="pill_alert">提醒</button>
+          <!-- HEALTH TAB (default) -->
+          <div class="tab-content show" id="tab-health">
+            <div class="grp-title"><span data-i18n="grp_workrest">工时休息</span><button class="grp-reset" id="btn-reset-dur" data-i18n-title="tip_reset" title="恢复默认">&#x21BA;</button></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_health_en">启用健康作息提醒</div><div class="grow-desc" data-i18n="c_health_en_d">工作、休息与喝水提醒的总开关。</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
               </div>
-              <button onclick="resetDurations()" title="恢复默认" style="border:none;background:none;font-size:14px;cursor:pointer;color:#86868b;">&#x21BA;</button>
-            </div>
-            <div class="sub-content" id="rest-goal">
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F3AF;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_goal">每日目标时间</div><div class="card-desc" data-i18n="c_rest_goal_d">您希望达成的总工作时长。</div></div></div>
-                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-goal" min="4" max="12" step="1" value="8"><span class="slider-val" id="lbl-goal" style="color:#ff7b00;">8小时</span></div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_rest_work">工作时长</div><div class="grow-desc" data-i18n="c_rest_work_d">休息前的最长连续工作时间。</div></div>
+                <div class="preset" data-val="45" data-unit="unit_min" data-state="workMin" data-options="15,20,25,30,35,40,45,50,55,60,90,120"><button class="preset-btn"><span class="preset-val"></span><span class="pv-arrow">&#x25BE;</span></button><div class="preset-menu"></div></div>
               </div>
-            </div>
-            <div class="sub-content show" id="rest-dur">
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x23F0;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_work">工作时长</div><div class="card-desc" data-i18n="c_rest_work_d">休息前的最长连续工作时间。</div></div></div>
-                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-work" min="15" max="120" step="5" value="45"><span class="slider-val" id="lbl-work">45分</span></div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_rest_rest">休息时长</div><div class="grow-desc" data-i18n="c_rest_rest_d">强制休息时的持续时间。</div></div>
+                <div class="preset" data-val="5" data-unit="unit_min" data-state="restMin" data-options="1,5,10,15,20,30"><button class="preset-btn"><span class="preset-val"></span><span class="pv-arrow">&#x25BE;</span></button><div class="preset-menu"></div></div>
               </div>
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F49A;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_rest">休息时长</div><div class="card-desc" data-i18n="c_rest_rest_d">强制休息时的持续时间。</div></div></div>
-                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-rest" min="1" max="30" step="1" value="5"><span class="slider-val" id="lbl-rest">5分</span></div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_alert_lead">预警提前量</div><div class="grow-desc" data-i18n="c_alert_lead_d">休息前多少分钟猫咪开始巡逻。</div></div>
+                <div class="preset" data-val="5" data-unit="unit_min" data-options="1,2,3,5,10,15"><button class="preset-btn"><span class="preset-val"></span><span class="pv-arrow">&#x25BE;</span></button><div class="preset-menu"></div></div>
               </div>
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x1F504;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_reset">重置所需的休息时间 (完全恢复)</div><div class="card-desc" data-i18n="c_rest_reset_d">离开电脑这么久后将完全重置工作计时器。</div></div></div>
-                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-reset" min="2" max="30" step="1" value="5"><span class="slider-val" id="lbl-reset">5分</span></div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_rest_reset">重置所需的休息时间</div><div class="grow-desc" data-i18n="c_rest_reset_d">离开电脑这么久后将完全重置工作计时器。</div></div>
+                <div class="preset" data-val="5" data-unit="unit_min" data-state="resetMin" data-options="2,5,10,15,20,30"><button class="preset-btn"><span class="preset-val"></span><span class="pv-arrow">&#x25BE;</span></button><div class="preset-menu"></div></div>
               </div>
             </div>
-            <div class="sub-content" id="rest-alert">
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(255,59,48,0.1);">&#x1F514;</div><div class="card-texts"><div class="card-title" data-i18n="c_rest_alert">休假前警告</div><div class="card-desc" data-i18n="c_rest_alert_d">进入强制休息前提前几分钟发出警报。</div></div></div>
-                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-alert" min="1" max="15" step="1" value="1"><span class="slider-val" id="lbl-alert" style="color:#ff3b30;">1分</span></div>
+            <div class="grp-title"><span data-i18n="grp_water">喝水提醒</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_water_en">开启喝水提醒</div><div class="grow-desc" data-i18n="c_water_en_d">定时提醒您补充水分，保护健康。</div></div>
+                <label class="mac-toggle"><input type="checkbox" id="tog-water" checked><span class="tog-slider"></span></label>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_water_mode">提醒模式</div></div>
+                <div class="mac-seg inline"><button class="seg-btn active" id="wm-rhythm" data-i18n="c_water_m1">跟随工作节奏</button><button class="seg-btn" id="wm-custom" data-i18n="c_water_m2">自定义间隔</button></div>
+              </div>
+              <div class="grow" id="water-interval-card" style="display:none;">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_water_int">喝水提醒间隔</div></div>
+                <div class="preset" data-val="45" data-unit="unit_min" data-options="15,30,45,60,90,120"><button class="preset-btn"><span class="preset-val"></span><span class="pv-arrow">&#x25BE;</span></button><div class="preset-menu"></div></div>
               </div>
             </div>
-          </div>
-          <!-- WATER TAB -->
-          <div class="tab-content" id="tab-water">
-            <div class="pill-wrap">
-              <div class="pill-bar" data-tab="tab-water">
-                <button class="pill active" data-sub="water-gen" data-i18n="pill_gen">常规</button>
-                <button class="pill" data-sub="water-sched" data-i18n="pill_sched">计划</button>
-                <button class="pill" data-sub="water-goal" data-i18n="pill_goal2">目标</button>
+            <div class="grp-title"><span data-i18n="grp_goal">每日目标</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_goal_today">今日目标</div><div class="grow-desc" data-i18n="c_goal_today_d">您希望达成的总工作时长。</div></div>
+                <div class="preset" data-val="8" data-unit="unit_hr" data-state="dailyGoal" data-options="4,5,6,7,8,9,10,11,12"><button class="preset-btn"><span class="preset-val"></span><span class="pv-arrow">&#x25BE;</span></button><div class="preset-menu"></div></div>
               </div>
-            </div>
-            <div class="sub-content show" id="water-gen">
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F4A7;</div><div class="card-texts"><div class="card-title" data-i18n="c_water_en">启用喝水提醒</div><div class="card-desc" data-i18n="c_water_en_d">定时提醒您补充水分，保护健康。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-water" checked><span class="tog-slider"></span></label></div>
-              </div>
-            </div>
-            <div class="sub-content" id="water-sched">
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(85,190,240,0.1);">&#x1F4C5;</div><div class="card-texts"><div class="card-title" data-i18n="c_water_mode">提醒模式</div></div></div>
-                <div class="mac-seg" style="margin-top:8px;"><button class="seg-btn active" id="wm-rhythm" data-i18n="c_water_m1">跟随工作节奏</button><button class="seg-btn" id="wm-custom" data-i18n="c_water_m2">自定义间隔</button></div>
-              </div>
-              <div class="scard" id="water-interval-card" style="display:none;">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x23F0;</div><div class="card-texts"><div class="card-title" data-i18n="c_water_int">喝水提醒间隔</div></div></div>
-                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-wint" min="15" max="120" step="5" value="45"><span class="slider-val" id="lbl-wint" style="color:#0071e3;">45分</span></div>
-              </div>
-            </div>
-            <div class="sub-content" id="water-goal">
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F3AF;</div><div class="card-texts"><div class="card-title" data-i18n="c_water_goal">每日喝水目标</div></div></div>
-                <div class="slider-row"><input class="slider-ctrl" type="range" id="sl-wgoal" min="4" max="20" step="1" value="8"><span class="slider-val" id="lbl-wgoal" style="color:#ff7b00;">8杯</span></div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_water_goal">每日喝水目标</div><div class="grow-desc" data-i18n="c_water_goal_d">每天希望喝水的杯数。</div></div>
+                <div class="preset" data-val="8" data-unit="unit_cup" data-state="waterGoal" data-options="4,6,8,10,12,16"><button class="preset-btn"><span class="preset-val"></span><span class="pv-arrow">&#x25BE;</span></button><div class="preset-menu"></div></div>
               </div>
             </div>
           </div>
           <!-- PET TAB -->
           <div class="tab-content" id="tab-pet">
-            <div class="pill-wrap">
-              <div class="pill-bar" data-tab="tab-pet">
-                <button class="pill active" data-sub="pet-sel" data-i18n="pill_pet">宠物</button>
-                <button class="pill" data-sub="pet-pers" data-i18n="pill_pers">性格</button>
-                <button class="pill" data-sub="pet-inter" data-i18n="pill_inter">互动</button>
-              </div>
-            </div>
-            <div class="sub-content show" id="pet-sel">
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F43E;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_sel">选择宠物</div><div class="card-desc" data-i18n="c_pet_sel_d">挑选您喜爱的像素精灵伴侣。</div></div></div>
+            <div class="grp-title"><span data-i18n="grp_pet">宠物</span></div>
+            <div class="gcard">
+              <div class="grow grow-col">
                 <div class="pet-grid">
                   <div class="pet-item sel" data-pet="clawd"><canvas id="pv-clawd" width="56" height="40"></canvas><span>Toby</span></div>
                   <div class="pet-item" data-pet="panda"><canvas id="pv-panda" width="56" height="40"></canvas><span>Oreo</span></div>
@@ -490,80 +540,169 @@ body { font-family: 'Outfit', -apple-system, sans-serif; background: #0a0a14; di
                 </div>
               </div>
             </div>
-            <div class="sub-content" id="pet-pers">
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x1F3AD;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_pers">性格设定</div><div class="card-desc" data-i18n="c_pet_pers_d">宠物的发声态度与督促方式。</div></div></div>
-                <div class="mac-seg" style="margin-top:8px;" id="pers-seg"><button class="seg-btn active" data-pers="gentle" data-i18n="c_pet_p1">温柔</button><button class="seg-btn" data-pers="strict" data-i18n="c_pet_p2">严厉</button><button class="seg-btn" data-pers="tsundere" data-i18n="c_pet_p3">傲娇</button></div>
+            <div class="grp-title"><span data-i18n="grp_pers">性格</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_pet_pers">性格设定</div><div class="grow-desc" data-i18n="c_pet_pers_d">宠物的发声态度与督促方式。</div></div>
+                <div class="mac-seg inline" id="pers-seg"><button class="seg-btn active" data-pers="gentle" data-i18n="c_pet_p1">温柔</button><button class="seg-btn" data-pers="strict" data-i18n="c_pet_p2">严厉</button><button class="seg-btn" data-pers="tsundere" data-i18n="c_pet_p3">傲娇</button></div>
               </div>
             </div>
-            <div class="sub-content" id="pet-inter">
-              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F440;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_chase">启用光标追逐</div><div class="card-desc" data-i18n="c_pet_chase_d">宠物眼神将跟随您的鼠标移动。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-chase" checked><span class="tog-slider"></span></label></div></div>
-              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,59,48,0.1);">&#x1F620;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_scold">键盘敲击警告</div><div class="card-desc" data-i18n="c_pet_scold_d">休息时继续打字，宠物会训斥你。</div></div><label class="mac-toggle"><input type="checkbox" id="tog-scold"><span class="tog-slider"></span></label></div></div>
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F441;</div><div class="card-texts"><div class="card-title" data-i18n="c_pet_prev">效果预览</div><div class="card-desc" data-i18n="c_pet_prev_d">快速体验提醒状态。</div></div></div>
-                <div style="display:flex;gap:8px;margin-top:8px;"><button class="mac-btn btn-secondary" id="btn-prev-alert" style="flex:1;" data-i18n="btn_prev_alert">预览预警猫咪</button><button class="mac-btn btn-orange" id="btn-prev-rest" style="flex:1;" data-i18n="btn_prev_rest">模拟强制休息</button></div>
+            <div class="grp-title"><span data-i18n="grp_inter">互动</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_pet_chase">启用光标追逐</div><div class="grow-desc" data-i18n="c_pet_chase_d">宠物眼神将跟随您的鼠标移动。</div></div>
+                <label class="mac-toggle"><input type="checkbox" id="tog-chase" checked><span class="tog-slider"></span></label>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_pet_scold">全局敲击警告</div><div class="grow-desc" data-i18n="c_pet_scold_d">休息时继续打字，宠物会训斥你。</div></div>
+                <label class="mac-toggle"><input type="checkbox" id="tog-scold"><span class="tog-slider"></span></label>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_pet_prev">行为预览</div><div class="grow-desc" data-i18n="c_pet_prev_d">快速体验提醒状态。</div></div>
+                <div style="display:flex;gap:6px;flex-shrink:0;"><button class="mac-btn btn-secondary btn-sm" id="btn-prev-alert" data-i18n="btn_prev_alert">预警</button><button class="mac-btn btn-orange btn-sm" id="btn-prev-rest" data-i18n="btn_prev_rest">强制休息</button></div>
               </div>
             </div>
           </div>
           <!-- KEYDROP TAB -->
           <div class="tab-content" id="tab-kd">
-            <div class="pill-wrap"><div style="height:20px;"></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(175,82,222,0.1);">&#x2328;</div><div class="card-texts"><div class="card-title" data-i18n="c_kd_en">启用 KeyDrop 常用语</div><div class="card-desc" data-i18n="c_kd_en_d">按下全局快捷键，快速注入常用短语。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title" data-i18n="c_hk">键盘快捷键</div><div class="card-desc" data-i18n="c_hk_l">默认：Cmd + L</div></div></div></div>
+            <div class="grp-title"><span data-i18n="sb_kd">常用语</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_kd_en">启用 KeyDrop 常用语</div><div class="grow-desc" data-i18n="c_kd_en_d">按下全局快捷键，快速注入常用短语。</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_hk">键盘快捷键</div><div class="grow-desc" data-i18n="c_hk_l">默认：Cmd + L</div></div>
+                <span class="kbd-cap">&#x2318; L</span>
+              </div>
+            </div>
+          </div>
+          <!-- CLIPBOARD TAB -->
+          <div class="tab-content" id="tab-clipboard">
+            <div class="grp-title"><span data-i18n="sb_clip">剪贴板</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_clip_en">启用剪贴板历史</div><div class="grow-desc" data-i18n="c_clip_en_d">自动记录复制的文本与图片，支持快捷键呼出。</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_hk_g">全局快捷键</div><div class="grow-desc" data-i18n="c_hk_c">默认：Cmd + Shift + C</div></div>
+                <span class="kbd-cap">&#x2318;&#x21E7;C</span>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_clip_ret">历史记录保留时间</div><div class="grow-desc" data-i18n="c_clip_ret_d">超过此时间的记录将被自动清理。</div></div>
+                <div class="mac-seg inline"><button class="seg-btn" data-i18n="c_clip_1d">1 天</button><button class="seg-btn active" data-i18n="c_clip_7d">7 天</button><button class="seg-btn" data-i18n="c_clip_30d">30 天</button></div>
+              </div>
+            </div>
+          </div>
+          <!-- TRANSFER TAB -->
+          <div class="tab-content" id="tab-transfer">
+            <div class="grp-title"><span data-i18n="sb_transfer">中转站</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_trans_en">启用中转站</div><div class="grow-desc" data-i18n="c_trans_en_d">临时存放文本、图片与文件，随取随用。</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_hk_g">全局快捷键</div><div class="grow-desc" data-i18n="c_hk_t">默认：Cmd + Shift + V</div></div>
+                <span class="kbd-cap">&#x2318;&#x21E7;V</span>
+              </div>
+            </div>
           </div>
           <!-- QUICK ACTIONS TAB -->
           <div class="tab-content" id="tab-quick-actions">
-            <div class="pill-wrap"><div style="height:20px;"></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,149,0,0.1);">&#x26A1;</div><div class="card-texts"><div class="card-title" data-i18n="c_qa">快捷操作</div><div class="card-desc" data-i18n="c_qa_d">排在前 2 位的将显示为大磁贴，其余的在折叠面板中显示</div></div></div></div>
+            <div class="grp-title"><span data-i18n="sb_quick">快捷操作</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_qa">快捷操作</div><div class="grow-desc" data-i18n="c_qa_d">排在前 2 位的将显示为大磁贴，其余的在折叠面板中显示</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
+              </div>
+            </div>
           </div>
-          <!-- PERMISSIONS TAB -->
-          <div class="tab-content" id="tab-perm">
-            <div class="pill-wrap"><div style="height:20px;"></div></div>
-            <div class="scard">
-              <div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F6E1;</div><div class="card-texts"><div class="card-title" data-i18n="c_perm">辅助功能权限</div><div class="card-desc" data-i18n="c_perm_d">用于监测键盘空闲状态与打字训斥。</div></div></div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:8px;"><div style="width:8px;height:8px;border-radius:50%;background:#34c759;"></div><span style="font-size:12px;color:#34c759;font-weight:700;" data-i18n="c_perm_auth">已授权</span></div>
+          <!-- FUND TAB -->
+          <div class="tab-content" id="tab-fund">
+            <div class="grp-title"><span data-i18n="sb_fund">基金管理</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_fund_en">启用基金看板</div><div class="grow-desc" data-i18n="c_fund_en_d">在托盘面板展示自选基金的实时估值。</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_fund_rf">估值刷新频率</div><div class="grow-desc" data-i18n="c_fund_rf_d">估值数据自动刷新的时间间隔。</div></div>
+                <div class="preset" data-val="30" data-unit="unit_sec" data-options="10,30,60,300"><button class="preset-btn"><span class="preset-val"></span><span class="pv-arrow">&#x25BE;</span></button><div class="preset-menu"></div></div>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_fund_alert">涨跌提醒</div><div class="grow-desc" data-i18n="c_fund_alert_d">基金涨跌幅达到设定阈值时提醒。</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
+              </div>
             </div>
           </div>
           <!-- MEMOS TAB -->
           <div class="tab-content" id="tab-memos">
-            <div class="pill-wrap"><div style="height:20px;"></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(255,123,0,0.1);">&#x1F4DD;</div><div class="card-texts"><div class="card-title" data-i18n="c_memo_en">启用 Memos 闪念胶囊</div><div class="card-desc" data-i18n="c_memo_en_d">在全局支持快捷键呼出 Markdown 备忘录。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">全局快捷键</div><div class="card-desc" data-i18n="c_hk_m">默认：Cmd + Shift + M</div></div></div></div>
-          </div>
-          <!-- CLIPBOARD TAB -->
-          <div class="tab-content" id="tab-clipboard">
-            <div class="pill-wrap"><div style="height:20px;"></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F4CB;</div><div class="card-texts"><div class="card-title" data-i18n="c_clip_en">启用剪贴板历史</div><div class="card-desc" data-i18n="c_clip_en_d">自动记录复制的文本与图片，支持快捷键呼出。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
-            <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x2318;</div><div class="card-texts"><div class="card-title">全局快捷键</div><div class="card-desc" data-i18n="c_hk_c">默认：Cmd + Shift + C</div></div></div></div>
-            <div class="scard">
-              <div class="scard-row"><div class="icon-box" style="background:rgba(255,149,0,0.1);">&#x1F5D1;</div><div class="card-texts"><div class="card-title" data-i18n="c_clip_ret">历史记录保留时间</div><div class="card-desc" data-i18n="c_clip_ret_d">超过此时间的记录将被自动清理。</div></div></div>
-              <div class="mac-seg" style="margin-top:8px;"><button class="seg-btn" data-i18n="c_clip_1d">1 天</button><button class="seg-btn active" data-i18n="c_clip_7d">7 天</button><button class="seg-btn" data-i18n="c_clip_30d">30 天</button></div>
+            <div class="grp-title"><span data-i18n="sb_memos">Memos</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_memo_en">启用 Memos 闪念胶囊</div><div class="grow-desc" data-i18n="c_memo_en_d">在全局支持快捷键呼出 Markdown 备忘录。</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_hk_g">全局快捷键</div><div class="grow-desc" data-i18n="c_hk_m">默认：Cmd + Shift + M</div></div>
+                <span class="kbd-cap">&#x2318;&#x21E7;M</span>
+              </div>
             </div>
           </div>
-          <!-- 2FA TAB (Removed to match app state) -->
-          <!-- SYSTEM TAB -->
-          <div class="tab-content" id="tab-sys">
-            <div class="pill-wrap">
-              <div class="pill-bar" data-tab="tab-sys">
-                <button class="pill active" data-sub="sys-gen" data-i18n="pill_gen2">常规</button>
-                <button class="pill" data-sub="sys-about" data-i18n="pill_about">关于</button>
+          <!-- GENERAL TAB -->
+          <div class="tab-content" id="tab-general">
+            <div class="grp-title"><span data-i18n="sb_general">通用</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_lang">应用语言</div><div class="grow-desc" data-i18n="c_lang_d">切换界面显示语言。</div></div>
+                <div class="mac-seg inline" id="lang-seg"><button class="seg-btn active" data-lang="zh">中文</button><button class="seg-btn" data-lang="en">English</button></div>
+              </div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_sys_boot">开机自启动</div><div class="grow-desc" data-i18n="c_sys_boot_d">在 macOS 启动时自动运行 MeowOut。</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
               </div>
             </div>
-            <div class="sub-content show" id="sys-gen">
-              <div class="scard">
-                <div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F310;</div><div class="card-texts"><div class="card-title">应用语言 (Language)</div></div></div>
-                <div class="mac-seg" style="margin-top:8px;" id="lang-seg"><button class="seg-btn active" data-lang="zh">中文</button><button class="seg-btn" data-lang="en">English</button></div>
+          </div>
+          <!-- POWER TAB -->
+          <div class="tab-content" id="tab-power">
+            <div class="grp-title"><span data-i18n="sb_power">电源</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_power_caf">防休眠 (Caffeine)</div><div class="grow-desc" data-i18n="c_power_caf_d">阻止 Mac 进入睡眠，保持专注不断线。</div></div>
+                <label class="mac-toggle"><input type="checkbox"><span class="tog-slider"></span></label>
               </div>
-              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(52,199,89,0.1);">&#x1F680;</div><div class="card-texts"><div class="card-title" data-i18n="c_sys_boot">开机自启动</div><div class="card-desc" data-i18n="c_sys_boot_d">在 macOS 启动时自动运行 MeowOut。</div></div><label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label></div></div>
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_power_low">电池节能</div><div class="grow-desc" data-i18n="c_power_low_d">使用电池供电时自动降低宠物活跃度。</div></div>
+                <label class="mac-toggle"><input type="checkbox" checked><span class="tog-slider"></span></label>
+              </div>
             </div>
-            <div class="sub-content" id="sys-about">
-              <div class="scard" style="text-align:center;padding:16px;">
-                <div style="font-size:26px;margin-bottom:8px;">&#x1F43E;</div>
-                <div style="font-size:17px;font-weight:700;margin-bottom:4px;">MeowOut</div>
-                <div style="font-size:11px;color:#86868b;margin-bottom:4px;" data-i18n="c_sys_ver">版本 1.5.0 (Stable)</div>
-                <div style="font-size:11px;color:#86868b;" data-i18n="c_sys_slogan">原生像素伴侣，呵护您的健康编码。</div>
+          </div>
+          <!-- PERMISSIONS TAB -->
+          <div class="tab-content" id="tab-perm">
+            <div class="grp-title"><span data-i18n="sb_perm">安全与权限</span></div>
+            <div class="gcard">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_perm">辅助功能权限</div><div class="grow-desc" data-i18n="c_perm_d">用于监测键盘空闲状态与打字训斥。</div></div>
+                <span class="perm-ok">&#x25CF; <span data-i18n="c_perm_auth">已授权</span></span>
               </div>
-              <div class="scard"><div class="scard-row"><div class="icon-box" style="background:rgba(0,113,227,0.1);">&#x1F504;</div><div class="card-texts"><div class="card-title" data-i18n="c_sys_upd">检查更新</div><div class="card-desc" id="upd-desc">上次检查：今天 11:20</div></div><button class="mac-btn btn-secondary" id="btn-check-upd" data-i18n="c_sys_check">检查</button></div></div>
+            </div>
+          </div>
+          <!-- ABOUT TAB -->
+          <div class="tab-content" id="tab-about">
+            <div class="grp-title"><span data-i18n="sb_about">关于</span></div>
+            <div class="gcard" style="text-align:center;padding:18px;">
+              <div style="font-size:26px;margin-bottom:8px;">&#x1F43E;</div>
+              <div style="font-size:17px;font-weight:700;margin-bottom:4px;color:var(--st-text);">MeowOut</div>
+              <div style="font-size:11px;color:var(--st-sub);margin-bottom:4px;" data-i18n="c_sys_ver">版本 1.5.0 (Stable)</div>
+              <div style="font-size:11px;color:var(--st-sub);" data-i18n="c_sys_slogan">原生像素伴侣，呵护您的健康编码。</div>
+            </div>
+            <div class="gcard" style="margin-top:12px;">
+              <div class="grow">
+                <div class="grow-texts"><div class="grow-title" data-i18n="c_sys_upd">检查更新</div><div class="grow-desc" id="upd-desc">上次检查：今天 11:20</div></div>
+                <button class="mac-btn btn-secondary btn-sm" id="btn-check-upd" data-i18n="c_sys_check">检查</button>
+              </div>
             </div>
           </div>
         </div>
@@ -714,19 +853,28 @@ const MOCKUP_I18N = {
     tray_goal: "今日目标", tray_water: "今日喝水", tray_pause: "暂停", tray_caffeine: "防休眠", tray_2fa: "两步验证",
     tray_clean: "键盘清洁", tray_screen: "屏幕清洁", tray_breath: "正念练习", tray_monitor: "活动监视器", tray_term: "控制台",
     tray_collapse: "收起", tray_settings: "设置...", tray_quit: "退出",
+    tray_sys: "系统状态", tray_uptime: "已开机 1 天 2 时", sys_mem: "内存", sys_net: "网络", sys_bat: "电池",
     win_settings: "MeowOut 设置", win_breath: "正念练习",
-    sb_rest: "休息提醒", sb_water: "喝水提醒", sb_pet: "宠物行为", sb_kd: "常用语", sb_quick: "快捷操作", sb_memos: "Memos", sb_clip: "剪贴板", sb_perm: "安全与权限", sb_sys: "系统",
-    pill_goal: "目标", pill_dur: "时长", pill_alert: "提醒", pill_gen: "常规", pill_sched: "计划", pill_goal2: "目标", pill_pet: "宠物", pill_pers: "性格", pill_inter: "互动", pill_gen2: "常规", pill_about: "关于",
-    c_rest_goal: "每日目标时间", c_rest_goal_d: "您希望达成的总工作时长。", c_rest_work: "工作时长", c_rest_work_d: "休息前的最长连续工作时间。", c_rest_rest: "休息时长", c_rest_rest_d: "强制休息时的持续时间。",
-    c_rest_reset: "重置所需的休息时间 (完全恢复)", c_rest_reset_d: "离开电脑这么久后将完全重置工作计时器。", c_rest_alert: "休假前警告", c_rest_alert_d: "进入强制休息前提前几分钟发出警报。",
-    c_water_en: "启用喝水提醒", c_water_en_d: "定时提醒您补充水分，保护健康。", c_water_mode: "提醒模式", c_water_m1: "跟随工作节奏", c_water_m2: "自定义间隔", c_water_int: "喝水提醒间隔", c_water_goal: "每日喝水目标",
-    c_pet_sel: "选择宠物", c_pet_sel_d: "挑选您喜爱的像素精灵伴侣。", c_pet_pers: "性格设定", c_pet_pers_d: "宠物的发声态度与督促方式。", c_pet_p1: "温柔", c_pet_p2: "严厉", c_pet_p3: "傲娇",
-    c_pet_chase: "启用光标追逐", c_pet_chase_d: "宠物眼神将跟随您的鼠标移动。", c_pet_scold: "键盘敲击警告", c_pet_scold_d: "休息时继续打字，宠物会训斥你。", c_pet_prev: "效果预览", c_pet_prev_d: "快速体验提醒状态。",
-    btn_prev_alert: "预览预警猫咪", btn_prev_rest: "模拟强制休息",
-    c_kd_en: "启用 KeyDrop 常用语", c_kd_en_d: "按下全局快捷键，快速注入常用短语。", c_hk: "键盘快捷键", c_hk_l: "默认：Cmd + L", c_qa: "快捷操作", c_qa_d: "排在前 2 位的将显示为大磁贴，其余的在折叠面板中显示",
+    sg_health: "健康与宠物", sg_tools: "效率工具", sg_data: "数据记录", sg_system: "系统",
+    sb_health: "健康作息", sb_pet: "宠物行为", sb_kd: "常用语", sb_clip: "剪贴板", sb_transfer: "中转站", sb_quick: "快捷操作", sb_fund: "基金管理", sb_memos: "Memos", sb_general: "通用", sb_power: "电源", sb_perm: "安全与权限", sb_about: "关于",
+    grp_workrest: "工时休息", grp_water: "喝水提醒", grp_goal: "每日目标", grp_pet: "宠物", grp_pers: "性格", grp_inter: "互动", tip_reset: "恢复默认",
+    c_health_en: "启用健康作息提醒", c_health_en_d: "工作、休息与喝水提醒的总开关。",
+    c_rest_work: "工作时长", c_rest_work_d: "休息前的最长连续工作时间。", c_rest_rest: "休息时长", c_rest_rest_d: "强制休息时的持续时间。",
+    c_alert_lead: "预警提前量", c_alert_lead_d: "休息前多少分钟猫咪开始巡逻。",
+    c_rest_reset: "重置所需的休息时间", c_rest_reset_d: "离开电脑这么久后将完全重置工作计时器。",
+    c_goal_today: "今日目标", c_goal_today_d: "您希望达成的总工作时长。",
+    c_water_en: "开启喝水提醒", c_water_en_d: "定时提醒您补充水分，保护健康。", c_water_mode: "提醒模式", c_water_m1: "跟随工作节奏", c_water_m2: "自定义间隔", c_water_int: "喝水提醒间隔", c_water_goal: "每日喝水目标", c_water_goal_d: "每天希望喝水的杯数。",
+    c_pet_pers: "性格设定", c_pet_pers_d: "宠物的发声态度与督促方式。", c_pet_p1: "温柔", c_pet_p2: "严厉", c_pet_p3: "傲娇",
+    c_pet_chase: "启用光标追逐", c_pet_chase_d: "宠物眼神将跟随您的鼠标移动。", c_pet_scold: "全局敲击警告", c_pet_scold_d: "休息时继续打字，宠物会训斥你。", c_pet_prev: "行为预览", c_pet_prev_d: "快速体验提醒状态。",
+    btn_prev_alert: "预警", btn_prev_rest: "强制休息",
+    c_kd_en: "启用 KeyDrop 常用语", c_kd_en_d: "按下全局快捷键，快速注入常用短语。", c_hk: "键盘快捷键", c_hk_g: "全局快捷键", c_hk_l: "默认：Cmd + L", c_qa: "快捷操作", c_qa_d: "排在前 2 位的将显示为大磁贴，其余的在折叠面板中显示",
+    c_trans_en: "启用中转站", c_trans_en_d: "临时存放文本、图片与文件，随取随用。", c_hk_t: "默认：Cmd + Shift + V",
+    c_fund_en: "启用基金看板", c_fund_en_d: "在托盘面板展示自选基金的实时估值。", c_fund_rf: "估值刷新频率", c_fund_rf_d: "估值数据自动刷新的时间间隔。", c_fund_alert: "涨跌提醒", c_fund_alert_d: "基金涨跌幅达到设定阈值时提醒。",
     c_perm: "辅助功能权限", c_perm_d: "用于监测键盘空闲状态与打字训斥。", c_perm_auth: "已授权",
     c_memo_en: "启用 Memos 闪念胶囊", c_memo_en_d: "在全局支持快捷键呼出 Markdown 备忘录。", c_hk_m: "默认：Cmd + Shift + M", c_clip_en: "启用剪贴板历史", c_clip_en_d: "自动记录复制的文本与图片，支持快捷键呼出。",
     c_hk_c: "默认：Cmd + Shift + C", c_clip_ret: "历史记录保留时间", c_clip_ret_d: "超过此时间的记录将被自动清理。", c_clip_1d: "1 天", c_clip_7d: "7 天", c_clip_30d: "30 天",
+    c_lang: "应用语言", c_lang_d: "切换界面显示语言。", c_power_caf: "防休眠 (Caffeine)", c_power_caf_d: "阻止 Mac 进入睡眠，保持专注不断线。", c_power_low: "电池节能", c_power_low_d: "使用电池供电时自动降低宠物活跃度。",
+    unit_min: "分", unit_hr: "小时", unit_cup: "杯", unit_sec: "秒",
     c_sys_boot: "开机自启动", c_sys_boot_d: "在 macOS 启动时自动运行 MeowOut。", c_sys_ver: "版本 1.5.0 (Stable)", c_sys_slogan: "原生像素伴侣，呵护您的健康编码。", c_sys_upd: "检查更新", c_sys_check: "检查",
     br_box: "箱式", br_478: "4-7-8", br_abd: "腹式", br_start: "开始练习",
     upd_title: "发现进化补丁 v1.4.2！", upd_desc: "像素宠物为你带来了全新的「Memos 闪念胶囊」与「2FA 验证器」模块！点击更新立即部署。", upd_later: "稍后", upd_now: "立即重启",
@@ -745,19 +893,28 @@ const MOCKUP_I18N = {
     tray_goal: "Daily Goal", tray_water: "Hydration", tray_pause: "Pause", tray_caffeine: "Caffeine", tray_2fa: "Meow2FA",
     tray_clean: "Keyboard Clean", tray_screen: "Screen Clean", tray_breath: "Mindfulness", tray_monitor: "Activity", tray_term: "Terminal",
     tray_collapse: "Collapse", tray_settings: "Settings...", tray_quit: "Quit",
+    tray_sys: "System Status", tray_uptime: "Up 1d 2h", sys_mem: "Memory", sys_net: "Network", sys_bat: "Battery",
     win_settings: "MeowOut Settings", win_breath: "Mindfulness",
-    sb_rest: "Rest Alarm", sb_water: "Hydration", sb_pet: "Pet Behavior", sb_kd: "KeyDrop", sb_quick: "Quick Actions", sb_memos: "Memos", sb_clip: "Clipboard", sb_perm: "Privacy", sb_sys: "System",
-    pill_goal: "Goal", pill_dur: "Duration", pill_alert: "Alerts", pill_gen: "General", pill_sched: "Schedule", pill_goal2: "Goal", pill_pet: "Pet", pill_pers: "Personality", pill_inter: "Interactive", pill_gen2: "General", pill_about: "About",
-    c_rest_goal: "Daily Work Goal", c_rest_goal_d: "Target total working hours.", c_rest_work: "Work Duration", c_rest_work_d: "Continuous work time before a break.", c_rest_rest: "Break Duration", c_rest_rest_d: "Duration of the forced break.",
-    c_rest_reset: "Idle Reset Time", c_rest_reset_d: "Reset timer after this much idle time.", c_rest_alert: "Pre-break Warning", c_rest_alert_d: "Warn this many minutes before break.",
-    c_water_en: "Enable Hydration Reminders", c_water_en_d: "Remind you to drink water regularly.", c_water_mode: "Reminder Mode", c_water_m1: "Follow Rest Routine", c_water_m2: "Custom Interval", c_water_int: "Reminder Interval", c_water_goal: "Daily Goal",
-    c_pet_sel: "Choose Pet", c_pet_sel_d: "Select your pixel companion.", c_pet_pers: "Personality", c_pet_pers_d: "How your pet talks to you.", c_pet_p1: "Gentle", c_pet_p2: "Strict", c_pet_p3: "Tsundere",
-    c_pet_chase: "Enable Cursor Chasing", c_pet_chase_d: "Pet's eyes follow your mouse.", c_pet_scold: "Typing Warning", c_pet_scold_d: "Pet scolds you if you type during breaks.", c_pet_prev: "Preview", c_pet_prev_d: "Quickly test the alerts.",
-    btn_prev_alert: "Preview Warning", btn_prev_rest: "Simulate Break",
-    c_kd_en: "Enable KeyDrop", c_kd_en_d: "Inject snippets with a global hotkey.", c_hk: "Shortcut", c_hk_l: "Default: Cmd + L", c_qa: "Quick Actions", c_qa_d: "Top 2 items appear as large tiles.",
+    sg_health: "Health & Pet", sg_tools: "Productivity", sg_data: "Data & Records", sg_system: "System",
+    sb_health: "Health Routine", sb_pet: "Pet Behavior", sb_kd: "KeyDrop", sb_clip: "Clipboard", sb_transfer: "Drop Station", sb_quick: "Quick Actions", sb_fund: "Funds", sb_memos: "Memos", sb_general: "General", sb_power: "Power", sb_perm: "Privacy", sb_about: "About",
+    grp_workrest: "Work & Rest", grp_water: "Hydration", grp_goal: "Daily Goals", grp_pet: "Pet", grp_pers: "Personality", grp_inter: "Interaction", tip_reset: "Reset to Defaults",
+    c_health_en: "Enable Health Routine", c_health_en_d: "Master switch for work, break and hydration reminders.",
+    c_rest_work: "Work Duration", c_rest_work_d: "Continuous work time before a break.", c_rest_rest: "Break Duration", c_rest_rest_d: "Duration of the forced break.",
+    c_alert_lead: "Warning Lead Time", c_alert_lead_d: "Minutes before a break when the cat starts patrolling.",
+    c_rest_reset: "Idle Reset Time", c_rest_reset_d: "Reset timer after this much idle time.",
+    c_goal_today: "Daily Goal", c_goal_today_d: "Target total working hours per day.",
+    c_water_en: "Enable Hydration Reminders", c_water_en_d: "Remind you to drink water regularly.", c_water_mode: "Reminder Mode", c_water_m1: "Follow Rest Routine", c_water_m2: "Custom Interval", c_water_int: "Reminder Interval", c_water_goal: "Daily Goal", c_water_goal_d: "Cups of water per day.",
+    c_pet_pers: "Personality", c_pet_pers_d: "How your pet talks to you.", c_pet_p1: "Gentle", c_pet_p2: "Strict", c_pet_p3: "Tsundere",
+    c_pet_chase: "Enable Cursor Chasing", c_pet_chase_d: "Pet's eyes follow your mouse.", c_pet_scold: "Global Typing Warning", c_pet_scold_d: "Pet scolds you if you type during breaks.", c_pet_prev: "Behavior Preview", c_pet_prev_d: "Quickly test the alerts.",
+    btn_prev_alert: "Warning", btn_prev_rest: "Force Break",
+    c_kd_en: "Enable KeyDrop", c_kd_en_d: "Inject snippets with a global hotkey.", c_hk: "Shortcut", c_hk_g: "Global Shortcut", c_hk_l: "Default: Cmd + L", c_qa: "Quick Actions", c_qa_d: "Top 2 items appear as large tiles.",
+    c_trans_en: "Enable Drop Station", c_trans_en_d: "Temporarily store text, images and files for quick reuse.", c_hk_t: "Default: Cmd + Shift + V",
+    c_fund_en: "Enable Fund Board", c_fund_en_d: "Show real-time valuations of watchlist funds in the tray.", c_fund_rf: "Refresh Interval", c_fund_rf_d: "How often valuations refresh automatically.", c_fund_alert: "Price Alerts", c_fund_alert_d: "Notify when a fund hits the change threshold.",
     c_perm: "Accessibility Access", c_perm_d: "Required to monitor idle state.", c_perm_auth: "Authorized",
     c_memo_en: "Enable Memos", c_memo_en_d: "Global hotkey for quick notes.", c_hk_m: "Default: Cmd + Shift + M", c_clip_en: "Enable Clipboard History", c_clip_en_d: "Record text and images automatically.",
     c_hk_c: "Default: Cmd + Shift + C", c_clip_ret: "Retention Period", c_clip_ret_d: "Clear history older than this.", c_clip_1d: "1 Day", c_clip_7d: "7 Days", c_clip_30d: "30 Days",
+    c_lang: "Language", c_lang_d: "Switch the display language.", c_power_caf: "Caffeine (Anti-sleep)", c_power_caf_d: "Prevent your Mac from sleeping to stay focused.", c_power_low: "Battery Saver", c_power_low_d: "Reduce pet activity when on battery power.",
+    unit_min: "min", unit_hr: "h", unit_cup: "cups", unit_sec: "s",
     c_sys_boot: "Launch at Login", c_sys_boot_d: "Start MeowOut on macOS boot.", c_sys_ver: "Version 1.5.0 (Stable)", c_sys_slogan: "Native pixel companion for healthy coding.", c_sys_upd: "Check for Updates", c_sys_check: "Check",
     br_box: "Box", br_478: "4-7-8", br_abd: "Belly", br_start: "Start",
     upd_title: "Evolution Patch v1.4.2!", upd_desc: "New 'Memos' and '2FA Authenticator' modules available! Click to deploy.", upd_later: "Later", upd_now: "Restart Now",
@@ -795,7 +952,16 @@ function setMockupLanguage(lang) {
     const key = el.getAttribute('data-i18n-placeholder');
     if (MOCKUP_I18N[lang][key]) el.setAttribute('placeholder', MOCKUP_I18N[lang][key]);
   });
-  
+
+  // Update Titles (tooltips)
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (MOCKUP_I18N[lang][key]) el.setAttribute('title', MOCKUP_I18N[lang][key]);
+  });
+
+  // Re-render preset menus (units are localized)
+  document.querySelectorAll('.preset').forEach(p => { renderPreset(p); buildPresetMenu(p); });
+
 }
 
 // Sync with parent window
@@ -924,41 +1090,56 @@ document.querySelectorAll('.sitem').forEach(item => {
   });
 });
 
-// ─── PILL TABS ────────────────────────────────────────────────────────────────
-document.querySelectorAll('.pill-bar').forEach(bar => {
-  bar.querySelectorAll('.pill').forEach(pill => {
-    pill.addEventListener('click', () => {
+// ─── PRESET MENUS (value capsules replacing sliders) ─────────────────────────
+function renderPreset(p) {
+  const dict = MOCKUP_I18N[S.lang] || MOCKUP_I18N.zh;
+  const unit = dict[p.dataset.unit] || '';
+  p.querySelector('.preset-val').innerText = p.dataset.val + ' ' + unit;
+}
+function buildPresetMenu(p) {
+  const dict = MOCKUP_I18N[S.lang] || MOCKUP_I18N.zh;
+  const unit = dict[p.dataset.unit] || '';
+  const menu = p.querySelector('.preset-menu');
+  menu.innerHTML = '';
+  p.dataset.options.split(',').forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'preset-opt';
+    b.innerText = v + ' ' + unit;
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
       click();
-      bar.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
-      pill.classList.add('active');
-      const paneId = bar.dataset.tab;
-      const pane = document.getElementById(paneId);
-      pane.querySelectorAll('.sub-content').forEach(s=>s.classList.remove('show'));
-      const target = document.getElementById(pill.dataset.sub);
-      if (target) target.classList.add('show');
+      p.dataset.val = v;
+      renderPreset(p);
+      if (p.dataset.state) { S[p.dataset.state] = +v; updateGoal(); updateWater(); }
+      p.classList.remove('open');
     });
+    menu.appendChild(b);
+  });
+}
+document.querySelectorAll('.preset').forEach(p => {
+  renderPreset(p);
+  buildPresetMenu(p);
+  p.querySelector('.preset-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    click();
+    document.querySelectorAll('.preset.open').forEach(o => { if (o !== p) o.classList.remove('open'); });
+    p.classList.toggle('open');
   });
 });
-
-// ─── SLIDER BINDINGS ──────────────────────────────────────────────────────────
-function bindSlider(id, lblId, fmt, onChange) {
-  const sl = document.getElementById(id), lb = document.getElementById(lblId);
-  sl.addEventListener('input', () => { lb.innerText = fmt(sl.value); if(onChange) onChange(sl.value); });
-}
-bindSlider('sl-work','lbl-work', v=>v+'分', v=>{ S.workMin=+v; updateGoal(); });
-bindSlider('sl-rest','lbl-rest', v=>v+'分', v=>S.restMin=+v);
-bindSlider('sl-reset','lbl-reset', v=>v+'分', v=>S.resetMin=+v);
-bindSlider('sl-goal','lbl-goal', v=>v+'小时', v=>{ S.dailyGoal=+v; updateGoal(); });
-bindSlider('sl-alert','lbl-alert', v=>v+'分');
-bindSlider('sl-wint','lbl-wint', v=>v+'分');
-bindSlider('sl-wgoal','lbl-wgoal', v=>v+'杯', v=>{ S.waterGoal=+v; updateWater(); });
+document.addEventListener('click', () => {
+  document.querySelectorAll('.preset.open').forEach(p => p.classList.remove('open'));
+});
 
 function resetDurations() {
-  document.getElementById('sl-work').value = 45; document.getElementById('lbl-work').innerText = '45分'; S.workMin = 45;
-  document.getElementById('sl-rest').value = 5; document.getElementById('lbl-rest').innerText = '5分'; S.restMin = 5;
-  document.getElementById('sl-reset').value = 5; document.getElementById('lbl-reset').innerText = '5分'; S.resetMin = 5;
+  click();
+  const defs = { workMin: 45, restMin: 5, resetMin: 5 };
+  document.querySelectorAll('#tab-health .preset').forEach(p => {
+    const st = p.dataset.state;
+    if (st && defs[st] !== undefined) { p.dataset.val = defs[st]; S[st] = defs[st]; renderPreset(p); }
+  });
   updateGoal();
 }
+document.getElementById('btn-reset-dur').addEventListener('click', resetDurations);
 
 // ─── GOAL & WATER UPDATES ─────────────────────────────────────────────────────
 function updateGoal() {
@@ -1112,14 +1293,16 @@ document.querySelectorAll('#lang-seg .seg-btn').forEach(btn => {
 
 // ─── WATER MODE ───────────────────────────────────────────────────────────────
 document.getElementById('wm-rhythm').addEventListener('click', () => {
+  click();
   document.getElementById('wm-rhythm').classList.add('active');
   document.getElementById('wm-custom').classList.remove('active');
   document.getElementById('water-interval-card').style.display = 'none';
 });
 document.getElementById('wm-custom').addEventListener('click', () => {
+  click();
   document.getElementById('wm-custom').classList.add('active');
   document.getElementById('wm-rhythm').classList.remove('active');
-  document.getElementById('water-interval-card').style.display = 'block';
+  document.getElementById('water-interval-card').style.display = 'flex';
 });
 
 // ─── PET SELECTION ────────────────────────────────────────────────────────────
@@ -1166,10 +1349,12 @@ document.getElementById('btn-check-upd').addEventListener('click', () => {
 function applyUpdate() {
   document.getElementById('update-popup').classList.remove('show');
   S.fomoUnlocked = true;
-  document.getElementById('fomo-lbl').innerText = 'Fomo';
+  const fl = document.getElementById('fomo-lbl');
+  if (fl) fl.innerText = 'Fomo';
   playTone(880,'sine',0.5,0.2);
   alert(MOCKUP_I18N[S.lang].js_upd_succ);
-  document.querySelector('[data-pet="fomo"]').click();
+  const fomoPet = document.querySelector('[data-pet="fomo"]');
+  if (fomoPet) fomoPet.click();
 }
 function quitApp() {
   trayPop.classList.remove('show');

@@ -56,7 +56,8 @@ MeowOut is a native macOS menu bar app where a running pixel pet reminds you to 
 | **Cleaning Mode** | One-click keyboard or screen input lock to prevent accidental keystrokes while cleaning, with a countdown unlock. |
 | **Clamshell Keep-Awake & Battery Protection** | Prevents sleep with the lid closed, with a customizable battery threshold to avoid over-discharge. |
 | **Self-Selected Funds** | Real-time valuation tracking for your favorite mutual funds, lightweight floating dashboard with privacy mode, and intuitive holding profit calculation. |
-| **Modern Management Panel** | A sidebar-navigation architecture offering deeply customizable **Rest / Hydration / Behavior / System** settings and a detailed **Today Review** timeline. |
+| **System Monitor** | A translucent menu-bar panel with live CPU / memory / network / battery metrics, per-process drill-down, significant energy usage ranking, and battery protection integration. |
+| **Modern Management Panel** | A macOS System Settings-style grouped interface with 12 sidebar categories and preset-menu value adjustment, offering deeply customizable **Rest / Hydration / Behavior / System** settings and a detailed **Today Review** timeline. |
 
 
 ## 🕰 How Activity Detection Works
@@ -107,7 +108,7 @@ curl -L https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg 
 ```
 
 ## 🛠️ Tech Stack
-- **UI Framework**: SwiftUI (modern sidebar navigation + responsive layout)
+- **UI Framework**: SwiftUI (System Settings-style grouped navigation + responsive layout)
 - **Low-Level Architecture**: AppKit (multi-window coordination + fullscreen always-on-top overlays)
 - **State Management**: Swift Observation (@Observable)
 - **Rendering Engine**: Canvas (high-performance pixel animation, 30FPS power-balanced)
@@ -130,7 +131,9 @@ Sources/MeowOut/
   Toolbox2FA/                 # TOTP authenticator module & views
   KeyDrop/                    # Text-snippet manager module
   Fund/                       # Real-time mutual fund tracking & portfolio management
-  SettingsView.swift          # Modern sidebar settings panel
+  SettingsView.swift          # macOS System Settings-style grouped settings panel
+  Settings/                   # Settings grouping components (SettingsGroup / PresetValueRow / ValuePreset)
+  SystemMonitor/              # Live system metrics sampling & monitor card views
   StatsView.swift             # Multi-dimensional health statistics
   TodayReviewView.swift       # Daily activity timeline visualization
   LauncherView.swift          # Quick radial launcher
