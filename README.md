@@ -33,7 +33,7 @@
   </a>
   &nbsp;
   <a href="https://github.com/huangy7/MeowOut/releases/latest">
-    <img src="https://img.shields.io/badge/📦_Download-MeowOut_v1.7.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
+    <img src="https://img.shields.io/badge/📦_Download-MeowOut_v1.8.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
   </a>
 </p>
 
