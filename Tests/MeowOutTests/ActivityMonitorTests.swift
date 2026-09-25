@@ -248,6 +248,67 @@ final class ActivityMonitorTests: XCTestCase {
         monitor.tick(simulatedIdleTime: 0, dt: 1)
         XCTAssertEqual(state.currentState, .working)
     }
+
+    // MARK: - 宠物动画与健康作息开关的联动
+
+    func testMasterSwitchOffKeepsPetStillEvenWhenUserIsActive() {
+        // 设置项文案承诺「关闭后宠物静默不打扰」：总开关关闭时，
+        // 即使用户正在活跃（idle 为 0），宠物也不应走动
+        let state = AppState()
+        state.enableRestReminder = false
+        let monitor = ActivityMonitor(appState: state)
+
+        monitor.tick(simulatedIdleTime: 0, dt: 5)
+
+        XCTAssertFalse(state.isWalking, "健康作息关闭时宠物应保持静默")
+    }
+
+    func testActiveUserWalksWhenHealthEnabled() {
+        // 对照组：总开关打开且用户活跃时，宠物照常走动
+        let state = AppState()
+        state.enableRestReminder = true
+        let monitor = ActivityMonitor(appState: state)
+
+        monitor.tick(simulatedIdleTime: 0, dt: 5)
+
+        XCTAssertTrue(state.isWalking)
+    }
+
+    func testMasterSwitchOffStopsPetFromRestingOrAlertingStates() {
+        // 从休息/告警态关闭总开关，也应立刻静默
+        let state = AppState()
+        state.enableRestReminder = false
+        state.currentState = .resting
+        let monitor = ActivityMonitor(appState: state)
+
+        monitor.tick(simulatedIdleTime: 0, dt: 1)
+
+        XCTAssertFalse(state.isWalking)
+    }
+
+    // MARK: - 开关即时生效
+
+    func testTogglingMasterSwitchOffStopsPetWithoutWaitingForTick() {
+        // ActivityMonitor 每 5 秒才重算一次 isWalking，若只在 tick 里响应，
+        // 用户点完开关最多要等 5 秒宠物才停下。切开关本身应立即生效。
+        let state = AppState()
+        state.enableRestReminder = true
+        state.isWalking = true
+
+        state.enableRestReminder = false
+
+        XCTAssertFalse(state.isWalking, "关闭总开关后应立即静默，无需等待下一个 tick")
+    }
+
+    func testTogglingMasterSwitchOnResumesPetWithoutWaitingForTick() {
+        let state = AppState()
+        state.enableRestReminder = false
+        state.isWalking = false
+
+        state.enableRestReminder = true
+
+        XCTAssertTrue(state.isWalking, "开启总开关后应立即恢复走动，无需等待下一个 tick")
+    }
 }
 
 

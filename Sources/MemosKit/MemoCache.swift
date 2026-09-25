@@ -14,6 +14,7 @@ public class MemoCache: @unchecked Sendable {
     private let lock = NSLock()
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
+    private var lastPersistTask: Task<Void, Never>?
 
     public init(storageURL: URL? = nil, maxItems: Int = 200) {
         if let storageURL {
@@ -69,6 +70,19 @@ public class MemoCache: @unchecked Sendable {
         lock.lock()
         let snapshot = data
         lock.unlock()
-        JSONStorage.save(snapshot, to: storageURL) { MemosDateCoding.makeEncoder() }
+        let task = JSONStorage.save(snapshot, to: storageURL) { MemosDateCoding.makeEncoder() }
+        lock.lock()
+        lastPersistTask = task
+        lock.unlock()
+    }
+
+    /// 最近一次保存触发的写入任务。
+    ///
+    /// `persist()` 不阻塞调用方，写入在后台完成；需要确定性等待落盘时 await 它即可，
+    /// 例如测试断言跨实例读取，或退出前确保缓存已写入。
+    var lastPersist: Task<Void, Never>? {
+        lock.lock()
+        defer { lock.unlock() }
+        return lastPersistTask
     }
 }

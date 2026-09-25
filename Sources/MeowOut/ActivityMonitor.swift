@@ -113,6 +113,7 @@ final class ActivityMonitor {
                 appState.restRemaining = 0
                 appState.flushStatsToDisk()
             }
+            // 此处不 return：关闭提醒只是不触发提醒与休息，工作时长仍需累计用于日报统计
         }
         
         if appState.currentState == .paused || appState.currentState == .breathing || appState.currentState == .overworking || appState.currentState == .resting {
@@ -183,8 +184,9 @@ final class ActivityMonitor {
         appState.workElapsed += dt
         updateHistory(dt: dt)
         
-        // 只要用户在动，标记为行走，具体的动画帧由 View 层的 Timer 驱动
-        appState.isWalking = true
+        // 只要用户在动就标记为行走；但健康作息关闭时宠物保持静默不打扰，
+        // 此时工作时长仍在累计（见上方分支），只是不播放动画
+        appState.isWalking = appState.enableRestReminder
         
         if appState.enableRestReminder {
             if appState.workElapsed >= appState.maxWorkTime {

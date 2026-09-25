@@ -51,128 +51,125 @@ struct TodayReviewView: View {
         if logs.isEmpty {
             Text(I18n.localized("log_no_records", language: state.language)).foregroundColor(.secondary).padding()
         } else {
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 30) {
-                    // 1. Timeline Bar
-                    VStack(alignment: .leading, spacing: 12) {
-                        GeometryReader { geometry in
-                            HStack(spacing: 0) {
-                                ForEach(processedLogs) { log in
-                                    Rectangle()
-                                        .fill(color(for: log.phase))
-                                        .frame(width: max(0, width(for: log, in: geometry.size.width)))
-                                }
+            VStack(spacing: 30) {
+                // 1. Timeline Bar
+                VStack(alignment: .leading, spacing: 12) {
+                    GeometryReader { geometry in
+                        HStack(spacing: 0) {
+                            ForEach(processedLogs) { log in
+                                Rectangle()
+                                    .fill(color(for: log.phase))
+                                    .frame(width: max(0, width(for: log, in: geometry.size.width)))
                             }
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
-                        .frame(height: 24)
-
-                        // Legend
-                        HStack(spacing: 16) {
-                            legendItem(color: .blue, text: I18n.localized("log_phase_working", language: state.language))
-                            legendItem(color: .red, text: I18n.localized("log_phase_overworking", language: state.language))
-                            legendItem(color: .green, text: I18n.localized("log_phase_resting", language: state.language))
-                            legendItem(color: .teal, text: I18n.localized("log_phase_breathing", language: state.language))
-                            legendItem(color: .gray.opacity(0.5), text: I18n.localized("log_phase_idle", language: state.language))
-                        }
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
+                    .frame(height: 24)
 
-                    // 2. Summary Statistics
-                    VStack(spacing: 16) {
-                        summaryRow(title: I18n.localized("log_duration_working", language: state.language), duration: totalWorkDuration, color: .blue)
-                        summaryRow(title: I18n.localized("log_duration_overworking", language: state.language), duration: totalOverworkingDuration, color: .red)
-                        summaryRow(title: I18n.localized("log_duration_resting", language: state.language), duration: totalRestDuration, color: .green)
-                        
-                        if totalBreathingDuration > 0 {
-                            HStack {
-                                Text("↳ " + I18n.localized("log_duration_breathing", language: state.language))
-                                    .font(.body)
-                                    .foregroundColor(.secondary)
-                                    .padding(.leading, 16)
-                                Spacer()
-                                Text(format(duration: totalBreathingDuration))
-                                    .font(.system(.body, design: .monospaced).bold())
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-
-                        summaryRow(title: I18n.localized("log_duration_idle", language: state.language), duration: totalIdleDuration, color: .gray)
-                        
-                        if state.todayEscapeCount > 0 {
-                            HStack {
-                                legendItem(color: .orange, text: I18n.localized("log_skipped_rests", language: state.language))
-                                    .font(.body)
-                                Spacer()
-                                Text("\(state.todayEscapeCount) \(I18n.localized("unit_times", language: state.language))")
-                                    .font(.system(.body, design: .monospaced).bold())
-                            }
-                        }
+                    // Legend
+                    HStack(spacing: 16) {
+                        legendItem(color: .blue, text: I18n.localized("log_phase_working", language: state.language))
+                        legendItem(color: .red, text: I18n.localized("log_phase_overworking", language: state.language))
+                        legendItem(color: .green, text: I18n.localized("log_phase_resting", language: state.language))
+                        legendItem(color: .teal, text: I18n.localized("log_phase_breathing", language: state.language))
+                        legendItem(color: .gray.opacity(0.5), text: I18n.localized("log_phase_idle", language: state.language))
                     }
-                    .padding()
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .cornerRadius(12)
-
-                    // 3. Detailed Records — custom full-row tappable header
-                    VStack(spacing: 0) {
-                        // Header row: entire row is tappable
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.25)) {
-                                isDetailExpanded.toggle()
-                            }
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: "chevron.right")
-                                    .font(.caption.weight(.semibold))
-                                    .rotationEffect(.degrees(isDetailExpanded ? 90 : 0))
-                                    .animation(.easeInOut(duration: 0.2), value: isDetailExpanded)
-                                Text(I18n.localized("log_view_details", language: state.language))
-                                    .font(.body)
-                                Spacer()
-                            }
-                            .contentShape(Rectangle())
-                            .padding()
-                        }
-                        .buttonStyle(.plain)
-
-                        // Expanded content
-                        if isDetailExpanded {
-                            VStack(spacing: 12) {
-                                ForEach(processedLogs.reversed()) { log in
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(timeRangeString(for: log))
-                                                .font(.system(.subheadline, design: .monospaced))
-                                                .foregroundColor(.secondary)
-                                        }
-
-                                        Spacer()
-
-                                        HStack(spacing: 6) {
-                                            Text(icon(for: log.phase))
-                                            Text(name(for: log.phase))
-                                                .font(.subheadline.bold())
-                                        }
-
-                                        Text(durationString(for: log))
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                            .frame(width: 80, alignment: .trailing)
-                                    }
-                                    if log != processedLogs.first {
-                                        Divider()
-                                    }
-                                }
-                            }
-                            .padding([.horizontal, .bottom])
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                        }
-                    }
-                    .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                    .cornerRadius(12)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 }
-                .padding(24)
+
+                // 2. Summary Statistics
+                VStack(spacing: 16) {
+                    summaryRow(title: I18n.localized("log_duration_working", language: state.language), duration: totalWorkDuration, color: .blue)
+                    summaryRow(title: I18n.localized("log_duration_overworking", language: state.language), duration: totalOverworkingDuration, color: .red)
+                    summaryRow(title: I18n.localized("log_duration_resting", language: state.language), duration: totalRestDuration, color: .green)
+                    
+                    if totalBreathingDuration > 0 {
+                        HStack {
+                            Text("↳ " + I18n.localized("log_duration_breathing", language: state.language))
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .padding(.leading, 16)
+                            Spacer()
+                            Text(format(duration: totalBreathingDuration))
+                                .font(.system(.body, design: .monospaced).bold())
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    summaryRow(title: I18n.localized("log_duration_idle", language: state.language), duration: totalIdleDuration, color: .gray)
+                    
+                    if state.todayEscapeCount > 0 {
+                        HStack {
+                            legendItem(color: .orange, text: I18n.localized("log_skipped_rests", language: state.language))
+                                .font(.body)
+                            Spacer()
+                            Text("\(state.todayEscapeCount) \(I18n.localized("unit_times", language: state.language))")
+                                .font(.system(.body, design: .monospaced).bold())
+                        }
+                    }
+                }
+                .padding()
+                .background(Color.primary.opacity(0.04))
+                .cornerRadius(12)
+
+                // 3. Detailed Records — custom full-row tappable header
+                VStack(spacing: 0) {
+                    // Header row: entire row is tappable
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isDetailExpanded.toggle()
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .rotationEffect(.degrees(isDetailExpanded ? 90 : 0))
+                                .animation(.easeInOut(duration: 0.2), value: isDetailExpanded)
+                            Text(I18n.localized("log_view_details", language: state.language))
+                                .font(.body)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                        .padding()
+                    }
+                    .buttonStyle(.plain)
+
+                    // Expanded content
+                    if isDetailExpanded {
+                        VStack(spacing: 12) {
+                            ForEach(processedLogs.reversed()) { log in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(timeRangeString(for: log))
+                                            .font(.system(.subheadline, design: .monospaced))
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    Spacer()
+
+                                    HStack(spacing: 6) {
+                                        Text(icon(for: log.phase))
+                                        Text(name(for: log.phase))
+                                            .font(.subheadline.bold())
+                                    }
+
+                                    Text(durationString(for: log))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .frame(width: 80, alignment: .trailing)
+                                }
+                                if log != processedLogs.first {
+                                    Divider()
+                                }
+                            }
+                        }
+                        .padding([.horizontal, .bottom])
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                }
+                .background(Color.primary.opacity(0.02))
+                .cornerRadius(12)
             }
         }
     }

@@ -18,6 +18,11 @@ final class SystemMonitorI18nTests: XCTestCase {
             "system_battery_cycles",
             "system_battery_energy_title",
             "system_battery_energy_idle",
+            "system_disk_label",
+            "system_disk_available",
+            "system_disk_purgeable",
+            "system_disk_internal",
+            "system_disk_external",
             "settings_system_monitor_card_title",
             "settings_system_monitor_card_desc"
         ]
@@ -35,6 +40,8 @@ final class SystemMonitorI18nTests: XCTestCase {
         let keys = [
             "rest_reminder_enabled",
             "rest_reminder_enabled_desc",
+            "rest_pet_animation_enabled",
+            "rest_pet_animation_enabled_desc",
             "quick_tools_enabled",
             "quick_tools_enabled_desc"
         ]
@@ -49,11 +56,14 @@ final class SystemMonitorI18nTests: XCTestCase {
     }
 
     func testHealthConsolidationI18nKeysExist() {
+        // 「工时休息」分组标题已随布局调整移除（首分组不再带标题），故不含 settings_subtab_work_rest
         let keys = [
             "settings_tab_health",
-            "settings_subtab_work_rest",
             "settings_subtab_water",
-            "settings_subtab_daily_goals"
+            "settings_subtab_daily_goals",
+            "settings_restore_defaults",
+            "settings_restore_defaults_confirm_title",
+            "settings_restore_defaults_confirm_message"
         ]
         let languages = ["zh-Hans", "zh-Hant", "en", "ja"]
         for lang in languages {
@@ -231,6 +241,55 @@ final class SystemMetricsServiceTests: XCTestCase {
     func testBreakdownKindIncludesBattery() {
         let allCases = BreakdownKind.allCases
         XCTAssertTrue(allCases.contains(.battery))
+    }
+
+    func testBreakdownKindIncludesDisk() {
+        let allCases = BreakdownKind.allCases
+        XCTAssertTrue(allCases.contains(.disk))
+    }
+
+    func testFormatDiskBytesUsesDecimalUnits() {
+        // 磁盘容量按十进制（10^9）展示，与 Finder、磁盘工具、关于本机一致。
+        // 下面四个数字取自实机 / 卷容量读数：同一块盘在系统里显示 494 GB，
+        // 若按 2^30 换算会被显示成 460 GB，用户对照系统工具时会认为读数错误。
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(494_384_795_648), "494 GB")
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(466_244_689_920), "466 GB")
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(54_696_043_798), "55 GB")
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(26_555_938_070), "27 GB")
+    }
+
+    func testFormatDiskBytesDecimalScaleBoundaries() {
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(2_000_000_000_000), "2 TB")
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(500_000_000_000), "500 GB")
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(1_000_000_000), "1 GB")
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(999_000_000), "999 MB")
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(512_000_000), "512 MB")
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(0), "0 KB")
+    }
+
+    func testFormatDiskBytesKeepsHalfTerabyteReadable() {
+        // 1.5 TB 取整成「2 TB」会虚报容量，保留一位小数
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(1_500_000_000_000), "1.5 TB")
+        XCTAssertEqual(SystemMetricsService.formatDiskBytes(3_000_000_000_000), "3 TB")
+    }
+
+    func testEmptySnapshotHasNoDiskReading() {
+        XCTAssertNil(SystemMetricsSnapshot().disk)
+    }
+
+    func testReadSnapshotPopulatesDisk() throws {
+        let service = SystemMetricsService()
+        let disk = try XCTUnwrap(service.readSnapshot().disk)
+
+        XCTAssertGreaterThan(disk.totalBytes, 0)
+        XCTAssertLessThanOrEqual(disk.usedBytes, disk.totalBytes)
+        XCTAssertLessThanOrEqual(disk.availableBytes, disk.totalBytes)
+    }
+
+    func testSampleTopProcessesForDiskIsEmpty() {
+        // 磁盘没有「占用前几名进程」的概念，展开态展示的是容量而非进程列表
+        let service = SystemMetricsService()
+        XCTAssertTrue(service.sampleTopProcesses(kind: .disk).isEmpty)
     }
 
     func testFormatBatteryWatts() {

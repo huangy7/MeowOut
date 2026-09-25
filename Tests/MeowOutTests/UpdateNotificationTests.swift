@@ -59,6 +59,7 @@ final class UpdateNotificationTests: XCTestCase {
             encoding: .utf8
         )
 
-        XCTAssertTrue(appSource.contains(".background(WindowOpener())"))
+        // 窗口/通知路由已迁移到常驻的 AppWindowManager，在启动时完成绑定
+        XCTAssertTrue(appSource.contains("AppWindowManager.shared.configure(appState: appState)"))
     }
 }

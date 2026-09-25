@@ -20,6 +20,7 @@ public class OfflineQueue: @unchecked Sendable {
     private let storageURL: URL
     private var items: [QueueItem] = []
     private let lock = NSLock()
+    private var lastPersistTask: Task<Void, Never>?
 
     public init(storageURL: URL? = nil) {
         if let storageURL {
@@ -92,6 +93,19 @@ public class OfflineQueue: @unchecked Sendable {
         lock.lock()
         let snapshot = items
         lock.unlock()
-        JSONStorage.save(snapshot, to: storageURL)
+        let task = JSONStorage.save(snapshot, to: storageURL)
+        lock.lock()
+        lastPersistTask = task
+        lock.unlock()
+    }
+
+    /// 最近一次入队/修改触发的写入任务。
+    ///
+    /// `persist()` 不阻塞调用方，写入在后台完成；需要确定性等待落盘时 await 它即可，
+    /// 例如测试断言跨实例持久化，或退出前确保队列已写入。
+    var lastPersist: Task<Void, Never>? {
+        lock.lock()
+        defer { lock.unlock() }
+        return lastPersistTask
     }
 }

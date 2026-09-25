@@ -27,6 +27,11 @@ public final class I18n {
             "system_battery_cycles": "循环计数",
             "system_battery_energy_title": "显著耗能",
             "system_battery_energy_idle": "无显著耗能",
+            "system_disk_label": "磁盘",
+            "system_disk_available": "可用",
+            "system_disk_purgeable": "可清除",
+            "system_disk_internal": "内置",
+            "system_disk_external": "外置",
             "settings_system_monitor_card_title": "系统资源监控",
             "settings_system_monitor_card_desc": "在状态栏或面板中实时查看 CPU 与内存占用情况。"
         ],
@@ -43,6 +48,11 @@ public final class I18n {
             "system_battery_cycles": "循環次數",
             "system_battery_energy_title": "高耗能",
             "system_battery_energy_idle": "沒有高耗能項目",
+            "system_disk_label": "磁碟",
+            "system_disk_available": "可用",
+            "system_disk_purgeable": "可清除",
+            "system_disk_internal": "內建",
+            "system_disk_external": "外接",
             "settings_system_monitor_card_title": "系統資源監控",
             "settings_system_monitor_card_desc": "在狀態列或面板中即時檢視 CPU 與記憶體使用情況。"
         ],
@@ -59,6 +69,11 @@ public final class I18n {
             "system_battery_cycles": "Cycle Count",
             "system_battery_energy_title": "Apps Using Significant Energy",
             "system_battery_energy_idle": "No significant energy use",
+            "system_disk_label": "Disk",
+            "system_disk_available": "available",
+            "system_disk_purgeable": "purgeable",
+            "system_disk_internal": "Internal",
+            "system_disk_external": "External",
             "settings_system_monitor_card_title": "System Resource Monitor",
             "settings_system_monitor_card_desc": "View real-time CPU and memory usage in the status bar or panel."
         ],
@@ -75,6 +90,11 @@ public final class I18n {
             "system_battery_cycles": "充放電回数",
             "system_battery_energy_title": "大きなエネルギー使用",
             "system_battery_energy_idle": "大きなエネルギー使用なし",
+            "system_disk_label": "ディスク",
+            "system_disk_available": "空き",
+            "system_disk_purgeable": "パージ可能",
+            "system_disk_internal": "内蔵",
+            "system_disk_external": "外付け",
             "settings_system_monitor_card_title": "システムリソースモニター",
             "settings_system_monitor_card_desc": "ステータスバーまたはパネルでCPUとメモリの使用状況をリアルタイムで確認します。"
         ]
@@ -98,8 +118,8 @@ public final class I18n {
         return code
     }
 
-    /// 获取当前应该使用的有效语言代码
-    private static func resolveLanguage(_ language: AppState.AppLanguage) -> String {
+    /// 获取当前应该使用的有效语言代码（.system 会解析为系统真实语言）
+    static func resolveLanguage(_ language: AppState.AppLanguage) -> String {
         if language != .system {
             return language.rawValue
         }

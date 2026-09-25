@@ -22,90 +22,18 @@ struct SidebarSection: Identifiable {
     }
 }
 
-/// A macOS-style vertical sidebar tab bar.
-/// Pair with HStack to create a full sidebar layout.
-struct SidebarTabBar: View {
-    let sections: [SidebarSection]
-    @Binding var selection: String
-
-    init(items: [SidebarItem], selection: Binding<String>) {
-        self.sections = [SidebarSection(id: "main", items: items)]
-        self._selection = selection
-    }
-
-    init(sections: [SidebarSection], selection: Binding<String>) {
-        self.sections = sections
-        self._selection = selection
-    }
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 2) {
-                ForEach(sections) { section in
-                    if let title = section.title {
-                        Text(title)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 8)
-                            .padding(.top, 12)
-                            .padding(.bottom, 4)
-                    }
-                    ForEach(section.items) { item in
-                        SidebarRowButton(item: item, isSelected: selection == item.id) {
-                            selection = item.id
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .frame(minWidth: 148, idealWidth: 156, maxWidth: 176)
-        .background(VisualEffectView())
-    }
-}
-
-private struct SidebarRowButton: View {
+/// 侧栏行的图标方块：彩色圆角底 + 白色符号，选中时换成半透明白底以适配高亮背景。
+struct SidebarItemIcon: View {
     let item: SidebarItem
     let isSelected: Bool
-    let action: () -> Void
-
-    @State private var isHovered = false
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: item.icon)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 20, height: 20)
-                    .background(isSelected ? Color.white.opacity(0.25) : item.iconColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                Text(item.title)
-                    .lineLimit(1)
-                if item.hasBadge {
-                    UpdateBadge()
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(isSelected
-                      ? Color.accentColor
-                      : (isHovered ? Color.primary.opacity(0.05) : .clear))
-        )
-        .foregroundStyle(isSelected ? Color.white : .primary)
-        .onHover { isHovered = $0 }
-        .accessibilityLabel(item.hasBadge
-                            ? "\(item.title), \(I18n.localized("settings_update_badge_a11y"))"
-                            : item.title)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        Image(systemName: item.icon)
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(.white)
+            .frame(width: 20, height: 20)
+            .background(isSelected ? Color.white.opacity(0.25) : item.iconColor)
+            .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
     }
 }
 
@@ -127,4 +55,62 @@ struct VisualEffectView: NSViewRepresentable {
         return view
     }
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
+/// 原生 List 版侧栏。选中态、悬停反馈、键盘上下键导航与 scroll-edge 效果都由系统绘制，
+/// 外观与系统设置一致；配合 NavigationSplitView 使用时，工具栏项会自动对齐到分栏分隔线。
+struct SidebarList: View {
+    let sections: [SidebarSection]
+    @Binding var selection: String?
+
+    var body: some View {
+        List(selection: $selection) {
+            ForEach(sections) { section in
+                if let title = section.title {
+                    Section {
+                        rows(for: section)
+                    } header: {
+                        Text(title)
+                    }
+                } else {
+                    Section {
+                        rows(for: section)
+                    }
+                }
+            }
+        }
+        .listStyle(.sidebar)
+        .navigationSplitViewColumnWidth(min: 148, ideal: 156, max: 176)
+    }
+
+    @ViewBuilder
+    private func rows(for section: SidebarSection) -> some View {
+        ForEach(section.items) { item in
+            SidebarListRow(item: item, isSelected: selection == item.id)
+                .tag(item.id)
+        }
+    }
+}
+
+/// List 侧栏的一行。选中背景由 List 绘制，这里只负责行内容本身。
+private struct SidebarListRow: View {
+    let item: SidebarItem
+    let isSelected: Bool
+
+    var body: some View {
+        Label {
+            HStack(spacing: 4) {
+                Text(item.title)
+                    .lineLimit(1)
+                if item.hasBadge {
+                    UpdateBadge()
+                }
+            }
+        } icon: {
+            SidebarItemIcon(item: item, isSelected: isSelected)
+        }
+        .accessibilityLabel(item.hasBadge
+                            ? "\(item.title), \(I18n.localized("settings_update_badge_a11y"))"
+                            : item.title)
+    }
 }

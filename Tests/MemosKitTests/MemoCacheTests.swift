@@ -22,13 +22,11 @@ final class MemoCacheTests: XCTestCase {
         let cache1 = MemoCache(storageURL: url)
         cache1.save(memos: [sampleMemo(id: "1"), sampleMemo(id: "2")])
 
-        var cache2 = MemoCache(storageURL: url)
-        for _ in 0..<20 {
-            if cache2.memos.count == 2 { break }
-            try await Task.sleep(nanoseconds: 50_000_000)
-            cache2 = MemoCache(storageURL: url)
-        }
+        // 等待后台写盘落地。按固定时长轮询同样不可靠：写入任务的调度时机取决于
+        // 机器负载，轮询上限一到就会在繁忙机器上误判为未落盘。
+        await cache1.lastPersist?.value
 
+        let cache2 = MemoCache(storageURL: url)
         XCTAssertEqual(cache2.memos.count, 2)
         if cache2.memos.count >= 1 {
             XCTAssertEqual(cache2.memos[0].id, "1")

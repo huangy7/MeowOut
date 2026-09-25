@@ -2,6 +2,22 @@ import XCTest
 @testable import MeowOut
 
 final class SystemMonitorCardViewTests: XCTestCase {
+    func testDiskBarColorThresholds() {
+        // 未到紧张区间用绿色，接近写满才升级为告警色
+        XCTAssertEqual(SystemMonitorCardView.diskBarColor(fraction: 0.0), .green)
+        XCTAssertEqual(SystemMonitorCardView.diskBarColor(fraction: 0.5), .green)
+        XCTAssertEqual(SystemMonitorCardView.diskBarColor(fraction: 0.7499), .green)
+        XCTAssertEqual(SystemMonitorCardView.diskBarColor(fraction: 0.75), .orange)
+        XCTAssertEqual(SystemMonitorCardView.diskBarColor(fraction: 0.8999), .orange)
+        XCTAssertEqual(SystemMonitorCardView.diskBarColor(fraction: 0.90), .red)
+        XCTAssertEqual(SystemMonitorCardView.diskBarColor(fraction: 1.0), .red)
+    }
+
+    func testDiskBarColorFallsBackToGreenForNonFiniteFraction() {
+        XCTAssertEqual(SystemMonitorCardView.diskBarColor(fraction: .nan), .green)
+        XCTAssertEqual(SystemMonitorCardView.diskBarColor(fraction: .infinity), .green)
+    }
+
     func testBreakdownMutualExclusion() {
         var expanded: BreakdownKind? = nil
 
@@ -101,6 +117,23 @@ final class SystemMonitorCardViewTests: XCTestCase {
 
         SystemMonitorCardView.toggleBreakdown(kind: .battery, current: &expanded)
         XCTAssertNil(expanded)
+    }
+
+    func testCardLanguageFollowsSystemResolution() {
+        let appState = AppState()
+        let original = appState.language
+        defer { appState.language = original }
+
+        // 跟随系统时，卡片传给 I18n 的语言必须是解析后的真实语言代码，
+        // 不能把 rawValue "system" 直接当 languageCode 用（会兜底成英文）
+        appState.language = .system
+        let view = SystemMonitorCardView(appState: appState)
+        XCTAssertNotEqual(view.language, "system")
+        XCTAssertEqual(view.language, I18n.resolveLanguage(.system))
+
+        // 显式语言直接透传
+        appState.language = .en
+        XCTAssertEqual(SystemMonitorCardView(appState: appState).language, "en")
     }
 
     func testBatterySymbolName() {

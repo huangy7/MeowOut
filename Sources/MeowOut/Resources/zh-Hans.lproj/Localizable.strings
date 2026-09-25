@@ -12,11 +12,22 @@
 "menu_force_rest" = "强制休息阶段";
 "menu_reset_timers" = "重置计时器";
 "menu_settings" = "设置...";
+"menu_settings_plain" = "设置";
 "menu_quit" = "退出";
 "menu_breathing" = "正念练习";
 "settings_tab_settings" = "设置";
 "settings_tab_statistics" = "统计";
-"settings_restore_defaults" = "恢复默认设置";
+"stats_page_title" = "统计与记录";
+"stats_settings_entry_title" = "统计与记录";
+"stats_settings_entry_desc" = "查看今日进度、最近 7 天趋势，以及今日的作息记录详情。";
+"stats_settings_entry_btn" = "查看统计";
+"stats_today_log_section" = "记录详情";
+"stats_today_overview" = "今日概览";
+"stats_metric_work" = "工作时长";
+"stats_metric_water" = "喝水";
+"settings_restore_defaults" = "恢复本页默认设置";
+"settings_restore_defaults_confirm_title" = "恢复本页默认设置？";
+"settings_restore_defaults_confirm_message" = "工时休息、喝水提醒与每日目标的设置都将恢复为默认值。";
 "settings_version" = "版本 %@";
 "settings_about_description" = "MeowOut - 您的生产力伴侣宠物。";
 "settings_check_updates" = "检查更新";
@@ -73,6 +84,8 @@
 "settings_group_data" = "数据记录";
 "settings_group_system" = "系统";
 "settings_update_badge_a11y" = "有可用更新";
+"settings_nav_back" = "返回";
+"settings_nav_forward" = "前进";
 "settings_launch_at_login" = "登录时启动";
 "settings_launch_at_login_desc" = "登录时自动启动 MeowOut。";
 "stats_todays_goal" = "今日目标";
@@ -162,11 +175,6 @@
 "settings_section_water" = "喝水提醒";
 
 
-"stats_tab_work" = "工作时长";
-"stats_tab_water" = "饮水记录";
-"stats_tab_logs" = "记录";
-"stats_subtab_today" = "今日";
-"stats_subtab_history" = "历史";
 "settings_tab_rest" = "休息提醒";
 "settings_tab_water" = "喝水提醒";
 
@@ -224,10 +232,13 @@
 "keydrop_add_category_prompt" = "请输入新分类的名称。";
 "keydrop_add_category_placeholder" = "分类名称";
 "keydrop_manager_title" = "常用语管理器";
+"keydrop_value_label" = "值";
+"keydrop_copy_value" = "复制";
+"keydrop_copied" = "已复制";
+"keydrop_entry_missing" = "该常用语已不存在";
 "keydrop_manage_title" = "常用语管理";
-"keydrop_manage_desc" = "打开专属的管理器窗口，方便编辑、新增或分类整理所有常用语及快捷短语。";
-"keydrop_open_manager_btn" = "打开常用语管理器...";
-"keydrop_manager_empty_selection" = "选择左侧的词条以进行查看或编辑";
+"keydrop_manage_desc" = "在设置内管理所有常用语及快捷短语，方便编辑、新增或分类整理。";
+"keydrop_open_manager_btn" = "常用语管理器";
 "keydrop_uncategorized" = "未分类";
 "keydrop_category_all" = "全部";
 "keydrop_search_placeholder" = "搜索...";
@@ -579,13 +590,14 @@
 
 /* Health & Rest */
 "settings_tab_health" = "健康作息";
-"settings_subtab_work_rest" = "工时休息";
 "settings_subtab_water" = "喝水提醒";
 "settings_subtab_daily_goals" = "每日目标";
 
 /* Tray Cards Customization */
 "rest_reminder_enabled" = "启用健康作息提醒";
 "rest_reminder_enabled_desc" = "开启后按设定间隔提醒休息与喝水；关闭后宠物静默不打扰，托盘亦不展示健康看板。";
+"rest_pet_animation_enabled" = "菜单栏宠物动画";
+"rest_pet_animation_enabled_desc" = "工作时让宠物在菜单栏里走动。每换一帧都会让菜单栏重新布局，关掉后宠物照常展示但不再走动，可省下这部分常驻开销。";
 "quick_tools_enabled" = "在托盘中显示快捷操作";
 "quick_tools_enabled_desc" = "在菜单栏面板中展示防休眠、两步验证等快捷工具卡片。";
 

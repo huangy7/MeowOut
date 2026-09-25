@@ -9,7 +9,9 @@ struct SettingsView: View {
     @State private var isAwaitingAccessibility = false
     @State private var isAwaitingAccessibilityForKeyDrop = false
     @State private var accessibilityStatus = AXIsProcessTrusted()
-    @State private var selectedTab: String = "rest"
+    @State private var history = NavigationHistory(root: SettingsRoute.tab("rest"))
+    @State private var keydropBrowse = KeyDropBrowseState()
+    @State private var showingRestoreDefaultsConfirmation = false
 
     @ObservedObject private var clamshell = ClamshellManager.shared
     @AppStorage("batteryProtectionThreshold") private var batteryProtectionThreshold = 0
@@ -43,33 +45,52 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            SidebarTabBar(sections: sidebarSections, selection: $selectedTab)
-            Divider()
-
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
-                    Group {
-                        switch selectedTab {
-                        case "behavior": behaviorCards
-                        case "keydrop": keyDropCards
-                        case "clipboard": ClipboardSettingsView()
-                        case "shelf": ShelfSettingsView()
-                        case "quick_actions": QuickActionsSettingsView(state: state)
-                        case "fund": FundSettingsView()
-                        case "memos": MemosSettingsView(state: state)
-                        case "permissions": permissionsCards
-                        case "general": generalCards
-                        case "power": powerCards
-                        case "about": aboutCards
-                        default: restCards
-                        }
+        // 侧栏刻意常驻，不允许折叠；正因为固定成 .all，SwiftUI 自动注入的侧栏开关点了也不生效，
+        // 才需要下面 .toolbar(removing: .sidebarToggle) 把它摘掉，别当成死代码删。
+        NavigationSplitView(columnVisibility: .constant(.all)) {
+            SidebarList(sections: sidebarSections, selection: sidebarSelection)
+        } detail: {
+            // 常用语的两个页面自带滚动区与自适应高度的编辑器，套在外层 ScrollView 里会拿到
+            // 无界高度建议，导致内层列表不再滚动、值行塌成一条。只有卡片式设置页需要外层滚动。
+            switch history.current {
+            case .keydropManager, .keydropManagerEntry:
+                detailPane
+            case .tab, .statistics:
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 20) {
+                        detailPane
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 20)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 20)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .navigationSplitViewStyle(.balanced)
+        .navigationTitle(currentPageTitle)
+        .toolbar(removing: .sidebarToggle)
+        .toolbar {
+            ToolbarItemGroup(placement: .navigation) {
+                Button {
+                    history.goBack()
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .disabled(!history.canGoBack)
+                .keyboardShortcut("[", modifiers: .command)
+                .help(I18n.localized("settings_nav_back", language: state.language))
+                .accessibilityLabel(I18n.localized("settings_nav_back", language: state.language))
+
+                Button {
+                    history.goForward()
+                } label: {
+                    Image(systemName: "chevron.right")
+                }
+                .disabled(!history.canGoForward)
+                .keyboardShortcut("]", modifiers: .command)
+                .help(I18n.localized("settings_nav_forward", language: state.language))
+                .accessibilityLabel(I18n.localized("settings_nav_forward", language: state.language))
+            }
         }
         .frame(minWidth: 620, idealWidth: 660, minHeight: 560, idealHeight: 580)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willBecomeActiveNotification)) { _ in
@@ -87,10 +108,10 @@ struct SettingsView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SwitchToPermissionsTab"))) { _ in
-            selectedTab = "permissions"
+            history.push(.tab("permissions"))
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenFundSettings"))) { _ in
-            selectedTab = "fund"
+            history.push(.tab("fund"))
         }
         .onAppear {
             clamshell.syncWithSystem()
@@ -101,19 +122,92 @@ struct SettingsView: View {
         }
     }
 
+    @ViewBuilder
+    private var detailPane: some View {
+        switch history.current {
+        case .keydropManager:
+            SnippetManagerListView(browse: keydropBrowse) { id in
+                history.push(.keydropManagerEntry(id))
+            }
+        case .keydropManagerEntry(let id):
+            // 按 id 绑定身份，保证编辑页的本地 @State 每条一份。今天路由切换本身就会拆掉旧视图，
+            // 所以这层 .id 只是低成本的防御，防止将来视图被复用后状态串到下一条。
+            SnippetEntryEditorView(entryID: id)
+                .id(id)
+        case .statistics:
+            StatsView(state: state)
+        case .tab(let id):
+            switch id {
+            case "behavior": behaviorCards
+            case "keydrop": keyDropCards
+            case "clipboard": ClipboardSettingsView()
+            case "shelf": ShelfSettingsView()
+            case "quick_actions": QuickActionsSettingsView(state: state)
+            case "fund": FundSettingsView()
+            case "memos": MemosSettingsView(state: state)
+            case "permissions": permissionsCards
+            case "general": generalCards
+            case "power": powerCards
+            case "about": aboutCards
+            default: restCards
+            }
+        }
+    }
+
+    /// 工具栏标题跟随当前路由：钻进子页时显示该页自己的名字，与 macOS 系统设置的钻取体验一致。
+    private var currentPageTitle: String {
+        switch history.current {
+        case .keydropManager, .keydropManagerEntry:
+            return I18n.localized("keydrop_manager_title", language: state.language)
+        case .statistics:
+            return I18n.localized("stats_page_title", language: state.language)
+        case .tab(let id):
+            return sidebarSections.flatMap(\.items).first { $0.id == id }?.title
+                ?? I18n.localized("settings_window_title", language: state.language)
+        }
+    }
+
+    /// 侧栏选中与导航历史的双向映射。
+    /// 读方向由当前路由推导；写方向里「点回已高亮的父页签」要能退出子页，其余重复点击不产生历史。
+    private var sidebarSelection: Binding<String?> {
+        Binding(
+            get: { history.current.highlightedSidebarID },
+            set: { newValue in
+                guard let id = newValue else { return }   // List 允许点空白清空选中，这里不接受
+                switch history.current {
+                case .tab(let currentID) where currentID == id:
+                    return                                // 已停在该页根，无操作
+                default:
+                    history.push(.tab(id))                // 含「从管理器退回常用语页根」
+                }
+            }
+        )
+    }
+
     private func applyPendingNavigationTarget() {
         switch state.settingsNavigationTarget {
         case .update:
-            selectedTab = "about"
+            history.push(.tab("about"))
             state.settingsNavigationTarget = nil
         case .permissions:
-            selectedTab = "permissions"
+            history.push(.tab("permissions"))
             state.settingsNavigationTarget = nil
         case .memos:
-            selectedTab = "memos"
+            history.push(.tab("memos"))
             state.settingsNavigationTarget = nil
         case .fund:
-            selectedTab = "fund"
+            history.push(.tab("fund"))
+            state.settingsNavigationTarget = nil
+        case .statistics:
+            // 设置窗口常驻复用，用户关窗时可能正停在统计页，此时 push(.tab("rest")) 不是空操作，
+            // 会在历史里压出 [.., rest, statistics, rest, statistics]，返回键第二次会又回到刚离开的页
+            guard history.current != .statistics else {
+                state.settingsNavigationTarget = nil
+                return
+            }
+            // 推两层，让返回键的行为与用户从健康作息页手动进入时一致
+            history.push(.tab("rest"))
+            history.push(.statistics)
             state.settingsNavigationTarget = nil
         case nil:
             break
@@ -123,22 +217,7 @@ struct SettingsView: View {
     @ViewBuilder
     private var restCards: some View {
         VStack(spacing: 20) {
-        // 分组 1：工时休息
-        HStack {
-            Text(I18n.localized("settings_subtab_work_rest", language: state.language))
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-            Spacer()
-            Button(action: { state.resetIntervalsToDefaults() }) {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.plain)
-            .help(I18n.localized("settings_restore_defaults", language: state.language))
-            .accessibilityLabel(I18n.localized("settings_restore_defaults", language: state.language))
-        }
-        .padding(.horizontal, 12)
+        // 分组 1：工时休息（首分组不带标题，与其他 tab 一致）
         SettingsGroup {
             SettingsRow(I18n.localized("rest_reminder_enabled", language: state.language),
                         description: I18n.localized("rest_reminder_enabled_desc", language: state.language)) {
@@ -148,6 +227,13 @@ struct SettingsView: View {
             }
 
             Group {
+                SettingsRowDivider()
+                SettingsRow(I18n.localized("rest_pet_animation_enabled", language: state.language),
+                            description: I18n.localized("rest_pet_animation_enabled_desc", language: state.language)) {
+                    Toggle("", isOn: $state.enableTrayPetAnimation)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                }
                 SettingsRowDivider()
                 PresetValueRow(title: I18n.localized("settings_work_duration", language: state.language),
                                description: I18n.localized("settings_work_duration_desc", language: state.language),
@@ -229,8 +315,45 @@ struct SettingsView: View {
                            unitKey: "unit_cups",
                            language: state.language)
         }
+
+        // 分组 4：统计入口（统计是推进出去的独立页，不受本页「恢复默认」影响）
+        SettingsGroup {
+            SettingsRow(I18n.localized("stats_settings_entry_title", language: state.language),
+                        description: I18n.localized("stats_settings_entry_desc", language: state.language)) {
+                Button(action: { history.push(.statistics) }) {
+                    Text(I18n.localized("stats_settings_entry_btn", language: state.language))
+                }
+            }
+        }
+
+        // 页面级重置：作用于本页全部设置（工时休息 + 喝水提醒 + 每日目标）
+        HStack {
+            Button(action: { showingRestoreDefaultsConfirmation = true }) {
+                HStack(spacing: 5) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text(I18n.localized("settings_restore_defaults", language: state.language))
+                        .font(.system(size: 12))
+                }
+                .foregroundStyle(.secondary)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(I18n.localized("settings_restore_defaults", language: state.language))
+            Spacer()
+        }
+        .padding(.horizontal, 12)
         }
         .animation(.easeInOut(duration: 0.2), value: state.enableRestReminder)
+        .alert(I18n.localized("settings_restore_defaults_confirm_title", language: state.language),
+               isPresented: $showingRestoreDefaultsConfirmation) {
+            Button(I18n.localized("keydrop_cancel_btn", language: state.language), role: .cancel) { }
+            Button(I18n.localized("settings_restore_defaults", language: state.language), role: .destructive) {
+                state.resetIntervalsToDefaults()
+            }
+        } message: {
+            Text(I18n.localized("settings_restore_defaults_confirm_message", language: state.language))
+        }
     }
 
     @ViewBuilder
@@ -325,6 +448,9 @@ struct SettingsView: View {
                     .toggleStyle(.switch)
             }
         }
+        // 语言切换时整组重建：segmented Picker 桥接 NSSegmentedControl，
+        // 标签变短时段宽不收缩，会把行布局卡坏、挤掉行标题（如 en → 跟随系统）
+        .id(state.language)
     }
 
     @ViewBuilder
@@ -595,7 +721,7 @@ struct SettingsView: View {
                     } else {
                         state.enableGlobalKeyboardScold = false
                         isAwaitingAccessibility = true
-                        selectedTab = "permissions"
+                        history.push(.tab("permissions"))
                     }
                 } else {
                     state.enableGlobalKeyboardScold = false
@@ -619,7 +745,7 @@ struct SettingsView: View {
                     } else {
                         state.keyDropEnabled = false
                         isAwaitingAccessibilityForKeyDrop = true
-                        selectedTab = "permissions"
+                        history.push(.tab("permissions"))
                     }
                 } else {
                     state.keyDropEnabled = false
@@ -647,7 +773,7 @@ struct SettingsView: View {
             SettingsRow(I18n.localized("keydrop_manage_title", language: state.language),
                         description: I18n.localized("keydrop_manage_desc", language: state.language)) {
                 Button(action: {
-                    NotificationCenter.default.post(name: NSNotification.Name("OpenSnippetManagerWindow"), object: nil)
+                    history.push(.keydropManager)
                 }) {
                     Text(I18n.localized("keydrop_open_manager_btn", language: state.language))
                 }

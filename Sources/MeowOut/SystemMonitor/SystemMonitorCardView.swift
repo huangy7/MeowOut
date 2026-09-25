@@ -17,8 +17,10 @@ public struct SystemMonitorCardView: View {
         appState ?? envAppState
     }
 
-    private var language: String {
-        effectiveAppState?.language.rawValue ?? "zh-Hans"
+    /// 传给 I18n 的语言代码：.system 必须解析为真实语言（rawValue "system" 不是合法 languageCode）
+    var language: String {
+        guard let appLanguage = effectiveAppState?.language else { return "zh-Hans" }
+        return I18n.resolveLanguage(appLanguage)
     }
 
     public static func toggleBreakdown(kind: BreakdownKind, current: inout BreakdownKind?) {
@@ -34,6 +36,15 @@ public struct SystemMonitorCardView: View {
         let downMax = downHistory.compactMap { $0.isFinite ? max(0.0, $0) : nil }.max() ?? 0.0
         let upMax = upHistory.compactMap { $0.isFinite ? max(0.0, $0) : nil }.max() ?? 0.0
         return max(downMax, upMax, safeMin)
+    }
+
+    /// 容量条按占用率分档着色：接近写满时用红色直接给出告警，
+    /// 让「磁盘快满了」不需要读数字也能看出来
+    public static func diskBarColor(fraction: Double) -> Color {
+        guard fraction.isFinite else { return .green }
+        if fraction >= 0.90 { return .red }
+        if fraction >= 0.75 { return .orange }
+        return .green
     }
 
     public static func batterySymbolName(chargePercent: Int?, isCharging: Bool, externalConnected: Bool) -> String {
@@ -158,6 +169,43 @@ public struct SystemMonitorCardView: View {
                 }
             }
 
+            // 容量不可读时整行隐藏，而不是显示 0 GB / 0 GB
+            if let disk = metrics.snapshot.disk {
+                Divider().background(Color.primary.opacity(0.05))
+
+                // Disk Row
+                VStack(alignment: .leading, spacing: 6) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            Self.toggleBreakdown(kind: .disk, current: &expanded)
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: expanded == .disk ? "chevron.down" : "chevron.right")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundColor(.secondary)
+                                .frame(width: 10)
+
+                            Text(I18n.localized("system_disk_label", language: language))
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.primary.opacity(0.85))
+
+                            Spacer()
+
+                            Text("\(SystemMetricsService.formatDiskBytes(disk.usedBytes)) / \(SystemMetricsService.formatDiskBytes(disk.totalBytes))")
+                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                .foregroundColor(.purple)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+
+                    if expanded == .disk {
+                        diskDetailView(disk: disk)
+                    }
+                }
+            }
+
             Divider().background(Color.primary.opacity(0.05))
 
             // Network Row
@@ -234,10 +282,96 @@ public struct SystemMonitorCardView: View {
             switch currentExpanded {
             case .cpu, .memory, .battery:
                 metrics.refreshTopProcesses(kind: currentExpanded)
-            case .network:
+            case .network, .disk:
                 break
             }
         }
+    }
+
+    @ViewBuilder
+    private func diskDetailView(disk: DiskReading) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Text(disk.volumeName)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.primary.opacity(0.9))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+
+                Spacer()
+
+                HStack(spacing: 4) {
+                    // 文件系统类型取自挂载表，理论上可能为空，空串不占位
+                    if !disk.fileSystem.isEmpty {
+                        diskTag(disk.fileSystem)
+                    }
+                    diskTag(I18n.localized(disk.isInternal ? "system_disk_internal" : "system_disk_external",
+                                           language: language))
+                }
+            }
+
+            HStack(spacing: 6) {
+                diskCapacityBar(fraction: disk.usedFraction)
+
+                Text(String(format: "%.0f%%", disk.usedFraction * 100))
+                    .font(.system(size: 10.5, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundColor(.secondary)
+            }
+
+            HStack(spacing: 6) {
+                Text("\(SystemMetricsService.formatDiskBytes(disk.availableBytes)) \(I18n.localized("system_disk_available", language: language))")
+                    .font(.system(size: 10.5))
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                // 可清除量为 0 时没有可清理空间，「0 GB 可清除」只是噪音
+                if disk.purgeableBytes > 0 {
+                    Text("\(SystemMetricsService.formatDiskBytes(disk.purgeableBytes)) \(I18n.localized("system_disk_purgeable", language: language))")
+                        .font(.system(size: 10.5))
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(8)
+        .background(
+            colorScheme == .dark
+                ? Color.white.opacity(0.04)
+                : Color.black.opacity(0.02)
+        )
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.primary.opacity(0.04), lineWidth: 0.5)
+        )
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    @ViewBuilder
+    private func diskCapacityBar(fraction: Double) -> some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Color.primary.opacity(0.12))
+
+                Capsule()
+                    .fill(Self.diskBarColor(fraction: fraction))
+                    .frame(width: geometry.size.width * min(max(fraction, 0), 1))
+            }
+        }
+        .frame(height: 6)
+    }
+
+    @ViewBuilder
+    private func diskTag(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 9, weight: .medium))
+            .foregroundColor(.secondary)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1.5)
+            .background(Color.primary.opacity(0.06))
+            .cornerRadius(999)
     }
 
     @ViewBuilder

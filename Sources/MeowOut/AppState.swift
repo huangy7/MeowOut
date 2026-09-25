@@ -25,6 +25,7 @@ public enum SettingsNavigationTarget: Equatable {
     case permissions
     case memos
     case fund
+    case statistics
 }
 
 public struct SessionLog: Identifiable, Equatable {
@@ -100,6 +101,7 @@ public final class AppState {
         case todayEscapeCount
         case useClassicTrayIcon
         case enableRestReminder
+        case enableTrayPetAnimation
         case showQuickToolsCard
         case appearanceMode
     }
@@ -229,6 +231,25 @@ public final class AppState {
                         }
                     }
                 }
+                // isWalking 平时由 ActivityMonitor 每 5 秒重算一次；不在切换开关时
+                // 同步设置，用户拨完开关最多要等 5 秒宠物才停或才动
+                isWalking = newValue
+            }
+        }
+    }
+
+    /// 菜单栏宠物是否播放走路动画。
+    ///
+    /// 动画每 0.2 秒换一次图标帧，而状态栏项换图会触发菜单栏重新布局，是常驻的
+    /// 可观开销；关掉后固定显示静态帧，动画停止但宠物本身照常展示。
+    public var enableTrayPetAnimation: Bool {
+        get {
+            access(keyPath: \.enableTrayPetAnimation)
+            return UserDefaults.standard.object(forKey: Keys.enableTrayPetAnimation.rawValue) as? Bool ?? true
+        }
+        set {
+            withMutation(keyPath: \.enableTrayPetAnimation) {
+                UserDefaults.standard.set(newValue, forKey: Keys.enableTrayPetAnimation.rawValue)
             }
         }
     }

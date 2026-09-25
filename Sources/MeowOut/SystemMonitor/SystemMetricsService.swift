@@ -11,6 +11,7 @@ public enum BreakdownKind: String, CaseIterable, Codable, Equatable, Sendable {
     case memory
     case network
     case battery
+    case disk
 }
 
 public struct SystemMetricsSnapshot: Equatable, Sendable {
@@ -23,6 +24,8 @@ public struct SystemMetricsSnapshot: Equatable, Sendable {
     public var netDownHistory: [Double]
     public var netUpHistory: [Double]
     public var battery: BatteryReading
+    /// 启动卷容量读数。容量不可读时为 nil，对应界面整行隐藏。
+    public var disk: DiskReading?
 
     public var memoryUsagePercentage: Double {
         guard memoryTotal > 0 else { return 0 }
@@ -38,7 +41,8 @@ public struct SystemMetricsSnapshot: Equatable, Sendable {
         netUpBytesPerSec: Double = 0,
         netDownHistory: [Double] = [],
         netUpHistory: [Double] = [],
-        battery: BatteryReading = BatteryReading()
+        battery: BatteryReading = BatteryReading(),
+        disk: DiskReading? = nil
     ) {
         self.cpuUsage = cpuUsage
         self.memoryUsed = memoryUsed
@@ -49,6 +53,7 @@ public struct SystemMetricsSnapshot: Equatable, Sendable {
         self.netDownHistory = netDownHistory
         self.netUpHistory = netUpHistory
         self.battery = battery
+        self.disk = disk
     }
 
     public mutating func appendNetworkHistory(down: Double, up: Double, maxCount: Int = 30) {
@@ -219,6 +224,34 @@ public final class SystemMetricsService: ObservableObject {
         }
     }
 
+    /// 磁盘容量格式化。
+    ///
+    /// 按十进制（10^9）换算，与 Finder、磁盘工具、关于本机 的读数保持一致 ——
+    /// 同一块盘在这些系统工具里显示 494 GB，若改用 2^30 会显示成 460 GB，
+    /// 用户对照时会认为读数有误。内存行沿用 `formatBytes` 的二进制换算不动：
+    /// 系统对内存本来就按 2^30 报告，16 GiB 内存各处都显示「16 GB」。
+    /// 按整数位展示，容量读数的小数位不携带信息，反而让整行更拥挤；
+    /// TB 保留一位小数，1.5 TB 取整成「2 TB」会虚报容量。
+    public static func formatDiskBytes(_ bytes: UInt64) -> String {
+        let tb = 1_000_000_000_000.0
+        let gb = 1_000_000_000.0
+        let mb = 1_000_000.0
+        let kb = 1_000.0
+        let value = Double(bytes)
+
+        if value >= tb {
+            let tera = value / tb
+            return String(format: tera.rounded() == tera ? "%.0f TB" : "%.1f TB", tera)
+        }
+        if value >= gb {
+            return String(format: "%.0f GB", value / gb)
+        }
+        if value >= mb {
+            return String(format: "%.0f MB", value / mb)
+        }
+        return String(format: "%.0f KB", value / kb)
+    }
+
     public static func formatBatteryWatts(_ watts: Double?) -> String {
         guard let w = watts, w.isFinite, w >= 0 else { return "--" }
         if w == 0 { return "0W" }
@@ -337,7 +370,8 @@ public final class SystemMetricsService: ObservableObject {
             netUpBytesPerSec: reading.upBytesPerSec,
             netDownHistory: netDownHistory,
             netUpHistory: netUpHistory,
-            battery: battery
+            battery: battery,
+            disk: DiskSampler.sampleBootVolume()
         )
         newSnapshot.appendNetworkHistory(down: reading.downBytesPerSec, up: reading.upBytesPerSec)
         netDownHistory = newSnapshot.netDownHistory
@@ -601,7 +635,7 @@ public final class SystemMetricsService: ObservableObject {
                 )
             }
 
-        case .network:
+        case .network, .disk:
             return []
         }
     }
@@ -671,7 +705,7 @@ public final class SystemMetricsService: ObservableObject {
                     self.topMemoryProcesses = items
                 case .battery:
                     self.topEnergyProcesses = items
-                case .network:
+                case .network, .disk:
                     break
                 }
                 self.isSamplingProcesses = false

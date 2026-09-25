@@ -7,187 +7,175 @@ struct DailyWork: Identifiable {
     let hours: Double
 }
 
+/// 统计页。从「健康作息」推进进入，占满设置详情面板宽度。
+///
+/// 自身**不包 ScrollView** —— 外层 detail: 闭包已经提供了滚动。再套一层纵向 ScrollView
+/// 会给内容传无界高度建议，与外层滚动互相打架（同一个坑在常用语管理器上已经踩过一次）。
 struct StatsView: View {
     @Bindable var state: AppState
-    @State private var selectedTab: String = "statistics"
+
     @State private var chartDataSnapshot: [DailyWork] = []
-
-    // Sub-tab selection identifiers
-    @State private var selectedStatsSubTab: String = "work"
-    @State private var selectedLogsSubTab: String = "today"
-
-    private var statsSubTabs: [(id: String, key: String)] {
-        [
-            ("work", "stats_tab_work"),
-            ("water", "stats_tab_water")
-        ]
-    }
-
-    private var logsSubTabs: [(id: String, key: String)] {
-        [
-            ("today", "stats_subtab_today"),
-            ("history", "stats_subtab_history")
-        ]
-    }
-
-    private var sidebarItems: [SidebarItem] {
-        [
-            SidebarItem(id: "statistics", title: I18n.localized("settings_tab_statistics", language: state.language), icon: "chart.bar.fill"),
-            SidebarItem(id: "logs", title: I18n.localized("stats_tab_logs", language: state.language), icon: "list.bullet.clipboard"),
-        ]
-    }
+    @State private var isLogExpanded = false
+    @State private var isChartExpanded = false
 
     var body: some View {
-        HStack(spacing: 0) {
-            SidebarTabBar(items: sidebarItems, selection: $selectedTab)
-            Divider()
-            
-            VStack(alignment: .leading, spacing: 0) {
-                // Second level: Pill Tabs
-                HStack {
-                    subTabBar
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-                .padding(.bottom, 16)
-                
-                // Third level: Content Area
-                VStack(spacing: 0) {
-                    if selectedTab == "logs" && selectedLogsSubTab == "today" {
-                        TodayReviewView(logs: state.dailyLogs)
-                    } else {
-                        ScrollView(showsIndicators: false) {
-                            VStack(spacing: 16) {
-                                if selectedTab == "logs" {
-                                    logsCards
-                                } else {
-                                    statisticsCards
-                                }
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 20)
-                        }
-                    }
-                }
+        VStack(alignment: .leading, spacing: 20) {
+            todayOverviewCard
+
+            collapsibleSection(
+                title: I18n.localized("stats_today_log_section", language: state.language),
+                isExpanded: $isLogExpanded
+            ) {
+                TodayReviewView(logs: state.dailyLogs)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            collapsibleSection(
+                title: I18n.localized("stats_last_7_days", language: state.language),
+                isExpanded: $isChartExpanded
+            ) {
+                chartContent
+            }
         }
-        .frame(width: 580, height: 550)
-        .background(VisualEffectView().ignoresSafeArea())
         .onAppear { refreshChartSnapshot() }
     }
 
-    private func pillItems(_ tabs: [(id: String, key: String)]) -> [PillTabItem] {
-        tabs.map { PillTabItem(id: $0.id, title: I18n.localized($0.key, language: state.language)) }
-    }
+    // MARK: - 今日概览
 
-    @ViewBuilder
-    private var subTabBar: some View {
-        switch selectedTab {
-        case "logs":
-            PillTabBar(items: pillItems(logsSubTabs), selection: $selectedLogsSubTab)
-        default:
-            PillTabBar(items: pillItems(statsSubTabs), selection: $selectedStatsSubTab)
-        }
-    }
-
-    @ViewBuilder
-    private var statisticsCards: some View {
-        if selectedStatsSubTab == "work" {
-            VStack(spacing: 16) {
-                SettingsCard(
+    private var todayOverviewCard: some View {
+        SettingsGroup(I18n.localized("stats_today_overview", language: state.language)) {
+            VStack(spacing: 0) {
+                metricRow(
                     icon: "target",
-                    iconColor: .orange,
-                    title: I18n.localized("stats_todays_goal", language: state.language),
-                    description: nil
+                    color: .teal,
+                    label: I18n.localized("stats_metric_work", language: state.language),
+                    value: I18n.localizedFormat("unit_hours_short", language: state.language, String(format: "%.1f", state.totalWorkToday / 3600), Int64(state.dailyWorkGoal)),
+                    progress: min(state.totalWorkToday / (Double(state.dailyWorkGoal) * 3600), 1.0)
                 ) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text(I18n.localizedFormat("unit_hours_short", language: state.language, String(format: "%.1f", state.totalWorkToday / 3600), Int64(state.dailyWorkGoal)))
-                                .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                .foregroundStyle(.orange)
-                            Spacer()
-                        }
-                        ProgressView(value: min(state.totalWorkToday / (Double(state.dailyWorkGoal) * 3600), 1.0))
-                            .tint(.orange)
-                    }
+                    EmptyView()
                 }
 
-                SettingsCard(
-                    icon: "chart.bar.xaxis",
-                    iconColor: .orange,
-                    title: I18n.localized("stats_last_7_days", language: state.language),
-                    description: nil
+                SettingsRowDivider()
+
+                metricRow(
+                    icon: "drop.fill",
+                    color: .blue,
+                    label: I18n.localized("stats_metric_water", language: state.language),
+                    value: "\(state.todayWaterCups) / \(I18n.localizedFormat("unit_cups", language: state.language, Int64(state.dailyWaterGoal)))",
+                    progress: min(Double(state.todayWaterCups) / Double(state.dailyWaterGoal), 1.0)
                 ) {
-                    Chart {
-                        ForEach(chartDataSnapshot) { day in
-                            BarMark(
-                                x: .value(I18n.localized("stats_chart_date", language: state.language), day.date, unit: .day),
-                                y: .value(I18n.localized("stats_chart_hours", language: state.language), day.hours)
-                            )
-                            .foregroundStyle(.orange.gradient)
-                            .cornerRadius(4)
-                        }
-                        RuleMark(y: .value("Goal", Double(state.dailyWorkGoal)))
-                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                            .foregroundStyle(.orange.opacity(0.5))
-                    }
-                    .frame(height: 180)
-                    .padding(.top, 8)
-                }
-            }
-        } else {
-            SettingsCard(
-                icon: "drop.fill",
-                iconColor: .blue,
-                title: I18n.localized("water_today_label", language: state.language),
-                description: nil
-            ) {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("\(state.todayWaterCups)/\(state.dailyWaterGoal)")
-                            .font(.system(size: 16, weight: .bold, design: .monospaced))
+                    Button(action: {
+                        state.todayWaterCups += 1
+                        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 18))
                             .foregroundStyle(.blue)
-                        Spacer()
-                        Button(action: {
-                            state.todayWaterCups += 1
-                            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
-                        }) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 20))
-                                .foregroundStyle(.blue)
-                        }
-                        .buttonStyle(.plain)
                     }
-
-                    ProgressView(value: min(Double(state.todayWaterCups) / Double(state.dailyWaterGoal), 1.0))
-                        .tint(.blue)
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(I18n.localized("water_add_cup", language: state.language))
                 }
             }
         }
     }
 
-    @ViewBuilder
-    private var logsCards: some View {
-        if selectedLogsSubTab == "history" {
-            VStack(spacing: 20) {
-                Spacer()
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.secondary)
-                Text(I18n.localized("stats_subtab_history", language: state.language))
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                Text("Coming soon")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
+    /// 一个指标行：图标 + 名称 + 数值 + 进度条，右侧可选一个操作。
+    /// 抽出来是为了让两行的排版由构造保证一致，而不是靠两处各写一遍。
+    private func metricRow<Trailing: View>(
+        icon: String,
+        color: Color,
+        label: String,
+        value: String,
+        progress: Double,
+        @ViewBuilder trailing: () -> Trailing
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(color)
+                    .frame(width: 16)
+                Text(label)
+                    .font(.system(size: 13, weight: .semibold))
+                Spacer(minLength: 8)
+                Text(value)
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundStyle(color)
+                trailing()
             }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 40)
+            ProgressView(value: progress)
+                .tint(color)
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
     }
+
+    private var chartContent: some View {
+        Chart {
+            ForEach(chartDataSnapshot) { day in
+                BarMark(
+                    x: .value(I18n.localized("stats_chart_date", language: state.language), day.date, unit: .day),
+                    y: .value(I18n.localized("stats_chart_hours", language: state.language), day.hours)
+                )
+                .foregroundStyle(.teal.gradient)
+                .cornerRadius(4)
+            }
+            RuleMark(y: .value("Goal", Double(state.dailyWorkGoal)))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                .foregroundStyle(.teal.opacity(0.5))
+        }
+        .frame(height: 180)
+    }
+
+    /// 设置风格的可展开卡片：整行可点，右侧 chevron 指示展开态。
+    /// 容器与 SettingsGroup 同族（controlBackgroundColor + 圆角 10 + 细描边），
+    /// 这样它和设置页其它卡片看起来是一家的。
+    private func collapsibleSection<Content: View>(
+        title: String,
+        isExpanded: Binding<Bool>,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                    isExpanded.wrappedValue.toggle()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Text(title)
+                        .font(.system(size: 13, weight: .semibold))
+                    Spacer(minLength: 8)
+                    Image(systemName: isExpanded.wrappedValue ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.secondary.opacity(0.6))
+                        .frame(width: 16, height: 16)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded.wrappedValue {
+                Divider()
+                    .padding(.horizontal, 12)
+
+                content()
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+                    .padding(.bottom, 12)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
+        )
+    }
+
+    // MARK: - 数据
 
     private func refreshChartSnapshot() {
         let calendar = Calendar.current

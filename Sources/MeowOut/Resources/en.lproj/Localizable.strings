@@ -12,11 +12,22 @@
 "menu_force_rest" = "Force Rest Phase";
 "menu_reset_timers" = "Reset Timers";
 "menu_settings" = "Settings...";
+"menu_settings_plain" = "Settings";
 "menu_quit" = "Quit";
 "menu_breathing" = "Deep Breathing";
 "settings_tab_settings" = "Settings";
 "settings_tab_statistics" = "Statistics";
-"settings_restore_defaults" = "Restore Defaults";
+"stats_page_title" = "Statistics & Logs";
+"stats_settings_entry_title" = "Statistics & Logs";
+"stats_settings_entry_desc" = "Today's progress, the last 7 days, and today's session log.";
+"stats_settings_entry_btn" = "View Statistics";
+"stats_today_log_section" = "Session Log";
+"stats_today_overview" = "Today";
+"stats_metric_work" = "Work";
+"stats_metric_water" = "Water";
+"settings_restore_defaults" = "Restore This Page's Defaults";
+"settings_restore_defaults_confirm_title" = "Restore this page's defaults?";
+"settings_restore_defaults_confirm_message" = "Work & rest, water reminders, and daily goals will all be reset to their default values.";
 "settings_version" = "Version %@";
 "settings_about_description" = "MeowOut - Your productivity pet.";
 "settings_check_updates" = "Check for Updates";
@@ -61,7 +72,7 @@
 "settings_preview_resting" = "Forced Rest";
 "settings_preview_stop" = "Stop Preview";
 "settings_language" = "Language";
-"settings_language_system" = "System Default";
+"settings_language_system" = "System";
 "settings_appearance" = "Appearance";
 "settings_appearance_system" = "System";
 "settings_appearance_light" = "Light";
@@ -72,6 +83,8 @@
 "settings_group_data" = "Data & Records";
 "settings_group_system" = "System";
 "settings_update_badge_a11y" = "Update available";
+"settings_nav_back" = "Back";
+"settings_nav_forward" = "Forward";
 "settings_launch_at_login" = "Launch at Login";
 "settings_launch_at_login_desc" = "Start MeowOut automatically when you log in.";
 "stats_todays_goal" = "Today's Goal";
@@ -154,18 +167,13 @@
 "water_settings_title" = "Water Reminder";
 "water_settings_enabled" = "Enable Water Reminder";
 "water_settings_mode" = "Reminder Mode";
-"water_settings_mode_rhythm" = "Follow Work Rhythm";
+"water_settings_mode_rhythm" = "Work Rhythm";
 "water_settings_mode_custom" = "Custom Interval";
 "water_settings_interval" = "Reminder Interval";
 "water_settings_goal" = "Daily Goal (cups)";
 "settings_section_water" = "Water Reminder";
 
 
-"stats_tab_work" = "Work Hours";
-"stats_tab_water" = "Hydration";
-"stats_tab_logs" = "Logs";
-"stats_subtab_today" = "Today";
-"stats_subtab_history" = "History";
 "settings_tab_rest" = "Rest Reminder";
 "settings_tab_water" = "Water Reminder";
 
@@ -223,10 +231,13 @@
 "keydrop_add_category_prompt" = "Please enter the name of the new category.";
 "keydrop_add_category_placeholder" = "Category name";
 "keydrop_manager_title" = "Phrase Manager";
+"keydrop_value_label" = "Value";
+"keydrop_copy_value" = "Copy";
+"keydrop_copied" = "Copied";
+"keydrop_entry_missing" = "This phrase no longer exists";
 "keydrop_manage_title" = "Manage Phrases";
-"keydrop_manage_desc" = "Open the dedicated manager window to edit, add, or organize categories and phrases.";
-"keydrop_open_manager_btn" = "Open Phrase Manager...";
-"keydrop_manager_empty_selection" = "Select a phrase to view or edit";
+"keydrop_manage_desc" = "Manage your categories and phrases right inside Settings.";
+"keydrop_open_manager_btn" = "Phrase Manager";
 "keydrop_uncategorized" = "Uncategorized";
 "keydrop_category_all" = "All";
 "keydrop_search_placeholder" = "Search...";
@@ -576,13 +587,14 @@
 
 /* Health & Rest */
 "settings_tab_health" = "Health & Rest";
-"settings_subtab_work_rest" = "Work & Rest";
 "settings_subtab_water" = "Hydration";
 "settings_subtab_daily_goals" = "Daily Goals";
 
 /* Tray Cards Customization */
 "rest_reminder_enabled" = "Enable Health & Rest Reminders";
 "rest_reminder_enabled_desc" = "Remind you to take breaks and stay hydrated on schedule. When disabled, pets remain calm and the dashboard card is hidden.";
+"rest_pet_animation_enabled" = "Menu Bar Pet Animation";
+"rest_pet_animation_enabled_desc" = "Let the pet walk in the menu bar while you work. Each animation frame re-lays out the menu bar, so turning it off saves CPU while keeping the pet visible.";
 "quick_tools_enabled" = "Show Quick Actions in Menu";
 "quick_tools_enabled_desc" = "Display Keep-Awake, 2FA, and shortcuts card in the menu bar panel.";
 
