@@ -7,10 +7,10 @@
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/lang-简体中文-lightgrey?style=flat-square" alt="简体中文"></a>
 </p>
 
-# MeowOut
+<h1 align="center">MeowOut</h1>
 
 <p align="center">
-  <b>A running pixel companion that guards your health at work</b>
+  <b>A native macOS menu bar toolkit — with a pixel pet that keeps you healthy</b>
   <br>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/huangy7/MeowOut?style=flat-square" alt="License"></a>
   <img src="https://img.shields.io/badge/platform-macOS%2014.0+-blue?style=flat-square" alt="Platform">
@@ -20,76 +20,73 @@
 </p>
 
 <p align="center">
-  <img src=".github/assets/hero.gif" alt="MeowOut Hero" width="800">
+  <img src=".github/assets/hero.gif" alt="MeowOut Hero" width="100%">
 </p>
 
 <p align="center">
   <a href="https://meow.huangy.top/">
-    <img src="https://img.shields.io/badge/🌐_Official_Website-meow.huangy.top-a855f7?style=for-the-badge&labelColor=1d003d" alt="Official Website">
+    <img src="https://img.shields.io/badge/Official_Website-meow.huangy.top-a855f7?style=for-the-badge&labelColor=1d003d" alt="Official Website">
   </a>
   &nbsp;
   <a href="https://meow.huangy.top/#demo">
-    <img src="https://img.shields.io/badge/🎮_Live_Web_Demo-Try_all_features_in_your_browser-ff7b00?style=for-the-badge&labelColor=1a0a00" alt="Interactive Demo">
+    <img src="https://img.shields.io/badge/Live_Web_Demo-Try_all_features_in_your_browser-ff7b00?style=for-the-badge&labelColor=1a0a00" alt="Interactive Demo">
   </a>
   &nbsp;
   <a href="https://github.com/huangy7/MeowOut/releases/latest">
-    <img src="https://img.shields.io/badge/📦_Download-MeowOut_v1.8.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
+    <img src="https://img.shields.io/badge/Download-MeowOut_v1.8.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
   </a>
 </p>
 
-MeowOut is a native macOS menu bar app where a running pixel pet reminds you to take breaks and drink water on schedule. It precisely detects user activity through low-level system APIs and automatically escalates through warning, forced-break, and mindfulness stages based on continuous work time — a thoughtful health companion that helps developers prevent neck strain and stay hydrated.
+MeowOut packs a clipboard manager, a TOTP authenticator, a dropzone, quick memos, a launcher and a live system monitor into one menu bar app. A pixel pet rides along in the menu bar while you work.
 
+## Contents
 
-## ✨ Key Features
+- [Features](#features)
+  - [Text & Clipboard](#text--clipboard)
+  - [Files & Security](#files--security)
+  - [System & Hardware](#system--hardware)
+  - [Everyday](#everyday)
+  - [Health Companion](#health-companion)
+- [Installation](#installation)
+- [License](#license)
 
-| Feature | Description |
-| :--- | :--- |
-| **Diverse Pixel Companions** | Built-in pets including **Clawd (Cat)**, **Panda**, and **Pika**, with live switching and independent animations. |
-| **Hardcore Anti-Grind Algorithm** | **Time Rollback**: precisely deducts "ghost time" when you briefly step away; **Full Reset**: a forced-break threshold ensures every work cycle resets scientifically. |
-| **Comprehensive Reminders** | **Water Reminder**: "follow work rhythm" or "custom interval" modes, with live hydration progress in the menu bar.<br>**Overwork Monitor**: a 30-second grace window that humanely determines whether you've actually started resting. |
-| **Mindfulness** | An integrated 5-minute breathing module with fullscreen immersive interaction; session data syncs to health statistics automatically. |
-| **MemosKit Quick Memos** | A new native memo architecture with Markdown rendering, timeline and calendar dual views, and image attachment management. |
-| **Clipboard History** | A standalone, lightweight clipboard manager supporting search, preview, and instant actions for plain text, rich text, and images. |
-| **Dropzone** | A natively integrated drag-and-drop staging area for files — multi-file staging, quick drag-out, and preview for smooth cross-app file flow. |
-| **Toolbox 2FA** | A built-in secure TOTP authenticator with multiple hash algorithms and Keychain-encrypted storage. |
-| **KeyDrop & Launcher** | A quick text-snippet manager and a long-press radial launcher that put your most frequent actions at your fingertips. |
-| **Cleaning Mode** | One-click keyboard or screen input lock to prevent accidental keystrokes while cleaning, with a countdown unlock. |
-| **Clamshell Keep-Awake & Battery Protection** | Prevents sleep with the lid closed, with a customizable battery threshold to avoid over-discharge. |
-| **Self-Selected Funds** | Real-time valuation tracking for your favorite mutual funds, lightweight floating dashboard with privacy mode, and intuitive holding profit calculation. |
-| **System Monitor** | A translucent menu-bar panel with live CPU / memory / network / battery metrics, per-process drill-down, significant energy usage ranking, and battery protection integration. |
-| **Modern Management Panel** | A macOS System Settings-style grouped interface with 12 sidebar categories and preset-menu value adjustment, offering deeply customizable **Rest / Hydration / Behavior / System** settings and a detailed **Today Review** timeline. |
+## Features
 
+### Text & Clipboard
 
-## 🕰 How Activity Detection Works
+- **Clipboard History** — Search, preview and reuse anything you've copied. Plain text, rich text and images are all captured, with instant actions to paste, pin or clear.
+- **Quick Memos** — Native Markdown memos with timeline and calendar views, image attachments, and a quick-capture window you can summon without leaving what you're doing.
 
-MeowOut uses a precise activity-detection pipeline to track your work state accurately and humanely:
+### Files & Security
 
-- **What counts as "working"?**
-  - **Real-time sampling**: global input activity (keyboard & mouse) is checked every 5 seconds.
-  - **State progression**: when accumulated work time reaches the warning threshold, the pet switches its dialogue to remind you; at the maximum duration, it forces a break.
-  - **Overworking stage**: an `Overworking` state — if you keep working after the break reminder appears, the pet reacts with different personalities based on your settings.
+- **Dropzone** — A drag-and-drop staging area for files. Drop things in from anywhere, drag them out when you need them, with multi-file staging and preview.
+- **2FA Authenticator** — TOTP codes with multiple hash algorithms, with secrets encrypted in the macOS Keychain.
 
-- **Water reminder logic**
-  - **Follow-rhythm mode**: the pet reminds you to hydrate each time you return from a break.
-  - **Custom interval**: fixed-frequency reminders to keep your hydration evenly distributed.
+### System & Hardware
 
-- **What counts as "rested enough"?**
-  - **Mindfulness**: completing a breathing session quickly resets your state.
-  - **Idle Reset**: no input beyond a configurable threshold means the system treats you as having stepped away.
-  - **Time Rollback**: short absences (e.g., taking a phone call) are automatically deducted so your work timer never inflates.
+- **System Monitor** — Live CPU, memory, network, battery and disk capacity in a translucent panel, with per-process drill-down and a significant-energy ranking.
+- **Keep-Awake & Battery Protection** — Prevent sleep with the lid closed, with a customizable battery threshold so a long export doesn't drain you to zero.
+- **Cleaning Mode** — Lock keyboard or screen input with a countdown unlock, so wiping things down doesn't fire off shortcuts.
 
+### Everyday
 
-## 🚀 Installation
+- **Fund Tracker** — Real-time valuation for the funds you follow, in a lightweight floating dashboard with a privacy mode and holding profit calculation.
+- **Launcher** — A long-press radial launcher that puts your most frequent actions under the cursor. Configure several rings and switch between them with the scroll wheel.
 
-### Install via Homebrew (Recommended) 🍺
+### Health Companion
+
+- **Pixel Companions** — Clawd the cat, Panda or Pika walk in your menu bar while you work, with live switching and independent animation.
+- **Mindfulness** — A five-minute breathing session in a fullscreen immersive view. Completed sessions feed back into your health statistics.
+
+## Installation
+
+### Install via Homebrew (Recommended)
 
 If you have Homebrew installed, install and update through our dedicated tap:
 
 ```bash
 brew install huangy7/tap/meowout
 ```
-
----
 
 ### Download the DMG
 
@@ -107,51 +104,7 @@ brew install huangy7/tap/meowout
 curl -L https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg -o ~/Downloads/MeowOut.dmg && xattr -cr ~/Downloads/MeowOut.dmg && open ~/Downloads/MeowOut.dmg
 ```
 
-## 🛠️ Tech Stack
-- **UI Framework**: SwiftUI (System Settings-style grouped navigation + responsive layout)
-- **Low-Level Architecture**: AppKit (multi-window coordination + fullscreen always-on-top overlays)
-- **State Management**: Swift Observation (@Observable)
-- **Rendering Engine**: Canvas (high-performance pixel animation, 30FPS power-balanced)
-- **Content Rendering**: MarkdownUI for a native Markdown experience
-- **Security**: TOTP via SwiftOTP, secrets protected by Keychain
-- **Localization**: Full English / Simplified Chinese switching, following the system language
-
-
-## 📂 Project Structure
-```text
-Sources/MeowOut/
-  AppState.swift              # Global business logic & persistence hub
-  PetState.swift              # Pet state machine & animation data source
-  ActivityMonitor.swift       # Core activity detection & time-rollback algorithm
-  CatOverlayController.swift  # Floating window & fullscreen interaction controller
-  WaterReminderController.swift # Standalone hydration logic controller
-  ClawdView.swift / PandaView.swift / PikaView.swift # Pet view components
-  Memos/                      # MemosKit quick-memo views & logic
-  Clipboard/                  # Native clipboard history module
-  Toolbox2FA/                 # TOTP authenticator module & views
-  KeyDrop/                    # Text-snippet manager module
-  Fund/                       # Real-time mutual fund tracking & portfolio management
-  SettingsView.swift          # macOS System Settings-style grouped settings panel
-  Settings/                   # Settings grouping components (SettingsGroup / PresetValueRow / ValuePreset)
-  SystemMonitor/              # Live system metrics sampling & monitor card views
-  StatsView.swift             # Multi-dimensional health statistics
-  TodayReviewView.swift       # Daily activity timeline visualization
-  LauncherView.swift          # Quick radial launcher
-  KeyboardCleaningService.swift # Keyboard cleaning mode logic
-  ScreenCleaningService.swift   # Screen cleaning mode logic
-```
-
-
-## 🤝 Contributors
-
-<p align="center">
-  <a href="https://github.com/huangy7/MeowOut/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=huangy7/MeowOut" alt="Contributors" />
-  </a>
-</p>
-
-
-## ⚖️ License
+## License
 
 This project is released under the [MIT](LICENSE) License.
 

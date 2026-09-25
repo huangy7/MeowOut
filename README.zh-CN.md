@@ -7,12 +7,10 @@
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/lang-简体中文-blue?style=flat-square" alt="简体中文"></a>
 </p>
 
-> 本翻译最后同步于 main 分支 2026-09-19 (English README)
-
-# MeowOut
+<h1 align="center">MeowOut</h1>
 
 <p align="center">
-  <b>一只奔跑的像素伴侣，守护你的职场健康</b>
+  <b>原生 macOS 菜单栏工具箱 —— 附带一只守护健康的像素宠物</b>
   <br>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/huangy7/MeowOut?style=flat-square" alt="License"></a>
   <img src="https://img.shields.io/badge/platform-macOS%2014.0+-blue?style=flat-square" alt="Platform">
@@ -22,86 +20,83 @@
 </p>
 
 <p align="center">
-  <img src=".github/assets/hero.gif" alt="MeowOut Hero" width="800">
+  <img src=".github/assets/hero.gif" alt="MeowOut Hero" width="100%">
 </p>
 
 <p align="center">
   <a href="https://meow.huangy.top/">
-    <img src="https://img.shields.io/badge/🌐_官方网站-meow.huangy.top-a855f7?style=for-the-badge&labelColor=1d003d" alt="Official Website">
+    <img src="https://img.shields.io/badge/官方网站-meow.huangy.top-a855f7?style=for-the-badge&labelColor=1d003d" alt="官方网站">
   </a>
   &nbsp;
   <a href="https://meow.huangy.top/#demo">
-    <img src="https://img.shields.io/badge/🎮_网页在线试用-点击预览全功能_Demo-ff7b00?style=for-the-badge&labelColor=1a0a00" alt="Interactive Demo">
+    <img src="https://img.shields.io/badge/在线演示-浏览器里直接试用全部功能-ff7b00?style=for-the-badge&labelColor=1a0a00" alt="在线演示">
   </a>
   &nbsp;
   <a href="https://github.com/huangy7/MeowOut/releases/latest">
-    <img src="https://img.shields.io/badge/📦_立即下载-MeowOut_v1.8.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="Download">
+    <img src="https://img.shields.io/badge/下载-MeowOut_v1.8.0-0071e3?style=for-the-badge&labelColor=001a3d" alt="下载">
   </a>
 </p>
 
-MeowOut 是一款 macOS 原生菜单栏应用，用一只奔跑的像素宠物提醒你按时休息与喝水。它通过系统底层接口精准检测用户活跃度，根据连续工作时长自动进入预警、强制休息或正念练习阶段，是开发者预防颈椎病、保持水分充足的贴心健康伙伴。
+MeowOut 把剪贴板管理、两步验证、文件中转站、快速备忘、快捷启动器和实时系统监控收进同一个菜单栏应用；另有一只像素宠物在菜单栏里陪你工作。
 
+## 目录
 
-## ✨ 核心特性
+- [功能](#功能)
+  - [文字与剪贴](#文字与剪贴)
+  - [文件与安全](#文件与安全)
+  - [系统与硬件](#系统与硬件)
+  - [日常](#日常)
+  - [健康伴侣](#健康伴侣)
+- [安装](#安装)
+- [开源协议](#开源协议)
 
-| 特性 | 说明 |
-| :--- | :--- |
-| **多样化像素伙伴** | 内置 **Clawd (小猫)**、**Panda (熊猫)**、**Pika (皮卡)** 等多款宠物，支持实时切换与独立动画。 |
-| **硬核防沉迷算法** | **时光回滚**: 精准扣除起座初期的“幽灵时间”；**满血复活**: 强制休息阈值确保工作循环科学重置。 |
-| **全能提醒系统** | **喝水提醒**: 支持“跟随工作节奏”或“自定义间隔”双模式，并在菜单栏实时显示饮水进度。<br>**过度工作监控**: 新增 30 秒观察窗口，人性化判定是否真正进入休息状态。 |
-| **正念练习 (Mindfulness)** | 集成 5 分钟呼吸训练模块，支持全屏沉浸式交互，练习数据自动同步至健康统计。 |
-| **MemosKit 闪念胶囊** | 全新原生备忘录架构，支持 Markdown 渲染、时间轴与日历双视图，并集成图片附件管理。 |
-| **剪贴板历史 (Clipboard)** | 独立、轻量的剪贴板管理工具，支持纯文本、富文本与图片的搜索、预览与极速操作。 |
-| **文件中转站 (Dropzone)** | 原生集成的文件拖拽中转空间，支持多文件暂存、快捷拖拽与预览，打通跨应用的文件流转。 |
-| **Toolbox 2FA** | 内置安全的双因素验证器，支持多哈希算法及 Keychain 加密存储。 |
-| **KeyDrop & Launcher** | 快捷的文本片段管理器与长按触发的环形启动器，将最高频操作置于指尖。 |
-| **清洁模式 (Cleaning)** | 一键锁定键盘或屏幕输入，防止清洁时误触，并提供倒计时解锁机制。 |
-| **合盖防休眠与电池保护** | 支持合盖时不休眠，并提供自定义电量阈值保护，防止过度放电。 |
-| **自选基金看板 (Funds)** | 实时盘中估值追踪与自选基金管理，轻量浮窗一键唤出、支持隐私打码，精准计算持仓收益与市值。 |
-| **系统状态监控 (System Monitor)** | 毛玻璃通透的菜单栏面板，实时呈现 CPU / 内存 / 网络 / 电池指标，支持进程下钻、显著能耗排行，并与电池保护联动。 |
-| **现代化管理面板** | 采用 macOS 系统设置风格的分组界面，12 个侧栏分类搭配预设档位菜单调节数值，提供深度个性化的 **休息/饮水/行为/系统** 设置，以及详尽的 **今日回顾时间轴**。 |
+## 功能
 
+### 文字与剪贴
 
-## 🕰 监测逻辑说明
+- **剪贴板历史** — 搜索、预览并复用你复制过的任何内容。纯文本、富文本与图片都会记录，可一键粘贴、置顶或清除。
+- **快速备忘** — 原生 Markdown 备忘，支持时间线与日历双视图、图片附件，以及不必离开当前工作就能唤起的速记窗口。
 
-MeowOut 采用一套精密的活跃度判定逻辑，确保对你工作状态的追踪既准确又人性化：
+### 文件与安全
 
-- **如何定义“在工作”？**
-  - **实时采样**：系统每 5 秒检测一次全局输入活动（键鼠操作）。
-  - **状态演进**：累计工作时间达到预警阈值时，宠物会切换台词提醒；达到最大时长时，强制进入休息模式。
-  - **过度工作阶段**：新增 `Overworking` 状态，如果你在休息提醒弹出后仍坚持工作，宠物会根据你的设置展现不同的性格反馈。
+- **文件中转站** — 拖拽式的文件暂存区。随手拖入、需要时再拖出，支持多文件暂存与预览。
+- **两步验证** — 支持多种哈希算法的 TOTP 验证码，密钥加密存放在 macOS 钥匙串中。
 
-- **喝水提醒逻辑**
-  - **跟随节奏模式**：在每次从休息状态恢复到工作状态时，由宠物提醒你补水。
-  - **自定义间隔**：固定时间频率提醒，确保水分摄入均匀。
+### 系统与硬件
 
-- **如何判定“休息够了”？**
-  - **正念练习**：完成一次呼吸训练可快速重置状态。
-  - **自然挂机 (Idle Reset)**：完全不操作电脑超过设定阈值，系统判定你已起座休息。
-  - **时光回滚 (Rollback)**：如果短暂离开（如接电话），系统会自动扣除该时间段，防止计时虚高。
+- **系统监控** — 半透明面板实时显示 CPU、内存、网络、电池与磁盘容量，可下钻到进程，并列出显著耗能排行。
+- **合盖常亮与电池保护** — 合上盖子也不休眠，可设定电量下限，长时间导出不会把电池耗到见底。
+- **清洁模式** — 一键锁定键盘或屏幕输入并倒计时解锁，擦屏幕时不会误触快捷键。
 
+### 日常
 
-## 🚀 安装指南 (Installation)
+- **基金看板** — 实时估值跟踪你关注的基金，轻量悬浮面板，支持隐私模式与持仓收益计算。
+- **快捷启动器** — 长按唤出环形启动器，把高频操作放到光标下；可配置多个圆环，用滚轮切换。
 
-### 使用 Homebrew 安装 (推荐) 🍺
+### 健康伴侣
 
-如果你的 Mac 上已安装 Homebrew，可以通过我们的专属 Tap 一键安装和更新：
+- **像素宠物** — 猫、熊猫或皮卡在菜单栏里陪你工作，可随时切换，各自独立动画。
+- **正念练习** — 五分钟呼吸练习，全屏沉浸式交互，完成后自动计入健康统计。
+
+## 安装
+
+### 使用 Homebrew 安装（推荐）
+
+如果你已经装了 Homebrew，可以通过专属 tap 安装与更新：
 
 ```bash
 brew install huangy7/tap/meowout
 ```
 
----
-
 ### 下载安装包
 
 1. **[下载最新的 MeowOut.dmg](https://github.com/huangy7/MeowOut/releases/latest)**
-2. **移除隔离属性** (未签名的应用需要执行此操作):
+2. **移除隔离属性**（未签名应用需要）：
    ```bash
    cd ~/Downloads
    xattr -cr MeowOut*.dmg
    ```
-3. **打开** 下载好的 DMG 文件并拖拽 `MeowOut.app` 到 `Applications` 文件夹。
+3. **打开** DMG，把 `MeowOut.app` 拖进 `Applications` 文件夹。
 
 ### 极速一键安装
 
@@ -109,56 +104,12 @@ brew install huangy7/tap/meowout
 curl -L https://github.com/huangy7/MeowOut/releases/latest/download/MeowOut.dmg -o ~/Downloads/MeowOut.dmg && xattr -cr ~/Downloads/MeowOut.dmg && open ~/Downloads/MeowOut.dmg
 ```
 
-## 🛠️ 技术栈
-- **UI 框架**: SwiftUI (系统设置风格的分组导航 + 响应式布局)
-- **底层架构**: AppKit (多窗口协同 + 全屏置顶遮罩)
-- **状态管理**: Swift Observation (@Observable)
-- **绘图引擎**: Canvas (高性能像素动画渲染，30FPS 功耗平衡)
-- **内容渲染**: 依赖 MarkdownUI 构建原生 Markdown 交互体验
-- **安全保障**: 基于 SwiftOTP 提供 TOTP 支持，依托 KeychainService 保护密钥
-- **本地化**: 完整支持中英文切换，适配系统语言。
+## 开源协议
 
-
-## 📂 项目结构
-```text
-Sources/MeowOut/
-  AppState.swift              # 全局业务逻辑与持久化中心
-  PetState.swift              # 宠物状态机与动画数据源
-  ActivityMonitor.swift       # 核心活跃度检测与时间回滚算法
-  CatOverlayController.swift  # 浮窗管理与全屏交互控制器
-  WaterReminderController.swift # 独立的饮水逻辑控制器
-  ClawdView.swift / PandaView.swift / PikaView.swift # 各类宠物视图组件
-  Memos/                      # MemosKit 闪念胶囊核心视图与逻辑
-  Clipboard/                  # 原生剪贴板历史管理与视图模块
-  Toolbox2FA/                 # 二步验证器核心模块与视图
-  KeyDrop/                    # 文本片段管理器核心模块
-  Fund/                       # 实时自选基金与持仓管理模块
-  SettingsView.swift          # macOS 系统设置风格的分组设置面板
-  Settings/                   # 设置分组组件 (SettingsGroup / PresetValueRow / ValuePreset)
-  SystemMonitor/              # 系统指标实时采样与监控卡片视图
-  StatsView.swift             # 多维度健康统计页面
-  TodayReviewView.swift       # 每日行为记录可视化时间轴
-  LauncherView.swift          # 快捷环形启动器入口
-  KeyboardCleaningService.swift # 键盘清洁模式核心逻辑
-  ScreenCleaningService.swift   # 屏幕清洁模式核心逻辑
-```
-
-
-## 🤝 贡献者 (Contributors)
-
-<p align="center">
-  <a href="https://github.com/huangy7/MeowOut/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=huangy7/MeowOut" alt="Contributors" />
-  </a>
-</p>
-
-
-## ⚖️ 开源协议
-
-本项目代码基于 [MIT](LICENSE) 协议。
+本项目基于 [MIT](LICENSE) 协议开源。
 
 ---
 
 <p align="center">
-  由 <a href="https://github.com/huangy7">huangy7</a> 开发并维护
+  由 <a href="https://github.com/huangy7">huangy7</a> 开发与维护
 </p>
