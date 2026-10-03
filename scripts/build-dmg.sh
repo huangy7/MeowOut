@@ -82,7 +82,36 @@ ln -s /Applications "${BUILD_DIR}/Applications"
 # 4. Create DMG
 echo "📀 Creating DMG disk image: ${DMG_NAME}..."
 rm -f "${DMG_NAME}"
-hdiutil create -volname "${APP_NAME}" -srcfolder "${BUILD_DIR}" -ov -format UDZO "${DMG_NAME}"
+sync
+
+hdiutil detach "/Volumes/${APP_NAME}" 2>/dev/null || true
+
+MAX_RETRIES=5
+RETRY_COUNT=0
+DMG_CREATED=0
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    echo "📀 Creating DMG (attempt ${RETRY_COUNT}/${MAX_RETRIES})..."
+    set +e
+    hdiutil create -volname "${APP_NAME}" -srcfolder "${BUILD_DIR}" -ov -format UDZO "${DMG_NAME}"
+    CREATE_STATUS=$?
+    set -e
+    if [ $CREATE_STATUS -eq 0 ]; then
+        DMG_CREATED=1
+        break
+    else
+        echo "⚠️ hdiutil create failed (attempt ${RETRY_COUNT}), cleaning up and retrying in 3s..."
+        hdiutil detach "/Volumes/${APP_NAME}" 2>/dev/null || true
+        sync
+        sleep 3
+    fi
+done
+
+if [ $DMG_CREATED -ne 1 ]; then
+    echo "❌ Failed to create DMG after ${MAX_RETRIES} attempts"
+    exit 1
+fi
 
 echo "✅ Done! Your DMG is ready: ${DMG_NAME}"
 echo "💡 Architecture: ${ARCH}"
