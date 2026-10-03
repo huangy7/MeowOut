@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # 阶段 1：版本一致性校验与 Draft Release 预建
+  prepare:
+    name: 准备发布（版本校验与草稿创建）
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 校验 Tag 与 Info.plist 版本号匹配
+        shell: bash
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            v*) ;;
+            *)
+              echo "❌ [FAIL] Tag '${GITHUB_REF_NAME}' 不以 v 开头，无法解析出版本号"
+              exit 1
+              ;;
+          esac
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          INFO_PLIST="Sources/MeowOut/Info.plist"
+          PLIST_VERSION=$(plutil -extract CFBundleShortVersionString raw "$INFO_PLIST" 2>/dev/null || echo "unknown")
+          if [ "${TAG_VERSION}" != "${PLIST_VERSION}" ]; then
+            echo "❌ [FAIL] Tag 版本与 Info.plist 版本不一致！"
+            echo "       Tag:        ${GITHUB_REF_NAME} (版本: ${TAG_VERSION})"
+            echo "       Info.plist: ${PLIST_VERSION}"
+            echo "       请将 Sources/MeowOut/Info.plist 中的版本号更新为 ${TAG_VERSION} 后重新打 Tag 发布。"
+            exit 1
+          fi
+          echo "✅ [INFO] Tag 与 Info.plist 版本号匹配：${PLIST_VERSION}"
+
+      - name: 创建 GitHub Draft Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "[INFO] Draft Release $GITHUB_REF_NAME 已存在，复用现有发布"
+            exit 0
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --draft \
+            --title "MeowOut $GITHUB_REF_NAME" \
+            --generate-notes \
+          || gh release view "$GITHUB_REF_NAME" >/dev/null
+
+  # 阶段 2：双架构矩阵打包 DMG 并挂载至 Draft Release
+  release:
+    name: 构建发布包（macOS ${{ matrix.arch }}）
+    needs: prepare
+    runs-on: macos-15
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ['arm64', 'x86_64']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 选择 Xcode 16
+        run: |
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode_16*.app" | sort -V | tail -n 1)
+          if [ -n "$XCODE_PATH" ]; then
+            echo "Selecting $XCODE_PATH"
+            sudo xcode-select -s "$XCODE_PATH"
+            echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> $GITHUB_ENV
+          fi
+          xcodebuild -version
+          swift --version
+
+      - name: 安装 XcodeGen
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 command -v xcodegen >/dev/null 2>&1 || brew install xcodegen
+
+      - name: 打包 DMG
+        run: ./scripts/build-dmg.sh ${{ matrix.arch }}
+
+      - name: 上传工作流 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeowOut-${{ matrix.arch }}
+          path: MeowOut-${{ matrix.arch }}.dmg
+          if-no-files-found: error
+
+      - name: 挂载产物至 GitHub Draft Release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" "MeowOut-${{ matrix.arch }}.dmg" --clobber
+
+  # 阶段 3：全部架构上传完毕后，正式发布 Release 并标记为 Latest
+  publish:
+    name: 正式发布 Release
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 将 Draft Release 设为正式发布
+        shell: bash
+        env:
+          # 优先使用 RELEASE_PAT 触发下游 update-homebrew.yml，无配置时回退至 GITHUB_TOKEN
+          GH_TOKEN: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "$GITHUB_REF_NAME" --draft=false --latest -R "$GITHUB_REPOSITORY"

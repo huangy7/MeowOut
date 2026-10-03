@@ -971,10 +971,13 @@ struct QuickActionsListEditor: View {
                 ForEach(Array(state.quickTools.enumerated()), id: \.element.id) { index, tool in
                     HStack {
                         if case .builtIn(let type) = tool {
-                            Text("\(type.icon) \(type.localizedName(language: state.language))")
+                            HStack(spacing: 8) {
+                                BuiltInToolIconView(type: type, size: 20)
+                                Text(type.localizedName(language: state.language))
+                            }
                         } else if case .appShortcut(_, let name, let path, _) = tool {
                             HStack(spacing: 8) {
-                                AppIconView(path: path)
+                                AppIconView(path: path, size: 20)
                                 Text(name)
                             }
                         }
@@ -1007,15 +1010,20 @@ struct QuickActionsListEditor: View {
                     Label(I18n.localized("quick_actions_add_builtin", language: state.language), systemImage: "plus.square.fill")
                 }
                 .popover(isPresented: $showingBuiltInOptions) {
-                    VStack(spacing: 8) {
-                        Button(I18n.localized("menu_keep_awake", language: state.language)) { addBuiltIn(.keepAwake) }
-                        Button(I18n.localized("menu_keyboard_cleaning", language: state.language)) { addBuiltIn(.keyboardCleaning) }
-                        Button(I18n.localized("menu_screen_cleaning", language: state.language)) { addBuiltIn(.screenCleaning) }
-                        Button(I18n.localized("memos_settings_quick_capture_short", language: state.language)) { addBuiltIn(.memosQuickCapture) }
-                        Button(I18n.localized("memos_action_open_memos", language: state.language)) { addBuiltIn(.memosOpenBrowser) }
-                        Button(I18n.localized("menu_breathing", language: state.language)) { addBuiltIn(.breathing) }
-                        Button(I18n.localized("menu_toolbox_2fa", language: state.language)) { addBuiltIn(.toolbox2FA) }
-                    }.padding()
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(BuiltInToolType.allCases, id: \.self) { type in
+                            Button {
+                                addBuiltIn(type)
+                            } label: {
+                                HStack(spacing: 8) {
+                                    BuiltInToolIconView(type: type, size: 18)
+                                    Text(type.localizedName(language: state.language))
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding()
                 }
             }
             .padding(.top, 4)
@@ -1285,10 +1293,10 @@ struct LauncherRingsEditorView: View {
                                             .frame(width: 18)
                                         
                                         if case .builtIn(let type) = tool {
-                                            Text(type.icon)
+                                            BuiltInToolIconView(type: type, size: 20)
                                             Text(type.localizedName(language: state.language))
                                         } else if case .appShortcut(_, let name, let path, _) = tool {
-                                            AppIconView(path: path)
+                                            AppIconView(path: path, size: 20)
                                             Text(name)
                                         }
                                         
@@ -1388,10 +1396,10 @@ struct LauncherRingsEditorView: View {
                     }) {
                         HStack(spacing: 6) {
                             if case .builtIn(let type) = tool {
-                                Text("\(type.icon) \(type.localizedName(language: state.language))")
+                                BuiltInToolIconView(type: type, size: 16)
+                                Text(type.localizedName(language: state.language))
                             } else if case .appShortcut(_, let name, let path, _) = tool {
-                                AppIconView(path: path)
-                                    .frame(width: 16, height: 16)
+                                AppIconView(path: path, size: 16)
                                 Text(name)
                             }
                             Spacer()

@@ -25,12 +25,35 @@ public struct QuickToolActionState: Equatable {
 public struct QuickToolActionDescriptor {
     public var id: String
     public var displayName: String
+    public var builtInType: BuiltInToolType?
     public var iconText: String?
     public var appPath: String?
     public var behavior: QuickToolActionBehavior
     public var state: QuickToolActionState?
     public var postExecutionBehavior: QuickToolPostExecutionBehavior
     public var execute: @MainActor () -> Void
+
+    public init(
+        id: String,
+        displayName: String,
+        builtInType: BuiltInToolType? = nil,
+        iconText: String? = nil,
+        appPath: String? = nil,
+        behavior: QuickToolActionBehavior,
+        state: QuickToolActionState? = nil,
+        postExecutionBehavior: QuickToolPostExecutionBehavior,
+        execute: @escaping @MainActor () -> Void
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.builtInType = builtInType
+        self.iconText = iconText
+        self.appPath = appPath
+        self.behavior = behavior
+        self.state = state
+        self.postExecutionBehavior = postExecutionBehavior
+        self.execute = execute
+    }
 }
 
 @MainActor
@@ -116,6 +139,7 @@ public enum QuickToolActionResolver {
         QuickToolActionDescriptor(
             id: type.rawValue,
             displayName: type.localizedName(language: appState.language),
+            builtInType: type,
             iconText: type.icon,
             appPath: nil,
             behavior: .toggle,
@@ -136,6 +160,7 @@ public enum QuickToolActionResolver {
         QuickToolActionDescriptor(
             id: type.rawValue,
             displayName: type.localizedName(language: language),
+            builtInType: type,
             iconText: type.icon,
             appPath: nil,
             behavior: .launch,

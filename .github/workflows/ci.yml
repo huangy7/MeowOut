@@ -1,0 +1,75 @@
+name: CI
+
+# 校验闸门：PR 与 main 分支推送自动执行
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: 运行单元测试
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      # 切换至 Xcode 16（Swift 6），兼容现代化依赖包工具链规范
+      - name: 选择 Xcode 16
+        run: |
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode_16*.app" | sort -V | tail -n 1)
+          if [ -n "$XCODE_PATH" ]; then
+            echo "Selecting $XCODE_PATH"
+            sudo xcode-select -s "$XCODE_PATH"
+            echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> $GITHUB_ENV
+          fi
+          xcodebuild -version
+          swift --version
+
+      - name: 运行 Swift 单元测试
+        run: swift test
+
+  build:
+    name: 编译校验（macOS ${{ matrix.arch }}）
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ['arm64', 'x86_64']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 选择 Xcode 16
+        run: |
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode_16*.app" | sort -V | tail -n 1)
+          if [ -n "$XCODE_PATH" ]; then
+            echo "Selecting $XCODE_PATH"
+            sudo xcode-select -s "$XCODE_PATH"
+            echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> $GITHUB_ENV
+          fi
+          xcodebuild -version
+          swift --version
+
+      - name: 安装 XcodeGen
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 command -v xcodegen >/dev/null 2>&1 || brew install xcodegen
+
+      - name: 生成工程
+        run: xcodegen generate
+
+      - name: Release 模式构建校验
+        run: |
+          xcodebuild build \
+            -scheme MeowOut \
+            -configuration Release \
+            ARCHS="${{ matrix.arch }}" \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum BuiltInToolType: String, Codable, Equatable {
+public enum BuiltInToolType: String, Codable, Equatable, CaseIterable {
     case keepAwake
     case keyboardCleaning
     case screenCleaning

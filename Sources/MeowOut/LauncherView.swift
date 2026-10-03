@@ -1,22 +1,24 @@
 import SwiftUI
 
 enum LauncherVisualMetrics {
-    static let windowSize: CGFloat = 280
-    static let ringSize: CGFloat = 236
-    static let shadowPadding: CGFloat = 18
-    static let centerSize: CGFloat = 104
-    static let innerRadiusRatio: CGFloat = 0.44
-    static let outerRingStrokeOpacity: CGFloat = 0.025
+    static let windowSize: CGFloat = 300
+    static let ringSize: CGFloat = 260
+    static let shadowPadding: CGFloat = 10
+    static let innerRadiusRatio: CGFloat = 0.39
+    static let outerRingStrokeOpacity: CGFloat = 0.30
+    static let innerRingStrokeOpacity: CGFloat = 0.20
     static let showsDefaultSectorDividers = false
     static let defaultSectorStrokeOpacity: CGFloat = 0
-    static let hoveredSectorFillOpacity: CGFloat = 0.08
+    static let hoveredSectorFillOpacityDark: CGFloat = 0.16
+    static let hoveredSectorFillOpacityLight: CGFloat = 0.22
+    static var hoveredSectorFillOpacity: CGFloat { hoveredSectorFillOpacityDark }
     static let usesSystemPanelShadow = false
-    static let iconSize: CGFloat = 54
-    static let iconRadius: CGFloat = 84
+    static let iconSize: CGFloat = 32
+    static let iconRadius: CGFloat = 90
     static let normalIconScale: CGFloat = 1.0
-    static let hoveredIconScale: CGFloat = 1.14
+    static let hoveredIconScale: CGFloat = 1.04
     static let normalIconYOffset: CGFloat = 0
-    static let hoveredIconYOffset: CGFloat = -7
+    static let hoveredIconYOffset: CGFloat = 0
     static let feedbackDelayNanoseconds: UInt64 = 600_000_000
 }
 
@@ -49,11 +51,12 @@ enum LauncherSelectionGeometry {
 struct RingSector: Shape {
     var startAngle: Angle
     var endAngle: Angle
+    var innerRadiusRatio: CGFloat = LauncherVisualMetrics.innerRadiusRatio
     
     func path(in rect: CGRect) -> Path {
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let outerRadius = min(rect.width, rect.height) / 2
-        let innerRadius = outerRadius * LauncherVisualMetrics.innerRadiusRatio
+        let innerRadius = outerRadius * innerRadiusRatio
         
         var path = Path()
         path.addArc(center: center, radius: outerRadius, startAngle: startAngle, endAngle: endAngle, clockwise: false)
@@ -64,6 +67,88 @@ struct RingSector: Shape {
         path.addArc(center: center, radius: innerRadius, startAngle: endAngle, endAngle: startAngle, clockwise: true)
         path.closeSubpath()
         return path
+    }
+}
+
+struct DonutRingShape: Shape {
+    var innerRadiusRatio: CGFloat = LauncherVisualMetrics.innerRadiusRatio
+
+    func path(in rect: CGRect) -> Path {
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let outerRadius = min(rect.width, rect.height) / 2
+        let innerRadius = outerRadius * innerRadiusRatio
+
+        var path = Path()
+        path.addArc(center: center, radius: outerRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
+        path.closeSubpath()
+        path.addArc(center: center, radius: innerRadius, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+        path.closeSubpath()
+
+        return path
+    }
+}
+
+struct DonutRingBorders: View {
+    var innerRadiusRatio: CGFloat = LauncherVisualMetrics.innerRadiusRatio
+    var outerStrokeOpacity: CGFloat = LauncherVisualMetrics.outerRingStrokeOpacity
+    var innerStrokeOpacity: CGFloat = LauncherVisualMetrics.innerRingStrokeOpacity
+    var lineWidth: CGFloat = 0.6
+
+    var body: some View {
+        GeometryReader { geo in
+            let outerRadius = min(geo.size.width, geo.size.height) / 2
+            let innerRadius = outerRadius * innerRadiusRatio
+            let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
+
+            ZStack {
+                // 外边缘高光边框
+                Circle()
+                    .stroke(Color.primary.opacity(outerStrokeOpacity), lineWidth: lineWidth)
+                    .frame(width: outerRadius * 2, height: outerRadius * 2)
+
+                // 内边缘镂空孔高光边框
+                Circle()
+                    .stroke(Color.primary.opacity(innerStrokeOpacity), lineWidth: lineWidth)
+                    .frame(width: innerRadius * 2, height: innerRadius * 2)
+            }
+            .position(center)
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+struct DonutRingBackground: View {
+    var innerRadiusRatio: CGFloat = LauncherVisualMetrics.innerRadiusRatio
+    var outerStrokeOpacity: CGFloat = LauncherVisualMetrics.outerRingStrokeOpacity
+    var innerStrokeOpacity: CGFloat = LauncherVisualMetrics.innerRingStrokeOpacity
+
+    var body: some View {
+        DonutRingShape(innerRadiusRatio: innerRadiusRatio)
+            .fill(.regularMaterial)
+            .donutRingBorders(
+                innerRadiusRatio: innerRadiusRatio,
+                outerStrokeOpacity: outerStrokeOpacity,
+                innerStrokeOpacity: innerStrokeOpacity
+            )
+            .allowsHitTesting(false)
+    }
+}
+
+extension View {
+    func donutRingBorders(
+        innerRadiusRatio: CGFloat = LauncherVisualMetrics.innerRadiusRatio,
+        outerStrokeOpacity: CGFloat = LauncherVisualMetrics.outerRingStrokeOpacity,
+        innerStrokeOpacity: CGFloat = LauncherVisualMetrics.innerRingStrokeOpacity,
+        lineWidth: CGFloat = 0.6
+    ) -> some View {
+        self.overlay(
+            DonutRingBorders(
+                innerRadiusRatio: innerRadiusRatio,
+                outerStrokeOpacity: outerStrokeOpacity,
+                innerStrokeOpacity: innerStrokeOpacity,
+                lineWidth: lineWidth
+            )
+        )
     }
 }
 
@@ -180,6 +265,7 @@ private final class LauncherMouseTrackingNSView: NSView {
 }
 
 public struct LauncherView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Bindable var appState: AppState
     var onClose: () -> Void
     
@@ -212,21 +298,15 @@ public struct LauncherView: View {
         
         ZStack {
             ZStack {
-                Circle()
-                    .fill(.regularMaterial)
-                    .overlay(Circle().stroke(Color.primary.opacity(LauncherVisualMetrics.outerRingStrokeOpacity), lineWidth: 0.6))
-                    .shadow(color: Color.black.opacity(0.20), radius: 22, x: 0, y: 16)
-                    .shadow(color: Color.black.opacity(0.08), radius: 5, x: 0, y: 1)
+                DonutRingBackground()
+                    .allowsHitTesting(false)
                 
                 if count > 0 {
                     ForEach(0..<count, id: \.self) { i in
                         let angles = sectorAngles(for: i, total: count)
                         RingSector(startAngle: angles.start, endAngle: angles.end)
                             .fill(sectorFill(isHovered: hoveredSector == i))
-                            .overlay(
-                                RingSector(startAngle: angles.start, endAngle: angles.end)
-                                    .stroke(Color.primary.opacity(LauncherVisualMetrics.defaultSectorStrokeOpacity), lineWidth: 1)
-                            )
+                            .animation(.easeInOut(duration: 0.12), value: hoveredSector)
                     }
                     
                     if LauncherVisualMetrics.showsDefaultSectorDividers && count > 1 {
@@ -254,48 +334,35 @@ public struct LauncherView: View {
                     }
                     
                     ForEach(0..<count, id: \.self) { i in
-                        SectorIconView(index: i, descriptor: descriptors[i], total: count, isHovered: hoveredSector == i)
+                        SectorItemView(index: i, descriptor: descriptors[i], total: count, isHovered: hoveredSector == i)
                             .allowsHitTesting(false)
                     }
                 }
                 
-                Circle()
-                    .fill(Color(nsColor: .windowBackgroundColor).opacity(0.97))
-                    .frame(width: LauncherVisualMetrics.centerSize, height: LauncherVisualMetrics.centerSize)
-                    .overlay(Circle().stroke(Color.primary.opacity(0.06), lineWidth: 0.8))
-                    .shadow(color: Color.black.opacity(0.14), radius: 12, x: 0, y: 6)
-                    .overlay(
-                        VStack(spacing: 4) {
-                            if count == 0 {
-                                Text(I18n.localized("launcher_ring_empty", language: appState.language))
-                                    .font(.system(size: 11, weight: .bold))
-                                    .multilineTextAlignment(.center)
-                                    .foregroundColor(.secondary)
-                                    .padding(.horizontal, 8)
-                            } else if let feedbackDescriptor {
-                                descriptorCenterView(feedbackDescriptor)
-                            } else if let idx = hoveredSector, idx < count {
-                                descriptorCenterView(descriptors[idx])
-                            } else {
-                                Text(currentRing.name)
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundColor(.secondary)
-                                
-                                if appState.launcherRings.count > 1 {
-                                    Text("\(appState.currentLauncherRingIndex + 1)/\(appState.launcherRings.count)")
-                                        .font(.system(size: 9, weight: .medium, design: .monospaced))
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-                    )
-                    .allowsHitTesting(false)
+                if count == 0 {
+                    Text(I18n.localized("launcher_ring_empty", language: appState.language))
+                        .font(.system(size: 11, weight: .medium))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 10)
+                        .frame(maxWidth: LauncherVisualMetrics.ringSize * LauncherVisualMetrics.innerRadiusRatio)
+                        .allowsHitTesting(false)
+                } else if let feedbackDescriptor {
+                    descriptorCenterView(feedbackDescriptor)
+                        .frame(maxWidth: LauncherVisualMetrics.ringSize * LauncherVisualMetrics.innerRadiusRatio)
+                        .allowsHitTesting(false)
+                }
 
                 LauncherMouseTrackingView(
                     sectorCount: count,
                     onSectorChange: { sector in
-                        withAnimation(.easeOut(duration: 0.12)) {
-                            hoveredSector = sector
+                        if sector != hoveredSector {
+                            if sector != nil {
+                                NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+                            }
+                            withAnimation(.easeOut(duration: 0.12)) {
+                                hoveredSector = sector
+                            }
                         }
                     },
                     onClick: { index in
@@ -305,6 +372,11 @@ public struct LauncherView: View {
                 .frame(width: LauncherVisualMetrics.ringSize, height: LauncherVisualMetrics.ringSize)
             }
             .frame(width: LauncherVisualMetrics.ringSize, height: LauncherVisualMetrics.ringSize)
+
+            if appState.launcherRings.count > 1 {
+                multiRingCapsule
+                    .offset(y: (LauncherVisualMetrics.ringSize / 2) + 6)
+            }
         }
         .frame(width: LauncherVisualMetrics.windowSize, height: LauncherVisualMetrics.windowSize)
         .onAppear {
@@ -323,11 +395,37 @@ public struct LauncherView: View {
         }
     }
 
-    private func sectorFill(isHovered: Bool) -> some ShapeStyle {
-        if isHovered {
-            return AnyShapeStyle(Color.primary.opacity(LauncherVisualMetrics.hoveredSectorFillOpacity))
+    @ViewBuilder
+    private var multiRingCapsule: some View {
+        HStack(spacing: 4) {
+            Text(currentRing.name)
+                .fontWeight(.semibold)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: 80)
+            Text("(\(appState.currentLauncherRingIndex + 1)/\(appState.launcherRings.count))")
+                .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+                .foregroundColor(.secondary)
+            Text("·")
+                .foregroundColor(.secondary)
+            Text(I18n.localized("scroll_to_switch", language: appState.language))
+                .font(.system(size: 9.5, weight: .regular))
+                .foregroundColor(.secondary)
         }
-        return AnyShapeStyle(Color.clear)
+        .font(.system(size: 11))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay(Capsule().stroke(Color.primary.opacity(0.12), lineWidth: 0.8))
+        .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+        .allowsHitTesting(false)
+    }
+
+    private func sectorFill(isHovered: Bool) -> Color {
+        let opacity = colorScheme == .dark
+            ? LauncherVisualMetrics.hoveredSectorFillOpacityDark
+            : LauncherVisualMetrics.hoveredSectorFillOpacityLight
+        return Color.white.opacity(isHovered ? opacity : 0)
     }
 
     @ViewBuilder
@@ -337,10 +435,12 @@ public struct LauncherView: View {
                 .font(.system(size: 11, weight: .bold))
                 .multilineTextAlignment(.center)
                 .foregroundColor(.primary)
+                .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
             if let state = descriptor.state {
                 Text(state.subtitle)
                     .font(.system(size: 9, weight: .medium))
                     .foregroundColor(state.isActive ? .green : .secondary)
+                    .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
             }
         }
         .padding(.horizontal, 8)
@@ -386,41 +486,67 @@ public struct LauncherView: View {
     }
 }
 
-struct SectorIconView: View {
+struct SectorItemView: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     let index: Int
     let descriptor: QuickToolActionDescriptor
     let total: Int
     let isHovered: Bool
-    
+
     var body: some View {
         let step = 360.0 / Double(total)
         let angle = Angle.degrees(-90.0 + Double(index) * step)
         let radius = LauncherVisualMetrics.iconRadius
         let xOffset = radius * cos(CGFloat(angle.radians))
         let yOffset = radius * sin(CGFloat(angle.radians))
-        
-        ZStack(alignment: .topTrailing) {
-            Group {
-                if let iconText = descriptor.iconText {
-                    Text(iconText)
-                        .font(.system(size: 23))
-                } else if let path = descriptor.appPath {
-                    AppIconView(path: path)
+
+        VStack(spacing: 2.5) {
+            ZStack(alignment: .topTrailing) {
+                Group {
+                    if let builtInType = descriptor.builtInType {
+                        BuiltInToolIconView(type: builtInType, size: LauncherVisualMetrics.iconSize)
+                    } else if let path = descriptor.appPath {
+                        AppIconView(path: path, size: LauncherVisualMetrics.iconSize)
+                    } else if let iconText = descriptor.iconText {
+                        Text(iconText)
+                            .font(.system(size: 20))
+                    }
+                }
+                .frame(width: LauncherVisualMetrics.iconSize, height: LauncherVisualMetrics.iconSize)
+                .shadow(
+                    color: Color.black.opacity(isHovered ? 0.20 : 0.10),
+                    radius: isHovered ? 3.5 : 2,
+                    x: 0,
+                    y: isHovered ? 2 : 1
+                )
+
+                if descriptor.state?.isActive == true {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                        .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                        .offset(x: 2, y: -2)
                 }
             }
             .frame(width: LauncherVisualMetrics.iconSize, height: LauncherVisualMetrics.iconSize)
-            .shadow(color: Color.black.opacity(isHovered ? 0.2 : 0.1), radius: isHovered ? 6 : 4, x: 0, y: isHovered ? 4 : 2)
 
-            if descriptor.state?.isActive == true {
-                Circle()
-                    .fill(Color.green)
-                    .frame(width: 10, height: 10)
-                    .overlay(Circle().stroke(Color(nsColor: .windowBackgroundColor), lineWidth: 2))
-                    .offset(x: 2, y: -2)
-            }
+            Text(descriptor.displayName)
+                .font(.system(size: 8.5, weight: .medium))
+                .foregroundColor(.primary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(width: 64, height: 12)
+                .shadow(
+                    color: colorScheme == .dark ? Color.black.opacity(0.6) : Color.white.opacity(0.85),
+                    radius: 1,
+                    x: 0,
+                    y: 1
+                )
         }
+        .frame(width: 64, height: 48)
         .scaleEffect(isHovered ? LauncherVisualMetrics.hoveredIconScale : LauncherVisualMetrics.normalIconScale)
-        .offset(x: xOffset, y: yOffset + (isHovered ? LauncherVisualMetrics.hoveredIconYOffset : LauncherVisualMetrics.normalIconYOffset))
+        .offset(x: xOffset, y: yOffset)
         .animation(.easeOut(duration: 0.12), value: isHovered)
     }
 }

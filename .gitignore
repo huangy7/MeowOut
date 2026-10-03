@@ -13,12 +13,14 @@ DerivedData/
 .swiftpm/
 
 # MeowOut Artifacts
-MeowOut.dmg
+*.dmg
 *.log
 .superpowers/
 
 # Documentation
 docs/superpowers/
+docs/plans/
+docs/specs/
 # Graphify knowledge graph output
 graphify-out/
 
@@ -42,11 +44,7 @@ release_notes*.txt
 # Local test scripts
 reset_update*_reminder.sh
 
-# Release script and release build artifacts
+# Release script
 release.sh
-MeowOut-*-universal.dmg
-MeowOut-*-arm64.dmg
-MeowOut-*-x86_64.dmg
-MeowOut-arm64.dmg
-MeowOut-x86_64.dmg
+
 

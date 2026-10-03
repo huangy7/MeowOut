@@ -33,7 +33,8 @@ public final class I18n {
             "system_disk_internal": "内置",
             "system_disk_external": "外置",
             "settings_system_monitor_card_title": "系统资源监控",
-            "settings_system_monitor_card_desc": "在状态栏或面板中实时查看 CPU 与内存占用情况。"
+            "settings_system_monitor_card_desc": "在状态栏或面板中实时查看 CPU 与内存占用情况。",
+            "scroll_to_switch": "滚轮切换"
         ],
         "zh-Hant": [
             "system_status_title": "系統狀態",
@@ -54,7 +55,8 @@ public final class I18n {
             "system_disk_internal": "內建",
             "system_disk_external": "外接",
             "settings_system_monitor_card_title": "系統資源監控",
-            "settings_system_monitor_card_desc": "在狀態列或面板中即時檢視 CPU 與記憶體使用情況。"
+            "settings_system_monitor_card_desc": "在狀態列或面板中即時檢視 CPU 與記憶體使用情況。",
+            "scroll_to_switch": "滾輪切換"
         ],
         "en": [
             "system_status_title": "System Status",
@@ -75,7 +77,8 @@ public final class I18n {
             "system_disk_internal": "Internal",
             "system_disk_external": "External",
             "settings_system_monitor_card_title": "System Resource Monitor",
-            "settings_system_monitor_card_desc": "View real-time CPU and memory usage in the status bar or panel."
+            "settings_system_monitor_card_desc": "View real-time CPU and memory usage in the status bar or panel.",
+            "scroll_to_switch": "Scroll to switch"
         ],
         "ja": [
             "system_status_title": "システムステータス",
@@ -96,7 +99,8 @@ public final class I18n {
             "system_disk_internal": "内蔵",
             "system_disk_external": "外付け",
             "settings_system_monitor_card_title": "システムリソースモニター",
-            "settings_system_monitor_card_desc": "ステータスバーまたはパネルでCPUとメモリの使用状況をリアルタイムで確認します。"
+            "settings_system_monitor_card_desc": "ステータスバーまたはパネルでCPUとメモリの使用状況をリアルタイムで確認します。",
+            "scroll_to_switch": "スクロールで切り替え"
         ]
     ]
 

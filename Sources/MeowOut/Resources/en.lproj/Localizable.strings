@@ -383,6 +383,7 @@
 "launcher_click_to_launch_desc" = "On: keep ring open after release. Off: release launches hovered item.";
 "launcher_long_press_delay" = "Long Press Duration";
 "launcher_scroll_switch_tip" = "💡 After triggering, you can use the mouse scroll wheel to seamlessly switch between multiple rings.";
+"scroll_to_switch" = "Scroll to switch";
 "launcher_ring_editor_title" = "Ring Layout Configuration";
 "launcher_ring_actions_empty" = "No actions in this ring";
 "launcher_ring_actions_limit" = "Each ring supports up to 8 actions.";

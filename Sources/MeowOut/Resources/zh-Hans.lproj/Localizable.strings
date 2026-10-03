@@ -384,6 +384,7 @@
 "launcher_click_to_launch_desc" = "开启后松开触发键圆环保留，关闭后松手执行悬停项";
 "launcher_long_press_delay" = "长按触发时长";
 "launcher_scroll_switch_tip" = "💡 触发后，可以使用鼠标滚轮在多个圆环之间进行无缝切换。";
+"scroll_to_switch" = "滚轮切换";
 "launcher_ring_editor_title" = "圆环布局配置";
 "launcher_ring_actions_empty" = "当前圆环还没有动作";
 "launcher_ring_actions_limit" = "每个圆环最多支持 8 个动作。";

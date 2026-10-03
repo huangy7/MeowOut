@@ -129,6 +129,8 @@ struct MenuPanelView: View {
             title: descriptor.displayName,
             subtitleActive: descriptor.state?.subtitle ?? launchSubtitle,
             subtitleInactive: descriptor.state?.subtitle ?? launchSubtitle,
+            builtInType: descriptor.builtInType,
+            appPath: descriptor.appPath,
             iconEmoji: descriptor.iconText ?? "🚀",
             isActive: descriptor.state?.isActive ?? false,
             isClamshellKeepAwake: isClamshell,
@@ -150,10 +152,12 @@ struct MenuPanelView: View {
             descriptor.execute()
         } label: {
             VStack(spacing: 4) {
-                if let iconText = descriptor.iconText {
-                    Text(iconText).font(.system(size: 18))
+                if let builtInType = descriptor.builtInType {
+                    BuiltInToolIconView(type: builtInType, size: 24)
                 } else if let path = descriptor.appPath {
-                    AppIconView(path: path)
+                    AppIconView(path: path, size: 24)
+                } else if let iconText = descriptor.iconText {
+                    Text(iconText).font(.system(size: 18))
                 }
                 Text(descriptor.displayName)
                     .font(.system(size: 10, weight: .medium))
@@ -210,7 +214,9 @@ struct ControlTileButton: View {
     let title: String
     let subtitleActive: String
     let subtitleInactive: String
-    let iconEmoji: String
+    var builtInType: BuiltInToolType? = nil
+    var appPath: String? = nil
+    var iconEmoji: String = "🚀"
     let isActive: Bool
     var isClamshellKeepAwake: Bool = false
     let action: () -> Void
@@ -221,9 +227,17 @@ struct ControlTileButton: View {
     var body: some View {
         Button(action: action) {
             VStack(alignment: .center, spacing: 6) {
-                Text(iconEmoji)
-                    .font(.system(size: 24))
-                    .frame(height: 26)
+                if let builtInType {
+                    BuiltInToolIconView(type: builtInType, size: 26)
+                        .frame(height: 26)
+                } else if let appPath {
+                    AppIconView(path: appPath, size: 26)
+                        .frame(height: 26)
+                } else {
+                    Text(iconEmoji)
+                        .font(.system(size: 24))
+                        .frame(height: 26)
+                }
 
                 Text(title)
                     .font(.system(size: 13, weight: .bold))
@@ -581,6 +595,7 @@ struct MenuVisualEffectView: NSViewRepresentable {
 
 struct AppIconView: View {
     let path: String
+    var size: CGFloat = 24
     @State private var icon: NSImage?
 
     var body: some View {
@@ -589,14 +604,16 @@ struct AppIconView: View {
                 Image(nsImage: icon)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 24, height: 24)
+                    .frame(width: size, height: size)
             } else {
                 Image(systemName: "app.dashed")
                     .resizable()
+                    .scaledToFit()
+                    .frame(width: size, height: size)
                     .foregroundColor(.secondary)
             }
         }
-        .frame(width: 24, height: 24)
+        .frame(width: size, height: size)
         .onAppear {
             DispatchQueue.global(qos: .userInitiated).async {
                 let fetchedIcon = NSWorkspace.shared.icon(forFile: path)
