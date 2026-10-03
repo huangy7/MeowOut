@@ -41,6 +41,8 @@ if ! command -v xcodegen &> /dev/null; then
 fi
 
 echo "📦 Generating Xcode project with XcodeGen..."
+COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+echo "public let currentGitCommit = \"$COMMIT_HASH\"" > Sources/MeowOut/GitCommit.swift
 xcodegen generate
 
 echo "📦 Compiling in release mode with xcodebuild..."

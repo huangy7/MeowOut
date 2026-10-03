@@ -61,7 +61,10 @@ jobs:
           HOMEBREW_NO_AUTO_UPDATE=1 command -v xcodegen >/dev/null 2>&1 || brew install xcodegen
 
       - name: 生成工程
-        run: xcodegen generate
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+          echo "public let currentGitCommit = \"$COMMIT_HASH\"" > Sources/MeowOut/GitCommit.swift
+          xcodegen generate
 
       - name: Release 模式构建校验
         run: |

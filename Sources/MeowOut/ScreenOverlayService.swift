@@ -168,18 +168,15 @@ public final class ScreenOverlayService {
     }
     
     private func startEventTap() throws {
-        // Intercept all keyboard, mouse movement, clicks, drags, and scroll wheel events
-        let mask = CGEventMask(1 << CGEventType.keyDown.rawValue) |
-            CGEventMask(1 << CGEventType.keyUp.rawValue) |
-            CGEventMask(1 << CGEventType.flagsChanged.rawValue) |
-            CGEventMask(1 << CGEventType.leftMouseDown.rawValue) |
-            CGEventMask(1 << CGEventType.leftMouseUp.rawValue) |
-            CGEventMask(1 << CGEventType.rightMouseDown.rawValue) |
-            CGEventMask(1 << CGEventType.rightMouseUp.rawValue) |
-            CGEventMask(1 << CGEventType.mouseMoved.rawValue) |
-            CGEventMask(1 << CGEventType.leftMouseDragged.rawValue) |
-            CGEventMask(1 << CGEventType.rightMouseDragged.rawValue) |
-            CGEventMask(1 << CGEventType.scrollWheel.rawValue)
+        var mask: CGEventMask = 0
+        let eventTypes: [CGEventType] = [
+            .keyDown, .keyUp, .flagsChanged,
+            .leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp,
+            .mouseMoved, .leftMouseDragged, .rightMouseDragged, .scrollWheel
+        ]
+        for eventType in eventTypes {
+            mask |= (1 << eventType.rawValue)
+        }
             
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
         
