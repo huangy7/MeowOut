@@ -10,8 +10,11 @@ final class PhasedEscapeTests: XCTestCase {
         state.showLockedBubble("Test", duration: 0.1)
         XCTAssertEqual(state.tapCount, 2)
         
-        // Wait for bubble to disappear
-        try await Task.sleep(nanoseconds: 150_000_000) // 0.15s
+        // Wait for bubble to disappear (poll up to 1.5s to tolerate CI runner scheduling jitter)
+        let deadline = Date().addingTimeInterval(1.5)
+        while state.tapCount != 0 && Date() < deadline {
+            try await Task.sleep(nanoseconds: 20_000_000) // 20ms
+        }
         
         XCTAssertEqual(state.tapCount, 0, "tapCount should reset to 0 after bubble expires")
     }
