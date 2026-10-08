@@ -42,7 +42,7 @@ struct MemoDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(MemosTheme.canvas)
         .onAppear {
             editText = memo?.content ?? ""
         }

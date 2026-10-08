@@ -143,7 +143,7 @@ struct MemoCalendarSidebarView: View {
         }
         .padding(16)
         .frame(width: 260)
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(MemosTheme.canvas)
     }
 
     private var hasResettableFilters: Bool {
