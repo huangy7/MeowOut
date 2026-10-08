@@ -1,5 +1,15 @@
 import SwiftUI
 
+/// Memos 窗口的画布底色，各栏统一取用。
+///
+/// 必须用 controlBackgroundColor，不能用 windowBackgroundColor：后者是动态色，在 macOS 27 SDK 下
+/// 解析为白、在 macOS 15 SDK 下解析为约 236 的灰。CI 用 Xcode 16.4（SDK 15.x）出包，一旦用它，
+/// 窗口整体会变灰，导航栏那层白底也会跟着显得像一条被截断的窄条。
+/// controlBackgroundColor 在两个 SDK 下都是白，因此本地构建与发布包渲染一致。
+enum MemosTheme {
+    static let canvas = Color(NSColor.controlBackgroundColor)
+}
+
 enum MemosRootPage: String, CaseIterable, Identifiable {
     case memos
     case archived
@@ -53,7 +63,7 @@ struct MemosRootView: View {
                     }
                 }
             }
-            .background(Color(NSColor.windowBackgroundColor))
+            .background(MemosTheme.canvas)
 
             if let activeURL = appState.activeImageURL {
                 MemoImagePreviewOverlay(url: activeURL)

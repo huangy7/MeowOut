@@ -27,7 +27,9 @@ struct MemosNavigationRail: View {
 
             Spacer()
         }
-        .frame(maxHeight: .infinity)
+        // 宽度必须一并撑满：父视图给的列宽是 72，而 VStack 的固有宽度只有图标按钮的 44，
+        // 只约束高度的话背景只会画中间 44pt，两侧各留一条底色窄边，看起来像被截断的窄条。
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.controlBackgroundColor))
     }
 }

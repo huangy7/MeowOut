@@ -55,7 +55,7 @@ struct MemosHomeView: View {
             MemoDetailView(memo: $selectedMemo, mode: mode)
                 .frame(minWidth: 480)
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(MemosTheme.canvas)
         .onAppear { loadStats() }
         .onReceive(NotificationCenter.default.publisher(for: .memosDidChange)) { _ in
             loadStats()

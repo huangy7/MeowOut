@@ -270,7 +270,7 @@ struct MemoListColumnView: View {
     private func rowBackground(for memo: Memo) -> Color {
         selectedMemo?.name == memo.name
             ? Color.accentColor.opacity(0.16)
-            : Color(NSColor.windowBackgroundColor)
+            : MemosTheme.canvas
     }
 
     private var effectiveFilter: MemoFilterState {
