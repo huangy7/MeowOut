@@ -158,6 +158,8 @@ struct MemoDetailView: View {
                             .labelStyle(.iconOnly)
                     }
                     .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
                     .help(I18n.localized("memos_action_more", language: appState.language))
                 }
             } else {

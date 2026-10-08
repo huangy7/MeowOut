@@ -20,6 +20,7 @@ struct MemosNavigationRail: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .frame(width: 44, height: 44)
                 .help(page.title)
                 .accessibilityLabel(page.title)
                 .accessibilityValue(selectedPage == page ? "已选择" : "未选择")

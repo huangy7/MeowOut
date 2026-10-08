@@ -211,6 +211,8 @@ struct QuickMemoView: View {
                 .contentShape(Rectangle())
         }
         .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
         .help(I18n.localized("memos_action_more", language: appState.language))
     }
 

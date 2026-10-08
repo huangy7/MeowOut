@@ -43,4 +43,31 @@ final class MemosNavigationRailTests: XCTestCase {
             )
         }
     }
+
+    /// 按钮必须严格水平居中于 72pt 列宽之中（左右留白各 14pt）。
+    func testButtonsAreHorizontallyCentered() throws {
+        let rail = MemosNavigationRail(selectedPage: .constant(.memos))
+            .frame(width: 72, height: 200)
+
+        let host = NSHostingView(rootView: rail)
+        host.frame = NSRect(x: 0, y: 0, width: 72, height: 200)
+        host.layoutSubtreeIfNeeded()
+
+        func findButtonFrames(in view: NSView) -> [NSRect] {
+            var result: [NSRect] = []
+            if abs(view.frame.width - 44) < 0.5 && abs(view.frame.height - 44) < 0.5 {
+                result.append(view.frame)
+            }
+            for subview in view.subviews {
+                result.append(contentsOf: findButtonFrames(in: subview))
+            }
+            return result
+        }
+
+        let buttonFrames = findButtonFrames(in: host)
+        XCTAssertFalse(buttonFrames.isEmpty, "导航栏中应能找到 44x44 的按钮视图")
+        for frame in buttonFrames {
+            XCTAssertEqual(frame.origin.x, 14, accuracy: 1.0, "按钮未水平居中于 72pt 列宽（应在 x=14 处）")
+        }
+    }
 }
