@@ -459,9 +459,9 @@ struct SettingsView: View {
             SettingsRow(I18n.localized("power_clamshell_title", language: state.language),
                         description: I18n.localized("power_clamshell_desc", language: state.language)) {
                 Toggle("", isOn: Binding(
-                    get: { clamshell.isEnabledGlobally },
+                    get: { clamshell.isClamshellPreferred },
                     set: { newValue in
-                        if !SudoersManager.isConfigured() {
+                        if newValue && !clamshell.isConfigured {
                             showSudoersNSAlert(pendingValue: newValue)
                         } else {
                             clamshell.setClamshellMode(enabled: newValue)
@@ -638,9 +638,10 @@ struct SettingsView: View {
         alert.addButton(withTitle: I18n.localized("power_clamshell_alert_cancel", language: state.language))
         
         if alert.runModal() == .alertFirstButtonReturn {
-            SudoersManager.install { success in
+            SudoersManager.install(prompt: alert.messageText) { success in
                 if success {
                     clamshell.setClamshellMode(enabled: pendingValue)
+                    clamshell.syncWithSystem()
                 }
             }
         }

@@ -502,7 +502,7 @@
 
 // Advanced Power Settings
 "power_clamshell_title" = "Clamshell Mode";
-"power_clamshell_desc" = "This feature works by modifying the system's underlying pmset disablesleep configuration.";
+"power_clamshell_desc" = "Keep running when the lid is closed during active keep-awake sessions. Requires one-time administrator authorization.";
 "power_clamshell_toggle" = "Clamshell Mode";
 "power_clamshell_alert_title" = "Administrator Access Required";
 "power_clamshell_alert_msg" = "Controlling clamshell mode requires administrator privileges. We will request your password once to configure a script (Sudoers), and you won't need to enter it again.";
@@ -511,6 +511,8 @@
 "power_clamshell_external_tip" = "Status synced from external configuration.";
 "power_battery_title" = "Battery Protection";
 "power_battery_desc" = "Automatically disable keep awake when on battery and below threshold. 0 means disabled.";
+"power_battery_notification_title" = "MeowOut Notification";
+"power_battery_notification_body" = "Battery level reached the protection threshold. Keep Awake has been disabled.";
 
 // Shelf
 "settings_tab_shelf" = "Shelf";

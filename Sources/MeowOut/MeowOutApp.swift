@@ -12,7 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 恢复上次异常退出时遗留的系统电源设置
-        ClamshellManager.shared.restoreOnQuit()
+        ClamshellManager.shared.restoreOnLaunch()
 
         // 对于托盘应用，确保激活策略正确
         NSApp.setActivationPolicy(.accessory)
@@ -69,8 +69,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        ClamshellManager.shared.restoreOnQuit()
         PowerAssertionService.shared.disable()
+        ClamshellManager.shared.restoreOnQuit()
         KeyboardCleaningService.shared.stop()
         ScreenOverlayService.shared.stop()
         ClipboardMonitorService.shared.stop()
