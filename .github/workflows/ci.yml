@@ -16,14 +16,14 @@ permissions:
 jobs:
   test:
     name: 运行单元测试
-    runs-on: macos-15
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
-      # 切换至 Xcode 16（Swift 6），兼容现代化依赖包工具链规范
-      - name: 选择 Xcode 16
+      # 动态切换至 Runner 上最新的 Xcode 工具链
+      - name: 选择最新 Xcode
         run: |
-          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode_16*.app" | sort -V | tail -n 1)
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode*.app" | sort -V | tail -n 1)
           if [ -n "$XCODE_PATH" ]; then
             echo "Selecting $XCODE_PATH"
             sudo xcode-select -s "$XCODE_PATH"
@@ -37,7 +37,7 @@ jobs:
 
   build:
     name: 编译校验（macOS ${{ matrix.arch }}）
-    runs-on: macos-15
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
@@ -45,9 +45,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 选择 Xcode 16
+      - name: 选择最新 Xcode
         run: |
-          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode_16*.app" | sort -V | tail -n 1)
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode*.app" | sort -V | tail -n 1)
           if [ -n "$XCODE_PATH" ]; then
             echo "Selecting $XCODE_PATH"
             sudo xcode-select -s "$XCODE_PATH"

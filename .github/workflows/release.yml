@@ -9,7 +9,7 @@ jobs:
   # 阶段 1：版本一致性校验与 Draft Release 预建
   prepare:
     name: 准备发布（版本校验与草稿创建）
-    runs-on: macos-15
+    runs-on: macos-latest
     permissions:
       contents: write
     steps:
@@ -56,7 +56,7 @@ jobs:
   release:
     name: 构建发布包（macOS ${{ matrix.arch }}）
     needs: prepare
-    runs-on: macos-15
+    runs-on: macos-latest
     permissions:
       contents: write
     strategy:
@@ -66,9 +66,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 选择 Xcode 16
+      - name: 选择最新 Xcode
         run: |
-          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode_16*.app" | sort -V | tail -n 1)
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode*.app" | sort -V | tail -n 1)
           if [ -n "$XCODE_PATH" ]; then
             echo "Selecting $XCODE_PATH"
             sudo xcode-select -s "$XCODE_PATH"
