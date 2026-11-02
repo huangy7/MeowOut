@@ -142,7 +142,6 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSMenuDelegate {
             keyEquivalent: ""
         )
         settingsItem.target = self
-        settingsItem.image = NSImage(size: .zero) // 抑制 AppKit 自动添加的齿轮图标
         menu.addItem(settingsItem)
 
         menu.addItem(.separator())
