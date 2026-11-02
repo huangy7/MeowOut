@@ -48,7 +48,12 @@ final class PowerAssertionService: ObservableObject {
         displaySleepAssertionID = displayAssertion
         isKeepingAwake = true
         
-        // Start Battery Protection
+        // 若用户配置了合盖后继续运行偏好，联动激活底层合盖模式
+        if ClamshellManager.shared.isClamshellPreferred {
+            _ = ClamshellManager.shared.enableClamshell()
+        }
+        
+        // 启动电池保护监控
         startBatteryProtection()
     }
 
@@ -66,7 +71,13 @@ final class PowerAssertionService: ObservableObject {
         }
         
         isKeepingAwake = false
-        // Stop Battery Protection
+        
+        // 联动还原合盖不休眠设置，并在闭盖时安全触发系统睡眠
+        if ClamshellManager.shared.isClamshellActive {
+            _ = ClamshellManager.shared.disableClamshell()
+        }
+        
+        // 停止电池保护监控
         stopBatteryProtection()
     }
     
@@ -81,7 +92,7 @@ final class PowerAssertionService: ObservableObject {
                 guard let self = self, self.isKeepingAwake else { return }
                 
                 let threshold = UserDefaults.standard.integer(forKey: "batteryProtectionThreshold")
-                // default threshold is 0 if not set, meaning disabled unless user sets it
+                // 默认 0 为关闭，大于 0 时在处于电池供电且电量低于阈值时触发保护
                 guard threshold > 0 else { return }
                 
                 if isOnBattery && percentage <= threshold {
@@ -103,8 +114,8 @@ final class PowerAssertionService: ObservableObject {
     
     private func sendBatteryNotification() {
         let content = UNMutableNotificationContent()
-        content.title = "MeowOut 提示"
-        content.body = "电池电量已低至保护线，防休眠已自动关闭。"
+        content.title = I18n.localized("power_battery_notification_title", language: AppState().language)
+        content.body = I18n.localized("power_battery_notification_body", language: AppState().language)
         
         let request = UNNotificationRequest(identifier: "MeowOutBatteryProtection", content: content, trigger: nil)
         UNUserNotificationCenter.current().add(request)
