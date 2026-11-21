@@ -16,20 +16,24 @@ permissions:
 jobs:
   test:
     name: 运行单元测试
-    runs-on: macos-latest
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
 
-      # 动态切换至 Runner 上最新的 Xcode 工具链
+      # 动态切换至 Runner 上最新的正式版 Xcode 工具链
       - name: 选择最新 Xcode
         run: |
-          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode*.app" | sort -V | tail -n 1)
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode_*.app" ! -iname "*beta*" | sort -V | tail -n 1)
+          if [ -z "$XCODE_PATH" ]; then
+            XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode*.app" | sort -V | tail -n 1)
+          fi
           if [ -n "$XCODE_PATH" ]; then
             echo "Selecting $XCODE_PATH"
             sudo xcode-select -s "$XCODE_PATH"
             echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> $GITHUB_ENV
           fi
           xcodebuild -version
+          xcrun --show-sdk-version
           swift --version
 
       - name: 运行 Swift 单元测试
@@ -37,7 +41,7 @@ jobs:
 
   build:
     name: 编译校验（macOS ${{ matrix.arch }}）
-    runs-on: macos-latest
+    runs-on: xcode-27
     strategy:
       fail-fast: false
       matrix:
@@ -47,13 +51,17 @@ jobs:
 
       - name: 选择最新 Xcode
         run: |
-          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode*.app" | sort -V | tail -n 1)
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode_*.app" ! -iname "*beta*" | sort -V | tail -n 1)
+          if [ -z "$XCODE_PATH" ]; then
+            XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode*.app" | sort -V | tail -n 1)
+          fi
           if [ -n "$XCODE_PATH" ]; then
             echo "Selecting $XCODE_PATH"
             sudo xcode-select -s "$XCODE_PATH"
             echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> $GITHUB_ENV
           fi
           xcodebuild -version
+          xcrun --show-sdk-version
           swift --version
 
       - name: 安装 XcodeGen

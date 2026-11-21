@@ -11,7 +11,7 @@
 "menu_trigger_warning" = "Trigger Warning Phase";
 "menu_force_rest" = "Force Rest Phase";
 "menu_reset_timers" = "Reset Timers";
-"menu_settings" = "Settings...";
+"menu_settings" = "Settings";
 "menu_settings_plain" = "Settings";
 "menu_quit" = "Quit";
 "menu_breathing" = "Deep Breathing";

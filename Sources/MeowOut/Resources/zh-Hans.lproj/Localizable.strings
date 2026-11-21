@@ -11,7 +11,7 @@
 "menu_trigger_warning" = "触发预警阶段";
 "menu_force_rest" = "强制休息阶段";
 "menu_reset_timers" = "重置计时器";
-"menu_settings" = "设置...";
+"menu_settings" = "设置";
 "menu_settings_plain" = "设置";
 "menu_quit" = "退出";
 "menu_breathing" = "正念练习";

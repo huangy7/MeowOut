@@ -56,7 +56,7 @@ jobs:
   release:
     name: 构建发布包（macOS ${{ matrix.arch }}）
     needs: prepare
-    runs-on: macos-latest
+    runs-on: xcode-27
     permissions:
       contents: write
     strategy:
@@ -68,13 +68,17 @@ jobs:
 
       - name: 选择最新 Xcode
         run: |
-          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode*.app" | sort -V | tail -n 1)
+          XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode_*.app" ! -iname "*beta*" | sort -V | tail -n 1)
+          if [ -z "$XCODE_PATH" ]; then
+            XCODE_PATH=$(find /Applications -maxdepth 1 -name "Xcode*.app" | sort -V | tail -n 1)
+          fi
           if [ -n "$XCODE_PATH" ]; then
             echo "Selecting $XCODE_PATH"
             sudo xcode-select -s "$XCODE_PATH"
             echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> $GITHUB_ENV
           fi
           xcodebuild -version
+          xcrun --show-sdk-version
           swift --version
 
       - name: 安装 XcodeGen
