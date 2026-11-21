@@ -129,19 +129,21 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSMenuDelegate {
 
     // MARK: - 右键菜单
 
-    private func showContextMenu() {
-        if popover.isShown {
-            closePopover()
-        }
-        let lang = appState.language
+    func makeContextMenu(language lang: AppState.AppLanguage) -> NSMenu {
         let menu = NSMenu()
 
+        // 避免 selector 名称包含 "Settings"，防止 AppKit 自动注入 gear 图标导致与退出项错位
         let settingsItem = NSMenuItem(
             title: I18n.localized("menu_settings_plain", language: lang),
-            action: #selector(openSettings),
+            action: #selector(openConfigWindow),
             keyEquivalent: ""
         )
         settingsItem.target = self
+        #if compiler(>=6.4)
+        if #available(macOS 27.0, *) {
+            settingsItem.preferredImageVisibility = .hidden
+        }
+        #endif
         menu.addItem(settingsItem)
 
         menu.addItem(.separator())
@@ -153,6 +155,15 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSMenuDelegate {
         )
         quitItem.target = self
         menu.addItem(quitItem)
+
+        return menu
+    }
+
+    private func showContextMenu() {
+        if popover.isShown {
+            closePopover()
+        }
+        let menu = makeContextMenu(language: appState.language)
 
         statusItem.menu = menu
         menu.delegate = self
@@ -171,7 +182,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSMenuDelegate {
         }
     }
 
-    @objc private func openSettings() {
+    @objc private func openConfigWindow() {
         NSApp.activate(ignoringOtherApps: true)
         NotificationCenter.default.post(name: NSNotification.Name("OpenSettingsWindow"), object: nil)
     }
