@@ -11,8 +11,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastAppearanceMode: AppState.AppearanceMode?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // 恢复上次异常退出时遗留的系统电源设置
-        ClamshellManager.shared.restoreOnLaunch()
+        // 恢复上次异常退出时遗留的系统电源与内置屏亮度设置，并绑定状态同步
+        appState.bindPowerAssertionService()
+        PowerAssertionService.shared.recoverIfNeeded()
 
         // 对于托盘应用，确保激活策略正确
         NSApp.setActivationPolicy(.accessory)
@@ -69,8 +70,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        PowerAssertionService.shared.disable()
-        ClamshellManager.shared.restoreOnQuit()
+        PowerAssertionService.shared.deactivate(reason: .quit)
         KeyboardCleaningService.shared.stop()
         ScreenOverlayService.shared.stop()
         ClipboardMonitorService.shared.stop()

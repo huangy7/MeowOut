@@ -1,4 +1,5 @@
 // Sources/MeowOut/AppState.swift
+import Combine
 import Foundation
 import Observation
 import SwiftUI
@@ -995,19 +996,34 @@ public final class AppState {
         }
     }
 
+    @ObservationIgnored
+    private var keepAwakeCancellable: AnyCancellable?
+
+    @MainActor
+    public func bindPowerAssertionService() {
+        keepAwakeCancellable?.cancel()
+        keepAwakeCancellable = PowerAssertionService.shared.$isKeepingAwake
+            .sink { [weak self] active in
+                self?.isKeepingAwake = active
+            }
+    }
+
     @MainActor
     public func toggleKeepAwake() {
-        if isKeepingAwake {
-            PowerAssertionService.shared.disable()
-            isKeepingAwake = false
-        } else {
-            do {
-                try PowerAssertionService.shared.enable()
-                isKeepingAwake = true
-            } catch {
-                print("Failed to enable Keep Awake: \(error)")
-            }
-        }
+        PowerAssertionService.shared.toggle()
+        isKeepingAwake = PowerAssertionService.shared.isKeepingAwake
+    }
+
+    @MainActor
+    public func activateKeepAwake(minutes: Int) {
+        PowerAssertionService.shared.activate(minutes: minutes)
+        isKeepingAwake = PowerAssertionService.shared.isKeepingAwake
+    }
+
+    @MainActor
+    public func activateKeepAwake(until date: Date) {
+        PowerAssertionService.shared.activate(until: date)
+        isKeepingAwake = PowerAssertionService.shared.isKeepingAwake
     }
 
     @MainActor

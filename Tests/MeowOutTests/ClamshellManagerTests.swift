@@ -6,55 +6,67 @@ final class ClamshellManagerTests: XCTestCase {
     override func tearDown() {
         super.tearDown()
         PowerAssertionService.shared.disable()
-        ClamshellManager.shared.restoreOnQuit()
-    }
-
-    func testClamshellPreferencePersistence() {
-        let manager = ClamshellManager.shared
-        let originalPreference = manager.isClamshellPreferred
-
-        manager.setClamshellMode(enabled: false)
-        XCTAssertFalse(manager.isClamshellPreferred)
-
-        manager.setClamshellMode(enabled: true)
-        XCTAssertTrue(manager.isClamshellPreferred)
-
-        // 还原初始偏好
-        manager.setClamshellMode(enabled: originalPreference)
     }
 
     func testLidDetectionExecution() {
-        // 验证机盖开合状态探测不会崩溃，并在带有硬件机盖的 Mac 设备上返回明确的布尔值
-        let isClosed = ClamshellManager.lidClosed()
+        // 验证机盖开合状态探测不会崩溃，并在带有硬件机盖的 Mac 上返回明确的布尔值
+        let isClosed = LidDisplayDimmer.lidClosed()
         if let state = isClosed {
             XCTAssertTrue(state == true || state == false)
         }
     }
 
     func testExternalDisplayDetection() {
-        // 验证外接显示器探测逻辑能正常完成检测并返回布尔值
-        let hasExt = ClamshellManager.hasExternalDisplay()
-        XCTAssertTrue(hasExt == true || hasExt == false)
+        // 验证外接显示器探测逻辑能正常完成检测
+        let hasExt = LidDisplayDimmer.hasExternalDisplay()
+        if let value = hasExt {
+            XCTAssertTrue(value == true || value == false)
+        }
     }
 
-    func testKeepAwakeAssertionDisablesCleanly() {
+    func testKeepAwakeAssertionActivatesAndDisablesCleanly() {
         let service = PowerAssertionService.shared
+        let originalThreshold = UserDefaults.standard.integer(forKey: "batteryProtectionThreshold")
+        UserDefaults.standard.set(0, forKey: "batteryProtectionThreshold")
+        defer {
+            service.disable()
+            UserDefaults.standard.set(originalThreshold, forKey: "batteryProtectionThreshold")
+        }
+
         XCTAssertFalse(service.isKeepingAwake)
 
-        XCTAssertNoThrow(try service.enable())
+        service.activate(minutes: 15)
         XCTAssertTrue(service.isKeepingAwake)
+        XCTAssertNotNil(service.endDate)
+        XCTAssertEqual(service.sessionMinutes, 15)
 
         service.disable()
         XCTAssertFalse(service.isKeepingAwake)
+        XCTAssertNil(service.endDate)
+        XCTAssertNil(service.sessionMinutes)
     }
 
-    func testRestoreOnLaunchCleansState() {
-        let manager = ClamshellManager.shared
-        // 模拟非正常退出遗留标记
-        UserDefaults.standard.set(true, forKey: "didModifySleepDisabled")
-        
-        manager.restoreOnLaunch()
-        
-        XCTAssertFalse(UserDefaults.standard.bool(forKey: "didModifySleepDisabled"))
+    func testExtendAdvancesEndDate() {
+        let service = PowerAssertionService.shared
+        let originalThreshold = UserDefaults.standard.integer(forKey: "batteryProtectionThreshold")
+        UserDefaults.standard.set(0, forKey: "batteryProtectionThreshold")
+        defer {
+            service.disable()
+            UserDefaults.standard.set(originalThreshold, forKey: "batteryProtectionThreshold")
+        }
+
+        service.activate(minutes: 15)
+        guard let initialEnd = service.endDate else {
+            XCTFail("Expected non-nil endDate for timed keep-awake session")
+            return
+        }
+
+        service.extend(minutes: 30)
+        guard let extendedEnd = service.endDate else {
+            XCTFail("Expected non-nil endDate after extending keep-awake session")
+            return
+        }
+
+        XCTAssertGreaterThanOrEqual(extendedEnd.timeIntervalSince(initialEnd), 29 * 60)
     }
 }

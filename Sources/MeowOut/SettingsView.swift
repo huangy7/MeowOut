@@ -13,7 +13,7 @@ struct SettingsView: View {
     @State private var keydropBrowse = KeyDropBrowseState()
     @State private var showingRestoreDefaultsConfirmation = false
 
-    @ObservedObject private var clamshell = ClamshellManager.shared
+    @ObservedObject private var power = PowerAssertionService.shared
     @AppStorage("batteryProtectionThreshold") private var batteryProtectionThreshold = 0
     @AppStorage("showSystemMonitorCard") private var showSystemMonitorCard = true
 
@@ -114,7 +114,7 @@ struct SettingsView: View {
             history.push(.tab("fund"))
         }
         .onAppear {
-            clamshell.syncWithSystem()
+            power.refreshPasswordlessStatus()
             applyPendingNavigationTarget()
         }
         .onChange(of: state.settingsNavigationTarget) { _, _ in
@@ -458,33 +458,39 @@ struct SettingsView: View {
         SettingsGroup {
             SettingsRow(I18n.localized("power_clamshell_title", language: state.language),
                         description: I18n.localized("power_clamshell_desc", language: state.language)) {
-                Toggle("", isOn: Binding(
-                    get: { clamshell.isClamshellPreferred },
-                    set: { newValue in
-                        if newValue && !clamshell.isConfigured {
-                            showSudoersNSAlert(pendingValue: newValue)
-                        } else {
-                            clamshell.setClamshellMode(enabled: newValue)
-                        }
-                    }
-                ))
-                .labelsHidden()
-                .toggleStyle(.switch)
+                Toggle("", isOn: $power.clamshellPreferred)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .disabled(power.clamshellSetupInProgress)
             }
 
-            if clamshell.isExternallyEnabled {
+            if power.clamshellSetupInProgress || power.clamshellSetupFailed || power.clamshellActive {
                 SettingsRowDivider()
-                HStack(alignment: .top, spacing: 6) {
-                    Image(systemName: "info.circle")
-                        .foregroundStyle(.orange)
+                HStack(alignment: .center, spacing: 6) {
+                    if power.clamshellSetupInProgress {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: power.clamshellSetupFailed ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                            .foregroundStyle(power.clamshellSetupFailed ? .red : .orange)
+                            .font(.system(size: 11))
+                    }
+                    Text(power.clamshellStatusCaption(language: state.language))
                         .font(.system(size: 11))
-                    Text(I18n.localized("power_clamshell_external_tip", language: state.language))
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(power.clamshellSetupFailed ? .red : .secondary)
                         .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, 9)
+                .padding(.vertical, 8)
+            }
+
+            SettingsRowDivider()
+            SettingsRow(I18n.localized("power_dim_lid_title", language: state.language),
+                        description: I18n.localized("power_dim_lid_desc", language: state.language)) {
+                Toggle("", isOn: $power.dimScreenOnLidClose)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
             }
 
             SettingsRowDivider()
@@ -628,23 +634,6 @@ struct SettingsView: View {
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter
-    }
-
-    private func showSudoersNSAlert(pendingValue: Bool) {
-        let alert = NSAlert()
-        alert.messageText = I18n.localized("power_clamshell_alert_title", language: state.language)
-        alert.informativeText = I18n.localized("power_clamshell_alert_msg", language: state.language)
-        alert.addButton(withTitle: I18n.localized("power_clamshell_alert_auth", language: state.language))
-        alert.addButton(withTitle: I18n.localized("power_clamshell_alert_cancel", language: state.language))
-        
-        if alert.runModal() == .alertFirstButtonReturn {
-            SudoersManager.install(prompt: alert.messageText) { success in
-                if success {
-                    clamshell.setClamshellMode(enabled: pendingValue)
-                    clamshell.syncWithSystem()
-                }
-            }
-        }
     }
 
     @ViewBuilder

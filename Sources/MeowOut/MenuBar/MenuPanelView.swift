@@ -8,7 +8,8 @@ struct MenuPanelView: View {
     @AppStorage("isQuickToolsExpanded") private var isQuickToolsExpanded = false
     @AppStorage("showSystemMonitorCard") private var showSystemMonitorCard = true
     @State private var isHoveredToggle = false
-    @ObservedObject private var clamshell = ClamshellManager.shared
+    @State private var isKeepAwakeDrawerExpanded = false
+    @ObservedObject private var power = PowerAssertionService.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -18,6 +19,9 @@ struct MenuPanelView: View {
         .background {
             MenuVisualEffectView()
                 .ignoresSafeArea()
+        }
+        .onDisappear {
+            isKeepAwakeDrawerExpanded = false
         }
     }
 
@@ -36,9 +40,11 @@ struct MenuPanelView: View {
 
             // Card 2: Tools & Shortcuts
             if appState.showQuickToolsCard {
-                VStack(spacing: 12) {
+                let topTools = Array(appState.quickTools.prefix(2))
+                let keepAwakeInTopTools = topTools.contains { $0.id == BuiltInToolType.keepAwake.rawValue }
+
+                VStack(spacing: 10) {
                     HStack(spacing: 8) {
-                        let topTools = Array(appState.quickTools.prefix(2))
                         if topTools.isEmpty {
                             Text(I18n.localized("menu_shortcuts_empty", language: appState.language))
                                 .font(.system(size: 11))
@@ -52,6 +58,16 @@ struct MenuPanelView: View {
                                 Spacer()
                             }
                         }
+                    }
+
+                    // 当防休眠不在前两个大磁贴且处于激活状态时，仍提供紧凑状态行与展开入口
+                    if !keepAwakeInTopTools && power.isKeepingAwake {
+                        keepAwakeCompactStatusRow
+                    }
+
+                    if isKeepAwakeDrawerExpanded {
+                        KeepAwakeDurationBar(language: appState.language)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                     }
 
                     if appState.quickTools.count > 2 {
@@ -119,36 +135,122 @@ struct MenuPanelView: View {
     }
 
     @ViewBuilder
+    private var keepAwakeCompactStatusRow: some View {
+        TimelineView(.periodic(from: .now, by: power.endDate != nil ? 1 : 30)) { context in
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(Color.orange)
+                    .frame(width: 6, height: 6)
+
+                Text(I18n.localized("menu_keep_awake", language: appState.language))
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.primary)
+
+                Text(power.activeTileSubtitle(language: appState.language, now: context.date))
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .lineLimit(1)
+
+                Spacer(minLength: 4)
+
+                Button {
+                    withAnimation(.spring(response: 0.28, dampingFraction: 0.78)) {
+                        isKeepAwakeDrawerExpanded.toggle()
+                    }
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9.5, weight: .bold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isKeepAwakeDrawerExpanded ? 180 : 0))
+                        .frame(width: 20, height: 20)
+                        .background(Color.primary.opacity(0.06))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .help(I18n.localized("keep_awake_drawer_toggle_help", language: appState.language))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .background(Color.orange.opacity(0.08))
+            .cornerRadius(8)
+        }
+    }
+
+    @ViewBuilder
     private func renderToolTile(_ tool: QuickTool) -> some View {
         let descriptor = QuickToolActionResolver.descriptor(for: tool, appState: appState)
         let launchSubtitle = I18n.localized("menu_shortcuts_launch", language: appState.language)
+        let isKeepAwakeTile = descriptor.id == BuiltInToolType.keepAwake.rawValue
+        let isClamshell = isKeepAwakeTile && power.clamshellActive && power.isKeepingAwake
 
-        let isClamshell = (descriptor.id == BuiltInToolType.keepAwake.rawValue) && ClamshellManager.shared.isEnabledGlobally && (descriptor.state?.isActive == true)
-
-        ControlTileButton(
-            title: descriptor.displayName,
-            subtitleActive: descriptor.state?.subtitle ?? launchSubtitle,
-            subtitleInactive: descriptor.state?.subtitle ?? launchSubtitle,
-            builtInType: descriptor.builtInType,
-            appPath: descriptor.appPath,
-            iconEmoji: descriptor.iconText ?? "🚀",
-            isActive: descriptor.state?.isActive ?? false,
-            isClamshellKeepAwake: isClamshell,
-            action: {
-                if descriptor.behavior == .launch || descriptor.id != BuiltInToolType.keepAwake.rawValue {
-                    MenuBarController.shared.closePopover()
-                }
-                descriptor.execute()
+        if isKeepAwakeTile {
+            TimelineView(.periodic(from: .now, by: power.isKeepingAwake && power.endDate != nil ? 1 : 60)) { context in
+                let subtitle = power.activeTileSubtitle(language: appState.language, now: context.date)
+                ControlTileButton(
+                    title: descriptor.displayName,
+                    subtitleActive: subtitle,
+                    subtitleInactive: subtitle,
+                    showSubtitle: true,
+                    builtInType: descriptor.builtInType,
+                    appPath: descriptor.appPath,
+                    iconEmoji: descriptor.iconText ?? "",
+                    isActive: power.isKeepingAwake,
+                    isClamshellKeepAwake: isClamshell,
+                    clamshellHelpText: I18n.localized("power_clamshell_status_active", language: appState.language),
+                    drawerExpanded: isKeepAwakeDrawerExpanded,
+                    drawerHelpText: I18n.localized("keep_awake_drawer_toggle_help", language: appState.language),
+                    onToggleDrawer: {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.78)) {
+                            isKeepAwakeDrawerExpanded.toggle()
+                        }
+                    },
+                    action: {
+                        if !power.isKeepingAwake && power.batteryProtectionPercent() != nil {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.78)) {
+                                isKeepAwakeDrawerExpanded = true
+                            }
+                            return
+                        }
+                        descriptor.execute()
+                    }
+                )
             }
-        )
+        } else {
+            ControlTileButton(
+                title: descriptor.displayName,
+                subtitleActive: descriptor.state?.subtitle ?? launchSubtitle,
+                subtitleInactive: descriptor.state?.subtitle ?? launchSubtitle,
+                showSubtitle: false,
+                builtInType: descriptor.builtInType,
+                appPath: descriptor.appPath,
+                iconEmoji: descriptor.iconText ?? "",
+                isActive: descriptor.state?.isActive ?? false,
+                isClamshellKeepAwake: false,
+                action: {
+                    if descriptor.behavior == .launch || descriptor.id != BuiltInToolType.keepAwake.rawValue {
+                        MenuBarController.shared.closePopover()
+                    }
+                    descriptor.execute()
+                }
+            )
+        }
     }
 
     @ViewBuilder
     private func renderSmallToolTile(_ tool: QuickTool) -> some View {
         let descriptor = QuickToolActionResolver.descriptor(for: tool, appState: appState)
+        let isKeepAwakeTile = descriptor.id == BuiltInToolType.keepAwake.rawValue
 
         Button {
-            MenuBarController.shared.closePopover()
+            if !isKeepAwakeTile {
+                MenuBarController.shared.closePopover()
+            } else if !power.isKeepingAwake && power.batteryProtectionPercent() != nil {
+                withAnimation(.spring(response: 0.28, dampingFraction: 0.78)) {
+                    isKeepAwakeDrawerExpanded = true
+                }
+                return
+            }
             descriptor.execute()
         } label: {
             VStack(spacing: 4) {
@@ -214,72 +316,114 @@ struct ControlTileButton: View {
     let title: String
     let subtitleActive: String
     let subtitleInactive: String
+    var showSubtitle: Bool = false
     var builtInType: BuiltInToolType? = nil
     var appPath: String? = nil
-    var iconEmoji: String = "🚀"
+    var iconEmoji: String = ""
     let isActive: Bool
     var isClamshellKeepAwake: Bool = false
+    var clamshellHelpText: String = ""
+    var drawerExpanded: Bool = false
+    var drawerHelpText: String = ""
+    var onToggleDrawer: (() -> Void)? = nil
     let action: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var isHovered = false
+    @State private var isChevronHovered = false
 
     var body: some View {
-        Button(action: action) {
-            VStack(alignment: .center, spacing: 6) {
-                if let builtInType {
-                    BuiltInToolIconView(type: builtInType, size: 26)
-                        .frame(height: 26)
-                } else if let appPath {
-                    AppIconView(path: appPath, size: 26)
-                        .frame(height: 26)
-                } else {
-                    Text(iconEmoji)
-                        .font(.system(size: 24))
-                        .frame(height: 26)
-                }
+        ZStack(alignment: .topTrailing) {
+            Button(action: action) {
+                VStack(alignment: .center, spacing: showSubtitle ? 3 : 6) {
+                    if let builtInType {
+                        BuiltInToolIconView(type: builtInType, size: showSubtitle ? 22 : 26)
+                            .frame(height: showSubtitle ? 22 : 26)
+                    } else if let appPath {
+                        AppIconView(path: appPath, size: showSubtitle ? 22 : 26)
+                            .frame(height: showSubtitle ? 22 : 26)
+                    } else {
+                        Text(iconEmoji)
+                            .font(.system(size: showSubtitle ? 20 : 24))
+                            .frame(height: showSubtitle ? 22 : 26)
+                    }
 
-                Text(title)
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(isActive ? .white : .primary)
-                    .lineLimit(1)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .frame(height: 72)
-            .background {
-                if isActive {
-                    LinearGradient(
-                        colors: [Color(red: 255/255, green: 159/255, blue: 67/255), Color(red: 255/255, green: 140/255, blue: 26/255)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else {
-                    Color.primary.opacity(isHovered ? 0.08 : 0.04)
+                    Text(title)
+                        .font(.system(size: 12.5, weight: .bold))
+                        .foregroundStyle(isActive ? .white : .primary)
+                        .lineLimit(1)
+
+                    if showSubtitle {
+                        Text(isActive ? subtitleActive : subtitleInactive)
+                            .font(.system(size: 10, weight: .medium))
+                            .monospacedDigit()
+                            .foregroundStyle(isActive ? Color.white.opacity(0.9) : Color.secondary)
+                            .lineLimit(1)
+                    }
                 }
-            }
-            .cornerRadius(14)
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(isActive ? Color.orange.opacity(0.2) : Color.primary.opacity(0.06), lineWidth: 0.5)
-            )
-            .overlay(alignment: .topTrailing) {
-                if isClamshellKeepAwake {
-                    Circle()
-                        .fill(Color.white.opacity(0.9))
-                        .frame(width: 6, height: 6)
-                        .shadow(color: Color.black.opacity(0.15), radius: 1, x: 0, y: 1)
-                        .offset(x: -8, y: 8)
-                        .help(I18n.localized("power_clamshell_title", language: AppState().language))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(height: 74)
+                .background {
+                    if isActive {
+                        LinearGradient(
+                            colors: [Color(red: 255/255, green: 159/255, blue: 67/255), Color(red: 255/255, green: 140/255, blue: 26/255)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        Color.primary.opacity(isHovered ? 0.08 : 0.04)
+                    }
                 }
+                .cornerRadius(14)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(isActive ? Color.orange.opacity(0.2) : Color.primary.opacity(0.06), lineWidth: 0.5)
+                )
+                .overlay(alignment: .topLeading) {
+                    if isClamshellKeepAwake {
+                        Circle()
+                            .fill(Color.white.opacity(0.92))
+                            .frame(width: 6, height: 6)
+                            .shadow(color: Color.black.opacity(0.18), radius: 1, x: 0, y: 1)
+                            .offset(x: 8, y: 8)
+                            .help(clamshellHelpText)
+                    }
+                }
+                .shadow(color: isActive ? Color.orange.opacity(0.2) : Color.black.opacity(0.04), radius: isActive ? 5 : 3, x: 0, y: isActive ? 2 : 1)
+                .contentShape(Rectangle())
             }
-            .shadow(color: isActive ? Color.orange.opacity(0.2) : Color.black.opacity(0.04), radius: isActive ? 5 : 3, x: 0, y: isActive ? 2 : 1)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering in
-            isHovered = hovering
+            .buttonStyle(.plain)
+            .onHover { hovering in
+                isHovered = hovering
+            }
+
+            if let onToggleDrawer {
+                Button(action: onToggleDrawer) {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(isActive ? Color.white.opacity(0.92) : Color.secondary)
+                        .rotationEffect(.degrees(drawerExpanded ? 180 : 0))
+                        .frame(width: 20, height: 20)
+                        .background(
+                            Circle().fill(
+                                isChevronHovered
+                                    ? (isActive ? Color.white.opacity(0.22) : Color.primary.opacity(0.1))
+                                    : Color.clear
+                            )
+                        )
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    isChevronHovered = hovering
+                }
+                .padding(.top, 5)
+                .padding(.trailing, 5)
+                .help(drawerHelpText)
+                .accessibilityLabel(drawerHelpText)
+            }
         }
     }
 }

@@ -503,18 +503,45 @@
 "clipboard_item_generic" = "剪贴板项目";
 
 // Advanced Power Settings
-"power_clamshell_title" = "开启合盖不休眠";
-"power_clamshell_desc" = "防休眠生效期间允许合盖后继续运行。需要一次性管理员授权以配置底层免密规则。";
+"power_clamshell_title" = "合盖不休眠";
+"power_clamshell_desc" = "防休眠开启期间合盖保持运行，防休眠结束或触发低电量保护时自动恢复正常休眠。";
 "power_clamshell_toggle" = "合盖不休眠";
 "power_clamshell_alert_title" = "需要管理员权限";
 "power_clamshell_alert_msg" = "控制系统合盖不休眠状态需要管理员权限。我们将请求一次密码以配置免密脚本（Sudoers），之后无需再次输入。";
 "power_clamshell_alert_cancel" = "取消";
 "power_clamshell_alert_auth" = "去授权";
 "power_clamshell_external_tip" = "此处已自动同步外部开启的状态。";
+"power_clamshell_admin_install_prompt" = "MeowOut 将创建一条受限规则（仅限 pmset disablesleep），以便在防休眠期间免密切换合盖模式。只需输入一次管理员密码。";
+"power_clamshell_admin_restore_prompt" = "MeowOut 需要管理员权限将系统合盖休眠恢复为正常状态。";
+"power_clamshell_admin_recover_prompt" = "上次异常退出前防休眠修改了合盖休眠设置，MeowOut 需要管理员权限恢复系统正常休眠。";
+"power_clamshell_status_configuring" = "正在配置免密授权…";
+"power_clamshell_status_failed" = "免密授权失败或已取消";
+"power_clamshell_status_active" = "合盖保持运行中";
+"power_clamshell_status_ready_waiting" = "已就绪，开启防休眠后生效";
+"power_clamshell_status_ready" = "防休眠开启时自动生效";
+"power_clamshell_status_needs_auth" = "首次开启需输入一次密码";
+"power_dim_lid_title" = "合盖时关闭内置屏背光";
+"power_dim_lid_desc" = "合盖保持唤醒期间自动将内置屏幕亮度降至最低，开盖后自动恢复原亮度（不影响外接显示器）。";
 "power_battery_title" = "低电量保护";
-"power_battery_desc" = "使用电池且电量低于设定值时，自动关闭防休眠以保护电池。设为 0 即为关闭该保护。";
-"power_battery_notification_title" = "MeowOut 提示";
-"power_battery_notification_body" = "电池电量已低至保护线，防休眠已自动关闭。";
+"power_battery_desc" = "使用电池且电量低于设定值时，自动关闭防休眠与合盖不休眠以保护电池。设为 0 即为关闭该保护。";
+"power_battery_triggered_notification" = "电池电量已低至保护线，防休眠已自动关闭。";
+"power_battery_blocked_format" = "电量 %d%%，接通电源或调低低电量保护线后可开启";
+"keep_awake_indefinite" = "永久";
+"keep_awake_active_indefinite" = "持续唤醒";
+"keep_awake_status_indefinite" = "持续保持唤醒";
+"keep_awake_status_idle_hint" = "点选时长即可立即开始";
+"keep_awake_default_pick_format" = "默认 %@";
+"keep_awake_remaining_compact_format" = "剩余 %@";
+"keep_awake_remaining_status_format" = "剩余 %@";
+"keep_awake_until_label" = "直到";
+"keep_awake_until_chip" = "直到…";
+"keep_awake_until_value_format" = "直到 %@";
+"keep_awake_until_start" = "开始";
+"keep_awake_until_today" = "今天";
+"keep_awake_until_tomorrow" = "明天";
+"keep_awake_hour_label" = "小时 (0-23)";
+"keep_awake_minute_label" = "分钟";
+"keep_awake_drawer_toggle_help" = "展开或收起防休眠时长选项";
 
 // Shelf
 "settings_tab_shelf" = "中转站";

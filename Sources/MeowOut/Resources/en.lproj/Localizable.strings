@@ -501,18 +501,45 @@
 "clipboard_item_generic" = "Clipboard Item";
 
 // Advanced Power Settings
-"power_clamshell_title" = "Clamshell Mode";
-"power_clamshell_desc" = "Keep running when the lid is closed during active keep-awake sessions. Requires one-time administrator authorization.";
-"power_clamshell_toggle" = "Clamshell Mode";
+"power_clamshell_title" = "Keep Awake with Lid Closed";
+"power_clamshell_desc" = "Prevents lid sleep while Keep Awake is active, and restores normal sleep automatically when the session ends or battery protection triggers.";
+"power_clamshell_toggle" = "Lid Closed";
 "power_clamshell_alert_title" = "Administrator Access Required";
 "power_clamshell_alert_msg" = "Controlling clamshell mode requires administrator privileges. We will request your password once to configure a script (Sudoers), and you won't need to enter it again.";
 "power_clamshell_alert_cancel" = "Cancel";
 "power_clamshell_alert_auth" = "Authorize";
 "power_clamshell_external_tip" = "Status synced from external configuration.";
+"power_clamshell_admin_install_prompt" = "MeowOut will create a restricted rule (pmset disablesleep only) to toggle closed-lid mode without asking for a password again.";
+"power_clamshell_admin_restore_prompt" = "MeowOut needs administrator access to restore normal lid sleep.";
+"power_clamshell_admin_recover_prompt" = "MeowOut needs administrator access to restore normal lid sleep left disabled by an unexpected exit.";
+"power_clamshell_status_configuring" = "Configuring authorization…";
+"power_clamshell_status_failed" = "Authorization failed or canceled";
+"power_clamshell_status_active" = "Active while lid is closed";
+"power_clamshell_status_ready_waiting" = "Ready; activates with Keep Awake";
+"power_clamshell_status_ready" = "Applies during Keep Awake sessions";
+"power_clamshell_status_needs_auth" = "Requires password once to set up";
+"power_dim_lid_title" = "Dim Built-In Screen on Lid Close";
+"power_dim_lid_desc" = "Automatically dims the built-in display to zero while closed-lid mode is active, and restores brightness when the lid opens.";
 "power_battery_title" = "Battery Protection";
-"power_battery_desc" = "Automatically disable keep awake when on battery and below threshold. 0 means disabled.";
-"power_battery_notification_title" = "MeowOut Notification";
-"power_battery_notification_body" = "Battery level reached the protection threshold. Keep Awake has been disabled.";
+"power_battery_desc" = "Automatically disable Keep Awake and closed-lid mode when on battery and below threshold. 0 means disabled.";
+"power_battery_triggered_notification" = "Battery reached the protection threshold. Keep Awake has been turned off.";
+"power_battery_blocked_format" = "Battery at %d%%. Plug in or lower the battery limit to start";
+"keep_awake_indefinite" = "Forever";
+"keep_awake_active_indefinite" = "Indefinite";
+"keep_awake_status_indefinite" = "Staying awake until turned off";
+"keep_awake_status_idle_hint" = "Click a duration to start";
+"keep_awake_default_pick_format" = "Default %@";
+"keep_awake_remaining_compact_format" = "%@ left";
+"keep_awake_remaining_status_format" = "%@ left";
+"keep_awake_until_label" = "Until";
+"keep_awake_until_chip" = "Until…";
+"keep_awake_until_value_format" = "Until %@";
+"keep_awake_until_start" = "Start";
+"keep_awake_until_today" = "Today";
+"keep_awake_until_tomorrow" = "Tomorrow";
+"keep_awake_hour_label" = "Hour (0-23)";
+"keep_awake_minute_label" = "Minute";
+"keep_awake_drawer_toggle_help" = "Show or hide Keep Awake duration options";
 
 // Shelf
 "settings_tab_shelf" = "Shelf";
