@@ -546,7 +546,7 @@ public struct FundSettingsView: View {
                     Text(I18n.localized("fund_shortcut", language: appState.language))
                         .font(.system(size: 12))
                     Spacer()
-                    KeyboardShortcuts.Recorder(for: .toggleFundPanel)
+                    ShortcutRecorderView(for: .toggleFundPanel)
                 }
 
                 Divider()

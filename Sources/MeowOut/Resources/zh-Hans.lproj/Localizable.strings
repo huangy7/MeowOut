@@ -680,3 +680,13 @@
 "settings_tab_power" = "电源";
 "unit_percent" = "%lld%%";
 "power_battery_off" = "关闭";
+
+/* Global Shortcut Recorder */
+"shortcut_record_placeholder" = "设置快捷键";
+"shortcut_press_prompt" = "按下快捷键组合…";
+"shortcut_clear_tooltip" = "清除快捷键";
+"shortcut_reset_default" = "恢复默认快捷键";
+"shortcut_modifier_required" = "请搭配修饰键使用";
+"shortcut_conflict_in_app" = "快捷键“%@”已被「%@」使用，请换一个组合键。";
+"shortcut_conflict_main_menu" = "当前快捷键已被菜单项“%@”占用，请换一个组合键。";
+"shortcut_disallowed_sandbox" = "Option 键需与 Command 或 Control 键组合使用。";
