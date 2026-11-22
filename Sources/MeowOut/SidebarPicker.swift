@@ -80,7 +80,8 @@ struct SidebarList: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationSplitViewColumnWidth(min: 148, ideal: 156, max: 176)
+        // 锁定侧栏固定宽度，防止切到无外层 ScrollView 的页面时被 NSSplitView 挤压抖动
+        .navigationSplitViewColumnWidth(168)
     }
 
     @ViewBuilder

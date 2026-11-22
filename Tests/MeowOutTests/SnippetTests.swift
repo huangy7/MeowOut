@@ -134,6 +134,49 @@ final class SnippetTests: XCTestCase {
         let snippet = try decoder.decode(Snippet.self, from: oldJson)
         XCTAssertEqual(snippet.title, "Old Snippet")
         XCTAssertEqual(snippet.category, "未分类")
+        XCTAssertNil(snippet.createdAt)
+        XCTAssertNil(snippet.updatedAt)
+    }
+
+    func testSnippetTimestampsCodableRoundTrip() throws {
+        let created = Date(timeIntervalSince1970: 1_700_000_000)
+        let updated = Date(timeIntervalSince1970: 1_700_003_600)
+        let snippet = Snippet(
+            title: "Timed",
+            content: "Body",
+            category: "工作",
+            createdAt: created,
+            updatedAt: updated
+        )
+
+        let data = try JSONEncoder().encode(snippet)
+        let decoded = try JSONDecoder().decode(Snippet.self, from: data)
+        XCTAssertEqual(decoded.createdAt, created)
+        XCTAssertEqual(decoded.updatedAt, updated)
+    }
+
+    @MainActor
+    func testSnippetStoreUpdateRefreshesUpdatedAt() {
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MeowOutTests-timestamp-\(UUID().uuidString).json")
+        let store = SnippetStore(storageURL: tempURL)
+        defer {
+            try? FileManager.default.removeItem(at: tempURL)
+            try? FileManager.default.removeItem(at: store.categoriesStorageURL)
+        }
+
+        let past = Date(timeIntervalSince1970: 1_700_000_000)
+        let original = Snippet(title: "Old", content: "Body", category: "工作", createdAt: past, updatedAt: past)
+        store.snippets = [original]
+
+        var edited = original
+        edited.content = "Updated Body"
+        store.update(snippet: edited)
+
+        let stored = store.snippets.first(where: { $0.id == original.id })
+        XCTAssertEqual(stored?.createdAt, past)
+        XCTAssertNotNil(stored?.updatedAt)
+        XCTAssertGreaterThan(stored?.updatedAt ?? past, past)
     }
     
     func testSnippetWithCategory() throws {
@@ -453,6 +496,229 @@ final class SnippetTests: XCTestCase {
         
         let after = await store.snippets
         XCTAssertEqual(after.map(\.title), ["Item 0", "Item 1"])
+    }
+
+    @MainActor
+    func testAddCategoryCreatesEmptyCategoryWithoutAddingSnippet() {
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MeowOutTests-add-cat-\(UUID().uuidString).json")
+        let store = SnippetStore(storageURL: tempURL)
+        defer {
+            try? FileManager.default.removeItem(at: tempURL)
+            try? FileManager.default.removeItem(at: store.categoriesStorageURL)
+        }
+
+        store.snippets.removeAll()
+
+        let added = store.addCategory("  开发  ")
+        XCTAssertEqual(added, "开发")
+        XCTAssertTrue(store.snippets.isEmpty, "Adding a category must not create a placeholder snippet")
+        XCTAssertEqual(store.customCategories, ["开发"])
+        XCTAssertEqual(store.managerCategories, [KeyDropConstants.categoryAll, "开发"])
+        XCTAssertEqual(store.editableCategories, ["开发", KeyDropConstants.categoryUncategorized])
+
+        // Duplicate returns canonical name without duplicating entry
+        XCTAssertEqual(store.addCategory("开发"), "开发")
+        XCTAssertEqual(store.customCategories, ["开发"])
+
+        // Reserved or empty names are rejected
+        XCTAssertNil(store.addCategory("   "))
+        XCTAssertNil(store.addCategory(KeyDropConstants.categoryAll))
+        XCTAssertNil(store.addCategory(KeyDropConstants.categoryUncategorized))
+    }
+
+    func testCustomCategoriesPersistAcrossReload() async throws {
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MeowOutTests-persist-cat-\(UUID().uuidString).json")
+        let store = await SnippetStore(storageURL: tempURL)
+        let categoriesURL = await store.categoriesStorageURL
+        defer {
+            try? FileManager.default.removeItem(at: tempURL)
+            try? FileManager.default.removeItem(at: categoriesURL)
+        }
+
+        await MainActor.run {
+            store.snippets.removeAll()
+            _ = store.addCategory("工作")
+            _ = store.addCategory("开发")
+        }
+
+        // Wait for 300ms debounce + background write
+        try await Task.sleep(nanoseconds: 550_000_000)
+
+        let reloaded = await SnippetStore(storageURL: tempURL)
+        let reloadedCategories = await reloaded.customCategories
+        let reloadedManagerCategories = await reloaded.managerCategories
+        XCTAssertEqual(reloadedCategories, ["工作", "开发"])
+        XCTAssertEqual(reloadedManagerCategories, [KeyDropConstants.categoryAll, "工作", "开发"])
+    }
+
+    @MainActor
+    func testLegacySnippetsSeedCustomCategoriesOnFirstLoad() throws {
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MeowOutTests-legacy-cat-\(UUID().uuidString).json")
+        let legacySnippet = Snippet(title: "Standup", content: "Yesterday / Today", category: "工作")
+        let data = try JSONEncoder().encode([legacySnippet])
+        try data.write(to: tempURL)
+
+        let store = SnippetStore(storageURL: tempURL)
+        defer {
+            try? FileManager.default.removeItem(at: tempURL)
+            try? FileManager.default.removeItem(at: store.categoriesStorageURL)
+        }
+
+        XCTAssertEqual(store.customCategories, ["工作"])
+
+        // Deleting the only snippet in the category should keep the category intact
+        store.delete(snippet: legacySnippet)
+        XCTAssertTrue(store.snippets.isEmpty)
+        XCTAssertTrue(store.managerCategories.contains("工作"))
+        XCTAssertEqual(store.snippetCount(in: "工作"), 0)
+    }
+
+    @MainActor
+    func testRenameCategoryUpdatesEmptyCategoryAndMergesDuplicates() {
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MeowOutTests-rename-cat-\(UUID().uuidString).json")
+        let store = SnippetStore(storageURL: tempURL)
+        defer {
+            try? FileManager.default.removeItem(at: tempURL)
+            try? FileManager.default.removeItem(at: store.categoriesStorageURL)
+        }
+
+        store.snippets.removeAll()
+        _ = store.addCategory("空分类")
+        store.add(snippet: Snippet(title: "S1", content: "C1", category: "旧类"))
+        store.add(snippet: Snippet(title: "S2", content: "C2", category: "目标类"))
+        store.add(snippet: Snippet(title: "S3", content: "C3", category: KeyDropConstants.categoryUncategorized))
+
+        // Rename empty category
+        store.renameCategory(oldName: "空分类", newName: "新空分类")
+        XCTAssertTrue(store.customCategories.contains("新空分类"))
+        XCTAssertFalse(store.customCategories.contains("空分类"))
+
+        // Merge into existing category
+        store.renameCategory(oldName: "旧类", newName: "目标类")
+        XCTAssertEqual(store.snippets.filter { $0.category == "目标类" }.count, 2)
+        XCTAssertFalse(store.customCategories.contains("旧类"))
+        XCTAssertEqual(store.customCategories.filter { $0 == "目标类" }.count, 1)
+
+        // Rename uncategorized into a new named category
+        store.renameCategory(oldName: KeyDropConstants.categoryUncategorized, newName: "已整理")
+        XCTAssertEqual(store.snippets.filter { $0.category == "已整理" }.count, 1)
+        XCTAssertEqual(store.snippets.filter { $0.category == KeyDropConstants.categoryUncategorized }.count, 0)
+        XCTAssertTrue(store.customCategories.contains("已整理"))
+    }
+
+    @MainActor
+    func testDeleteCategoryMoveToUncategorizedAndDeleteSnippetsModes() {
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MeowOutTests-delete-cat-\(UUID().uuidString).json")
+        let store = SnippetStore(storageURL: tempURL)
+        defer {
+            try? FileManager.default.removeItem(at: tempURL)
+            try? FileManager.default.removeItem(at: store.categoriesStorageURL)
+        }
+
+        store.snippets.removeAll()
+        store.add(snippet: Snippet(title: "KeepMe", content: "1", category: "工作"))
+        store.add(snippet: Snippet(title: "RemoveMe", content: "2", category: "临时"))
+        _ = store.addCategory("空类")
+
+        // Delete empty category
+        store.deleteCategory(name: "空类", deleteSnippets: false)
+        XCTAssertFalse(store.customCategories.contains("空类"))
+
+        // Delete category while preserving snippets -> moved to uncategorized
+        store.deleteCategory(name: "工作", deleteSnippets: false)
+        XCTAssertFalse(store.customCategories.contains("工作"))
+        XCTAssertEqual(store.snippets.first(where: { $0.title == "KeepMe" })?.category, KeyDropConstants.categoryUncategorized)
+
+        // Delete category AND snippets
+        store.deleteCategory(name: "临时", deleteSnippets: true)
+        XCTAssertFalse(store.customCategories.contains("临时"))
+        XCTAssertNil(store.snippets.first(where: { $0.title == "RemoveMe" }))
+
+        // Reserved categories cannot be deleted
+        let countBefore = store.snippets.count
+        store.deleteCategory(name: KeyDropConstants.categoryAll, deleteSnippets: true)
+        store.deleteCategory(name: KeyDropConstants.categoryUncategorized, deleteSnippets: true)
+        XCTAssertEqual(store.snippets.count, countBefore)
+    }
+
+    @MainActor
+    func testPanelViewModelExcludesEmptyCustomCategories() {
+        let store = SnippetStore.shared
+        let originalSnippets = store.snippets
+        let originalCustomCategories = store.customCategories
+        defer {
+            store.snippets = originalSnippets
+            store.customCategories = originalCustomCategories
+        }
+
+        store.snippets = [Snippet(title: "Email", content: "a@b.com", category: "工作")]
+        store.customCategories = ["工作", "空分类"]
+
+        let viewModel = PanelViewModel()
+        XCTAssertTrue(viewModel.categories.contains("工作"))
+        XCTAssertFalse(viewModel.categories.contains("空分类"))
+    }
+
+    func testWorkspaceLocalizationKeysPresentInZhAndEn() {
+        let keys = [
+            "keydrop_shortcut_compact",
+            "keydrop_search_full_placeholder",
+            "keydrop_new_snippet_btn",
+            "keydrop_draft_banner",
+            "keydrop_draft_hint",
+            "keydrop_draft_row_title",
+            "keydrop_draft_row_badge",
+            "keydrop_draft_row_subtitle",
+            "keydrop_title_input_placeholder",
+            "keydrop_content_input_placeholder",
+            "keydrop_create_btn",
+            "keydrop_autosaved",
+            "keydrop_content_stats",
+            "keydrop_move_to_category",
+            "keydrop_delete_category",
+            "keydrop_delete_category_title",
+            "keydrop_delete_category_message",
+            "keydrop_delete_category_keep_snippets",
+            "keydrop_delete_category_with_snippets",
+            "keydrop_delete_snippet_confirm_title",
+            "keydrop_delete_snippet_confirm_message",
+            "keydrop_discard_draft_title",
+            "keydrop_discard_draft_message",
+            "keydrop_discard_draft_btn",
+            "keydrop_keep_editing_btn",
+            "keydrop_empty_library_title",
+            "keydrop_empty_library_desc",
+            "keydrop_create_first_btn",
+            "keydrop_empty_category_title",
+            "keydrop_empty_category_desc",
+            "keydrop_create_in_category_btn",
+            "keydrop_clear_search_btn",
+            "keydrop_select_prompt_title",
+            "keydrop_select_prompt_desc",
+            "keydrop_copy_content_btn",
+            "keydrop_enabled_compact",
+            "keydrop_meta_section_title",
+            "keydrop_meta_created_at",
+            "keydrop_meta_updated_at",
+            "keydrop_total_count",
+            "keydrop_filtered_count",
+            "keydrop_saved_just_now",
+            "keydrop_chars_count",
+        ]
+
+        for key in keys {
+            let zh = I18n.localized(key, language: .zhHans)
+            let en = I18n.localized(key, language: .en)
+            XCTAssertNotEqual(zh, key, "Missing zh-Hans localization for \(key)")
+            XCTAssertNotEqual(en, key, "Missing en localization for \(key)")
+            XCTAssertFalse(zh.isEmpty)
+            XCTAssertFalse(en.isEmpty)
+        }
     }
 }
 

@@ -95,10 +95,10 @@ final class AppWindowManager {
             window = hostingWindow(SettingsView(state: appState),
                                    styleMask: [.titled, .closable, .resizable, .miniaturizable])
             window.toolbarStyle = .unified
-            window.setFrameAutosaveName("MeowOutSettingsWindow")
+            window.setFrameAutosaveName(SettingsWindowResizeBridge.compactAutosaveName)
             // setFrameAutosaveName 的返回值只表示名字可用，与是否恢复过尺寸无关；
             // 用 setFrameUsingName 判断有无历史尺寸，没有历史尺寸才居中，避免首启落在屏幕角落
-            hasRestoredFrame = window.setFrameUsingName("MeowOutSettingsWindow")
+            hasRestoredFrame = window.setFrameUsingName(SettingsWindowResizeBridge.compactAutosaveName)
         case .breathing:
             window = hostingWindow(BreathingView(),
                                    styleMask: [.titled, .closable, .fullSizeContentView])

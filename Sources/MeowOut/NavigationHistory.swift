@@ -38,18 +38,15 @@ struct NavigationHistory<Route: Hashable> {
     }
 }
 
-/// 设置窗口的路由：一个侧栏页，或压栈进入的常用语列表页 / 单条常用语编辑页 / 统计页。
+/// 设置窗口的路由：一个侧栏页，或从「健康作息」压栈进入的统计页。
 enum SettingsRoute: Hashable {
     case tab(String)
-    case keydropManager
-    case keydropManagerEntry(UUID)
     case statistics
 
     /// 钻进子页时父页签保持高亮，对齐系统设置里「通用 → 关于本机」的表现。
     var highlightedSidebarID: String {
         switch self {
         case .tab(let id): return id
-        case .keydropManager, .keydropManagerEntry: return "keydrop"
         case .statistics: return "rest"
         }
     }

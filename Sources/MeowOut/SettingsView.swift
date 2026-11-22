@@ -50,10 +50,10 @@ struct SettingsView: View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
             SidebarList(sections: sidebarSections, selection: sidebarSelection)
         } detail: {
-            // 常用语的两个页面自带滚动区与自适应高度的编辑器，套在外层 ScrollView 里会拿到
-            // 无界高度建议，导致内层列表不再滚动、值行塌成一条。只有卡片式设置页需要外层滚动。
+            // 常用语工作台自带列表滚动区与全高多行编辑器，套在外层 ScrollView 里会拿到
+            // 无界高度建议，导致内层列表不再滚动、编辑器高度坍缩。只有卡片式设置页需要外层滚动。
             switch history.current {
-            case .keydropManager, .keydropManagerEntry:
+            case .tab("keydrop"):
                 detailPane
             case .tab, .statistics:
                 ScrollView(showsIndicators: false) {
@@ -93,6 +93,9 @@ struct SettingsView: View {
             }
         }
         .frame(minWidth: 620, idealWidth: 660, minHeight: 560, idealHeight: 580)
+        .background(
+            SettingsWindowResizeBridge(isExpandedWorkspace: history.current == .tab("keydrop"))
+        )
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willBecomeActiveNotification)) { _ in
             let trusted = AXIsProcessTrusted()
             accessibilityStatus = trusted
@@ -125,21 +128,16 @@ struct SettingsView: View {
     @ViewBuilder
     private var detailPane: some View {
         switch history.current {
-        case .keydropManager:
-            SnippetManagerListView(browse: keydropBrowse) { id in
-                history.push(.keydropManagerEntry(id))
-            }
-        case .keydropManagerEntry(let id):
-            // 按 id 绑定身份，保证编辑页的本地 @State 每条一份。今天路由切换本身就会拆掉旧视图，
-            // 所以这层 .id 只是低成本的防御，防止将来视图被复用后状态串到下一条。
-            SnippetEntryEditorView(entryID: id)
-                .id(id)
         case .statistics:
             StatsView(state: state)
         case .tab(let id):
             switch id {
             case "behavior": behaviorCards
-            case "keydrop": keyDropCards
+            case "keydrop":
+                KeyDropSettingsWorkspaceView(
+                    browse: keydropBrowse,
+                    keyDropEnabledBinding: keyDropBinding
+                )
             case "clipboard": ClipboardSettingsView()
             case "shelf": ShelfSettingsView()
             case "quick_actions": QuickActionsSettingsView(state: state)
@@ -157,8 +155,6 @@ struct SettingsView: View {
     /// 工具栏标题跟随当前路由：钻进子页时显示该页自己的名字，与 macOS 系统设置的钻取体验一致。
     private var currentPageTitle: String {
         switch history.current {
-        case .keydropManager, .keydropManagerEntry:
-            return I18n.localized("keydrop_manager_title", language: state.language)
         case .statistics:
             return I18n.localized("stats_page_title", language: state.language)
         case .tab(let id):
@@ -178,7 +174,7 @@ struct SettingsView: View {
                 case .tab(let currentID) where currentID == id:
                     return                                // 已停在该页根，无操作
                 default:
-                    history.push(.tab(id))                // 含「从管理器退回常用语页根」
+                    history.push(.tab(id))                // 含「从统计页退回健康作息根」
                 }
             }
         )
@@ -743,32 +739,6 @@ struct SettingsView: View {
                 }
             }
         )
-    }
-
-    @ViewBuilder
-    private var keyDropCards: some View {
-        SettingsGroup {
-            SettingsRow(I18n.localized("keydrop_enabled", language: state.language),
-                        description: I18n.localized("keydrop_enabled_desc", language: state.language)) {
-                Toggle("", isOn: keyDropBinding)
-                    .labelsHidden()
-                    .toggleStyle(.switch)
-            }
-            SettingsRowDivider()
-            SettingsRow(I18n.localized("keydrop_shortcut", language: state.language),
-                        description: I18n.localized("keydrop_shortcut_desc", language: state.language)) {
-                KeyboardShortcuts.Recorder(for: .togglePanel)
-            }
-            SettingsRowDivider()
-            SettingsRow(I18n.localized("keydrop_manage_title", language: state.language),
-                        description: I18n.localized("keydrop_manage_desc", language: state.language)) {
-                Button(action: {
-                    history.push(.keydropManager)
-                }) {
-                    Text(I18n.localized("keydrop_open_manager_btn", language: state.language))
-                }
-            }
-        }
     }
 
     @ViewBuilder
