@@ -39,9 +39,9 @@ final class NavigationHistoryTests: XCTestCase {
     func testPushAfterGoBackTruncatesForwardBranch() {
         var history = NavigationHistory(root: SettingsRoute.tab("rest"))
         history.push(.tab("keydrop"))
-        history.push(.keydropManager)
+        history.push(.statistics)
         history.goBack()                    // 游标回到 .tab("keydrop")
-        history.push(.tab("memos"))         // 分支：丢弃 .keydropManager
+        history.push(.tab("memos"))         // 分支：丢弃 .statistics
 
         XCTAssertEqual(history.current, .tab("memos"))
         XCTAssertFalse(history.canGoForward)
@@ -59,45 +59,15 @@ final class NavigationHistoryTests: XCTestCase {
         history.goBack()
         XCTAssertEqual(history.current, .tab("rest"))
 
-        history.push(.keydropManager)
+        history.push(.statistics)
         history.goForward()
         history.goForward()
-        XCTAssertEqual(history.current, .keydropManager)
+        XCTAssertEqual(history.current, .statistics)
     }
 
-    func testKeydropManagerHighlightsKeydropSidebarItem() {
-        XCTAssertEqual(SettingsRoute.keydropManager.highlightedSidebarID, "keydrop")
+    func testTabRouteHighlightsItsOwnSidebarItem() {
+        XCTAssertEqual(SettingsRoute.tab("keydrop").highlightedSidebarID, "keydrop")
         XCTAssertEqual(SettingsRoute.tab("memos").highlightedSidebarID, "memos")
-    }
-
-    func testKeydropManagerEntryHighlightsKeydropSidebarItem() {
-        XCTAssertEqual(SettingsRoute.keydropManagerEntry(UUID()).highlightedSidebarID, "keydrop")
-    }
-
-    func testDifferentKeydropEntriesAreDistinctRoutes() {
-        let first = UUID()
-        let second = UUID()
-        XCTAssertNotEqual(SettingsRoute.keydropManagerEntry(first),
-                          SettingsRoute.keydropManagerEntry(second))
-
-        var history = NavigationHistory(root: SettingsRoute.keydropManager)
-        history.push(.keydropManagerEntry(first))
-        history.push(.keydropManagerEntry(second))
-        history.goBack()
-        XCTAssertEqual(history.current, .keydropManagerEntry(first))
-    }
-
-    func testPushingSameEntryTwiceDoesNotGrowHistory() {
-        // 列表用 List(selection:) + onChange 推进，macOS 14 上选中绑定每次点击会触发两次。
-        // 等值去重保证第二次是 no-op，否则一次点击会压两条历史。
-        let id = UUID()
-        var history = NavigationHistory(root: SettingsRoute.keydropManager)
-        history.push(.keydropManagerEntry(id))
-        history.push(.keydropManagerEntry(id))
-
-        history.goBack()
-        XCTAssertEqual(history.current, .keydropManager)
-        XCTAssertFalse(history.canGoBack)
     }
 
     func testBrowseStateDefaultsToUnfilteredList() {
@@ -106,6 +76,7 @@ final class NavigationHistoryTests: XCTestCase {
         let browse = KeyDropBrowseState()
         XCTAssertEqual(browse.selectedCategory, KeyDropConstants.categoryAll)
         XCTAssertEqual(browse.searchText, "")
+        XCTAssertNil(browse.selectedSnippetID)
     }
 
     func testStatisticsHighlightsHealthSidebarItem() {
