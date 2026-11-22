@@ -24,7 +24,7 @@ struct ShelfSettingsView: View {
             Group {
                 SettingsRowDivider()
                 SettingsRow(I18n.localized("shelf_settings_shortcut", language: state.language)) {
-                    KeyboardShortcuts.Recorder(for: .toggleShelf)
+                    ShortcutRecorderView(for: .toggleShelf)
                 }
                 SettingsRowDivider()
                 SettingsRow(I18n.localized("shelf_settings_shake", language: state.language)) {

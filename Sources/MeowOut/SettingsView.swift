@@ -1053,7 +1053,7 @@ struct LauncherTriggerSettingsView: View {
                         Text(I18n.localized("launcher_trigger_key", language: state.language))
                             .font(.system(size: 12))
                         Spacer()
-                        KeyboardShortcuts.Recorder(for: .toggleLauncher)
+                        ShortcutRecorderView(for: .toggleLauncher)
                     }
                 }
             }

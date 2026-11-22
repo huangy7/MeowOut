@@ -98,11 +98,11 @@ struct MemosSettingsView: View {
     private var shortcutCard: some View {
         SettingsGroup(I18n.localized("memos_settings_shortcuts", language: appState.language)) {
             SettingsRow(I18n.localized("memos_settings_quick_capture", language: appState.language)) {
-                KeyboardShortcuts.Recorder(for: .toggleMemosQuickCapture)
+                ShortcutRecorderView(for: .toggleMemosQuickCapture)
             }
             SettingsRowDivider()
             SettingsRow(I18n.localized("memos_settings_open_browser", language: appState.language)) {
-                KeyboardShortcuts.Recorder(for: .toggleMemosBrowserWindow)
+                ShortcutRecorderView(for: .toggleMemosBrowserWindow)
             }
         }
     }

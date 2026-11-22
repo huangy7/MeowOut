@@ -72,7 +72,7 @@ struct ClipboardSettingsView: View {
             }
             SettingsRowDivider()
             SettingsRow(I18n.localized("clipboard_shortcut", language: appState.language)) {
-                KeyboardShortcuts.Recorder(for: .toggleClipboardHistoryPanel)
+                ShortcutRecorderView(for: .toggleClipboardHistoryPanel)
                     .disabled(!settings.isEnabled)
                     .opacity(settings.isEnabled ? 1 : 0.45)
             }

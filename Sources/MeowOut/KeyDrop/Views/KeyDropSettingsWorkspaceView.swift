@@ -173,8 +173,7 @@ struct KeyDropSettingsWorkspaceView: View {
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                KeyboardShortcuts.Recorder(for: .togglePanel)
-                    .controlSize(.small)
+                ShortcutRecorderView(for: .togglePanel)
             }
         }
         .padding(.horizontal, 14)

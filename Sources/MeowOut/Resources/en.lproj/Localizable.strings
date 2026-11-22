@@ -677,3 +677,13 @@
 "settings_tab_power" = "Power";
 "unit_percent" = "%lld%%";
 "power_battery_off" = "Off";
+
+/* Global Shortcut Recorder */
+"shortcut_record_placeholder" = "Record Shortcut";
+"shortcut_press_prompt" = "Press shortcut…";
+"shortcut_clear_tooltip" = "Clear shortcut";
+"shortcut_reset_default" = "Reset to Default";
+"shortcut_modifier_required" = "Add a modifier key";
+"shortcut_conflict_in_app" = "Shortcut \"%@\" is already used by \"%@\". Please choose another combination.";
+"shortcut_conflict_main_menu" = "This shortcut is already used by the \"%@\" menu item.";
+"shortcut_disallowed_sandbox" = "Option must be combined with Command or Control.";
